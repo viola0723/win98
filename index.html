@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>我的 Win98 桌面</title>
+  <link rel="icon" href="assets/icons/computer.png">
+  <link rel="stylesheet" href="css/98.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 桌面：图标由 desktop.js 按 js/config.js 的配置渲染 -->
+  <div id="desktop" aria-label="桌面"></div>
+
+  <!-- 窗口层：所有打开的窗口都在这里面 -->
+  <div id="windows"></div>
+
+  <!-- 开始菜单（默认隐藏） -->
+  <div id="start-menu" class="window" hidden>
+    <div class="start-menu-banner"><span>Windows<strong>98</strong></span></div>
+    <ul id="start-menu-items" role="menu"></ul>
+  </div>
+
+  <!-- 任务栏 -->
+  <footer id="taskbar">
+    <button id="start-button" type="button">
+      <img src="assets/icons/start.png" alt="" width="16" height="16">
+      <strong>开始</strong>
+    </button>
+    <div id="task-buttons" role="toolbar" aria-label="任务栏"></div>
+    <div id="taskbar-tray">
+      <span id="clock">--:--</span>
+    </div>
+  </footer>
+
+  <!-- 关机彩蛋（默认隐藏） -->
+  <div id="shutdown-overlay" hidden>
+    <p>现在可以安全地关闭计算机了。</p>
+    <p class="shutdown-hint">点击任意位置重新开机</p>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/windowManager.js"></script>
+  <script src="js/apps.js"></script>
+  <script src="js/desktop.js"></script>
+  <script src="js/taskbar.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

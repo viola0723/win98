@@ -1,0 +1,467 @@
+/* ============================================================
+   Win98 复古桌面网站 — 自定义样式
+   （98.css 负责组件外观，这里负责桌面布局、任务栏、开始菜单、响应式）
+   ============================================================ */
+
+:root {
+  --taskbar-h: 40px;          /* 任务栏高度 */
+  --desktop-teal: #008080;    /* 经典 Win98 青色桌面 */
+  --navy: #000080;            /* 经典选中蓝 */
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* 中文字体回退：98.css 的像素字体没有中文字形，补全回退链 */
+body, button, input, textarea, select, option, label, .title-bar-text, .window-body {
+  font-family: "Pixelated MS Sans Serif", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+}
+
+img {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* ---------------- 桌面 ---------------- */
+
+#desktop {
+  position: fixed;
+  inset: 0 0 var(--taskbar-h) 0;
+  background: var(--desktop-teal);
+  display: flex;
+  flex-direction: column;      /* 经典布局：从左上角逐列向下排 */
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 6px;
+  padding: 10px;
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.desktop-icon {
+  width: 80px;
+  padding: 6px 2px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  border: 1px dotted transparent;
+  box-sizing: border-box;
+}
+
+.desktop-icon:focus-visible {
+  outline: none;
+  border-color: #fff;
+}
+
+.desktop-icon img {
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
+}
+
+.desktop-icon .icon-label {
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.25;
+  text-align: center;
+  text-shadow: 1px 1px 0 #000;
+  word-break: break-all;
+  pointer-events: none;
+  padding: 0 2px;
+}
+
+/* 选中态：蓝底白字 + 虚线框 */
+.desktop-icon.selected .icon-label {
+  background: var(--navy);
+  outline: 1px dotted #fff;
+}
+
+/* ---------------- 窗口层 ---------------- */
+
+#windows {
+  position: fixed;
+  inset: 0 0 var(--taskbar-h) 0;
+  pointer-events: none;   /* 空白处不挡桌面点击，窗口本身恢复可点 */
+  z-index: 10;
+}
+
+.app-window {
+  position: absolute;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  min-height: 120px;
+  box-sizing: border-box;   /* 让 style.width 与 offsetWidth 一致，最大化还原时不漂移 */
+}
+
+.app-window .window-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+.app-window.maximized {
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 拖拽时禁用文本选择 */
+body.dragging {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: move;
+}
+
+/* 标题栏可拖拽（触屏拖拽时阻止页面滚动） */
+.app-window .title-bar {
+  touch-action: none;
+}
+
+/* 标题栏里的小图标 */
+.title-bar-text img {
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+  margin-right: 4px;
+}
+
+/* ---------------- 任务栏 ---------------- */
+
+#taskbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--taskbar-h);
+  background: #c0c0c0;
+  border-top: 2px solid #fff;
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  padding: 3px 4px;
+  box-sizing: border-box;
+  z-index: 1000;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#start-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+#start-button.active {
+  /* 按下状态复用 98.css 的 :active 凹陷效果 */
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+}
+
+#task-buttons {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+#task-buttons::-webkit-scrollbar {
+  display: none;
+}
+
+.task-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 110px;
+  max-width: 160px;
+  padding: 0 6px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.task-button img {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.task-button span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11px;
+}
+
+.task-button.active {
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+  background: repeating-conic-gradient(#fff 0% 25%, #c0c0c0 0% 50%) 0 / 2px 2px;
+  font-weight: bold;
+}
+
+#taskbar-tray {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #808080;
+  margin: 1px;
+}
+
+#clock {
+  font-size: 11px;
+}
+
+/* ---------------- 开始菜单 ---------------- */
+
+#start-menu {
+  position: fixed;
+  left: 2px;
+  bottom: var(--taskbar-h);
+  z-index: 1100;
+  display: flex;
+  padding: 3px;
+  min-width: 190px;
+}
+
+/* hidden 属性优先级必须高于上面的 display 设置，否则菜单/遮罩会一直显示 */
+#start-menu[hidden],
+#shutdown-overlay[hidden] {
+  display: none;
+}
+
+.start-menu-banner {
+  width: 26px;
+  background: linear-gradient(to bottom, #1084d0 0%, #000080 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 6px 0;
+  flex-shrink: 0;
+}
+
+.start-menu-banner span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: #c0c0c0;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+.start-menu-banner strong {
+  color: #fff;
+}
+
+#start-menu-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+}
+
+#start-menu-items li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 18px 6px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#start-menu-items li img {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+#start-menu-items li:hover,
+#start-menu-items li:focus-visible {
+  background: var(--navy);
+  color: #fff;
+  outline: none;
+}
+
+#start-menu-items li.menu-separator {
+  padding: 0;
+  margin: 3px 2px;
+  height: 0;
+  border-top: 1px solid #808080;
+  border-bottom: 1px solid #fff;
+  cursor: default;
+}
+
+#start-menu-items li.menu-separator:hover {
+  background: none;
+}
+
+/* ---------------- 关机彩蛋 ---------------- */
+
+#shutdown-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  cursor: pointer;
+}
+
+#shutdown-overlay p {
+  color: #ffa500;
+  font-size: 22px;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+  padding: 0 16px;
+}
+
+#shutdown-overlay .shutdown-hint {
+  color: #666;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+/* ---------------- 应用通用小样式 ---------------- */
+
+.app-about p { margin: 0 0 10px; }
+.app-about h3 { margin: 4px 0 8px; }
+.app-about ul { margin: 4px 0; padding-left: 20px; }
+
+.app-notepad {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin: 0;
+}
+
+.app-notepad .sunken-panel {
+  flex: 1;
+  min-height: 0;
+  margin: 0 0 4px;
+  overflow: hidden;
+  display: flex;
+}
+
+.app-notepad textarea {
+  flex: 1;
+  border: none;
+  resize: none;
+  outline: none;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.app-calculator {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 220px;
+  margin: 0 auto;
+}
+
+.app-calculator .calc-display {
+  text-align: right;
+  font-size: 18px;
+  padding: 4px 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app-calculator .calc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.app-calculator .calc-grid button {
+  min-height: 30px;
+  font-size: 13px;
+}
+
+.app-recycle {
+  text-align: center;
+}
+
+.app-recycle img {
+  width: 48px;
+  height: 48px;
+  margin: 8px 0;
+}
+
+/* ---------------- 手机端适配（≤640px） ---------------- */
+
+@media (max-width: 640px) {
+  :root {
+    --taskbar-h: 44px;
+  }
+
+  #desktop {
+    flex-direction: row;      /* 手机上横向排列、自动换行更自然 */
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .desktop-icon {
+    width: 72px;
+    padding: 8px 2px 6px;     /* 加大触控热区 */
+  }
+
+  .desktop-icon .icon-label {
+    font-size: 12px;
+  }
+
+  .task-button {
+    min-width: 44px;
+    max-width: 44px;
+    padding: 0;
+    justify-content: center;  /* 手机上任务按钮只显示图标 */
+  }
+
+  .task-button span {
+    display: none;
+  }
+
+  #start-menu-items li {
+    padding: 12px 24px 12px 10px;  /* 菜单项加高，方便手指点按 */
+    font-size: 13px;
+  }
+
+  #start-menu-items li.menu-separator {
+    padding: 0;
+  }
+
+  .app-window .title-bar {
+    min-height: 24px;
+  }
+
+  .title-bar-controls button {
+    min-width: 20px;
+    min-height: 18px;
+  }
+}
