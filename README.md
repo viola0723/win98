@@ -14,7 +14,7 @@ python3 -m http.server 8098
 
 ## 在线访问
 
-通过 GitHub Pages 部署：`https://<用户名>.github.io/win98/`
+通过 GitHub Pages 部署：**https://viola0723.github.io/win98/**
 
 ## 开发文档
 

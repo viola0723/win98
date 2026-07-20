@@ -11,7 +11,7 @@
 - 已可用：桌面图标渲染、窗口系统（拖拽/置顶/最小化/最大化/关闭/单例）、任务栏（开始按钮、开始菜单、任务按钮、时钟）、关机彩蛋、手机端适配（窗口默认最大化、双触打开图标）
 - 已有模块（见 `js/config.js`）：我的电脑(about)、记事本(notepad)、计算器(calculator)、友情链接(link 示例)、回收站(recycle)
 - 图标已全部替换为自绘无版权像素图标（`tools/make_icons.py` 生成，微软原版素材已移除）
-- 待办决策：无头浏览器、GitHub Pages 部署（见文末「环境备忘」）
+- 已部署 GitHub Pages（见文末「环境备忘」），无头浏览器截图验收流程已就绪
 
 ## 快速上手
 
@@ -60,6 +60,8 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 ## 环境备忘
 
 - 预览：本地 8098 端口（`python3 -m http.server 8098`）
-- 无头浏览器：（待安装）用于改动后自动截图验收双端渲染
-- 部署：（待办）目标 GitHub Pages，仓库未建
+- 无头浏览器：已装 Playwright Chromium，验收截图命令
+  `npx -y playwright screenshot --viewport-size=1280,800(或390,844) <url> <输出.png>`
+- 部署：已上线 GitHub Pages —— https://viola0723.github.io/win98/ （仓库 https://github.com/viola0723/win98 ，推送后约 1-3 分钟自动更新）
+- GitHub 凭据：token 已存 macOS 钥匙串（repo 权限），`git push` 直接可用；本机 gh CLI 在 `../tools/gh_2.96.0_macOS_amd64/bin/gh`（注意：因 token 只有 repo scope，gh 本体拒绝登录，如需完整 gh 功能要重新设备授权并勾选完整 scope）
 - 图标版权：已全部替换为自绘像素图标（`tools/make_icons.py`），无版权顾虑；需要新图标就改脚本重跑
