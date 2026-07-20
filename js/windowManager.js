@@ -150,6 +150,53 @@
   }
 
   /**
+   * 右下角拖柄缩放（Pointer Events：鼠标 / 触屏通用）
+   * 最大化时禁用（手机端默认最大化，天然不涉及）
+   */
+  function enableResize(handle, grip) {
+    var startX, startY, originW, originH, resizing = false;
+    var MIN_W = 200, MIN_H = 120;   // 与 style.css 里 .app-window 的 min-width/min-height 一致
+
+    grip.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      if (handle.maximized) return;
+
+      resizing = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      originW = handle.el.offsetWidth;
+      originH = handle.el.offsetHeight;
+      grip.setPointerCapture(e.pointerId);
+      document.body.classList.add('dragging'); // 复用：拖动期间禁用文本选择
+      focusWindow(handle);
+      e.preventDefault();
+    });
+
+    grip.addEventListener('pointermove', function (e) {
+      if (!resizing) return;
+      var layer = getLayer();
+      // 限制在最小尺寸以上、且不超出窗口层右/下边缘（保证拖柄始终够得着）
+      var maxW = layer.clientWidth - handle.el.offsetLeft;
+      var maxH = layer.clientHeight - handle.el.offsetTop;
+      var w = Math.max(MIN_W, Math.min(originW + e.clientX - startX, maxW));
+      var h = Math.max(MIN_H, Math.min(originH + e.clientY - startY, maxH));
+      handle.el.style.width = w + 'px';
+      handle.el.style.height = h + 'px';
+    });
+
+    function endResize(e) {
+      if (!resizing) return;
+      resizing = false;
+      document.body.classList.remove('dragging');
+      if (grip.hasPointerCapture && grip.hasPointerCapture(e.pointerId)) {
+        grip.releasePointerCapture(e.pointerId);
+      }
+    }
+    grip.addEventListener('pointerup', endResize);
+    grip.addEventListener('pointercancel', endResize);
+  }
+
+  /**
    * 打开一个模块窗口（单例：已打开则聚焦）
    * @param {Object} moduleConfig config.js 里 WIN98_MODULES 的一条记录
    * @returns {Object} 窗口句柄
@@ -204,6 +251,12 @@
 
     el.appendChild(titleBar);
     el.appendChild(body);
+
+    // 右下角缩放拖柄（DOM 里放在 body 之后，保证压在内容之上）
+    var grip = document.createElement('div');
+    grip.className = 'window-resize-grip';
+    el.appendChild(grip);
+
     layer.appendChild(el);
 
     // --- 句柄 ---
@@ -240,6 +293,7 @@
     btnClose.addEventListener('click', function () { closeWindow(handle); });
     el.addEventListener('pointerdown', function () { focusWindow(handle); });
     enableDrag(handle, titleBar);
+    enableResize(handle, grip);
 
     // 手机端默认最大化
     if (isMobile()) {
