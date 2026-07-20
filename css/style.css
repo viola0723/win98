@@ -606,3 +606,481 @@ body.dragging {
     min-height: 18px;
   }
 }
+
+/* ============================================================
+ * 德州扑克模块（js/apps/poker.js）—— 深色赌场风游戏界面
+ * 全部样式以 .app-poker 为作用域（移植自独立版 德州扑克.html）：
+ * 原 :root 变量收敛进 .app-poker；弹窗/彩带改为容器内 absolute 定位。
+ * ============================================================ */
+/* ============================================================
+   设计系统 — 深色赌场风
+   ============================================================ */
+.app-poker{
+  --card-w: 62px;
+  --card-h: 88px;
+  --gold: #e9c46a;
+  --gold-deep: #c9a227;
+  --felt-1: #20714a;
+  --felt-2: #0c4a2c;
+  --felt-3: #083a22;
+  --bg-1: #07120c;
+  --bg-2: #0b1f14;
+  --panel: rgba(8, 20, 14, 0.82);
+  --line: rgba(233, 196, 106, 0.22);
+  --txt: #e8f0ea;
+  --txt-dim: #9db8a7;
+  --danger: #d64545;
+  --info: #3f8ef7;
+  --success: #2fae64;
+  --warn: #e8873a;
+  --radius: 14px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+.app-poker *{ box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+.app-poker{
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(32,113,74,0.35), transparent 60%),
+    radial-gradient(900px 500px at 50% 115%, rgba(32,113,74,0.22), transparent 60%),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2) 55%, #060d09);
+  color: var(--txt);
+  height: 100%;
+  display: flex; flex-direction: column;
+  user-select: none; -webkit-user-select: none;
+  overflow-x: hidden;
+}
+
+/* ============ 顶栏 ============ */
+.app-poker .topbar{
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px; gap: 8px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.15));
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+}
+.app-poker .brand{ font-size: 16px; font-weight: 800; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.app-poker .brand .suits{ color: var(--gold); }
+.app-poker .brand small{ font-size: 10px; color: var(--txt-dim); font-weight: 500; letter-spacing: 0.5px; }
+.app-poker .top-actions{ display: flex; gap: 6px; }
+.app-poker .icon-btn{
+  width: 36px; height: 36px; border-radius: 10px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  color: var(--txt); font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.app-poker .icon-btn:hover{ background: rgba(233,196,106,0.15); border-color: var(--line); }
+.app-poker .icon-btn.off{ opacity: 0.45; }
+.app-poker .icon-btn.on{ background: rgba(233,196,106,0.2); border-color: var(--gold); color: var(--gold); }
+
+/* ============ 主区域 ============ */
+.app-poker .main{
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 10px 12px 6px; gap: 8px; min-height: 0;
+}
+
+/* ============ 牌桌 ============ */
+.app-poker .table{
+  position: relative; width: 100%; max-width: 860px;
+  flex: 1; min-height: 380px;
+  border-radius: 220px / 46%;
+  background:
+    radial-gradient(ellipse at 50% 42%, var(--felt-1) 0%, var(--felt-2) 62%, var(--felt-3) 100%);
+  border: 10px solid #2c1a10;
+  outline: 2px solid rgba(233,196,106,0.35);
+  outline-offset: -6px;
+  box-shadow:
+    0 24px 60px rgba(0,0,0,0.6),
+    inset 0 0 90px rgba(0,0,0,0.45),
+    inset 0 2px 0 rgba(255,255,255,0.06);
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 18px 26px;
+  overflow: hidden;
+}
+.app-poker .table::before{ /* 呢绒噪点 */
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.5;
+  background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 5px 5px;
+}
+.app-poker .table::after{ /* 中央装饰 */
+  content: "♠ ♥ ♦ ♣";
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 15px; letter-spacing: 12px; color: rgba(255,255,255,0.05);
+  pointer-events: none; white-space: nowrap;
+}
+
+/* ============ 座位 ============ */
+.app-poker .seat{
+  position: relative; display: flex; align-items: center; justify-content: center;
+  gap: 14px; z-index: 2; transition: filter .25s;
+}
+.app-poker .seat.me{ flex-direction: row; }
+.app-poker .seat .who{
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  min-width: 86px; padding: 8px 10px; border-radius: 12px;
+  background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08);
+  transition: box-shadow .3s, border-color .3s;
+}
+.app-poker .seat .avatar{ font-size: 26px; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+.app-poker .seat .name{ font-size: 12px; font-weight: 700; color: var(--txt); display:flex; align-items:center; gap:5px; }
+.app-poker .seat .stack{ font-size: 13px; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
+.app-poker .seat .stack.low{ color: #ff8a6a; }
+.app-poker .role-tag{
+  font-size: 9px; padding: 1px 6px; border-radius: 20px; font-weight: 700;
+  background: rgba(255,255,255,0.12); color: var(--txt-dim);
+}
+.app-poker .role-tag.blind{ background: rgba(63,142,247,0.25); color: #9cc6ff; }
+
+.app-poker .seat.turn .who{
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(233,196,106,0.35), 0 0 24px rgba(233,196,106,0.35);
+  animation: turnPulse 1.4s ease-in-out infinite;
+}
+@keyframes turnPulse{
+  0%,100% { box-shadow: 0 0 0 2px rgba(233,196,106,0.35), 0 0 14px rgba(233,196,106,0.25); }
+  50% { box-shadow: 0 0 0 2px rgba(233,196,106,0.6), 0 0 30px rgba(233,196,106,0.5); }
+}
+.app-poker .seat.winner .who{ border-color: #7bed7b; box-shadow: 0 0 26px rgba(123,237,123,0.5); }
+
+/* 庄家按钮 */
+.app-poker .dealer-btn{
+  position: absolute; width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(180deg, #fff, #d9d9d9); color: #1a1a1a;
+  font-size: 12px; font-weight: 900; display: none;
+  align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5); z-index: 5;
+}
+.app-poker .seat.ai .dealer-btn{ right: calc(50% - 150px); bottom: -4px; }
+.app-poker .seat.me .dealer-btn{ left: calc(50% - 150px); top: -4px; }
+.app-poker .dealer-btn.show{ display: flex; }
+
+/* 下注徽章 */
+.app-poker .bet-badge{
+  position: absolute; display: none; align-items: center; gap: 5px;
+  font-size: 13px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums;
+  background: rgba(0,0,0,0.55); border: 1px solid rgba(233,196,106,0.4);
+  padding: 4px 12px 4px 6px; border-radius: 20px; z-index: 4;
+}
+.app-poker .seat.ai .bet-badge{ bottom: -34px; left: 50%; transform: translateX(-50%); }
+.app-poker .seat.me .bet-badge{ top: -34px; left: 50%; transform: translateX(-50%); }
+.app-poker .bet-badge.show{ display: flex; animation: betPop .3s ease; }
+@keyframes betPop{ 0% { transform: translateX(-50%) scale(0.5); opacity: 0; } 100% { transform: translateX(-50%) scale(1); opacity: 1; } }
+.app-poker .bet-badge .mini-chip{
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffdf8e, var(--gold-deep) 70%);
+  border: 2px dashed rgba(0,0,0,0.35); border-color: rgba(90,60,0,0.5);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+/* 行动气泡 */
+.app-poker .toast{
+  position: absolute; left: 50%; transform: translateX(-50%) translateY(6px);
+  padding: 6px 16px; border-radius: 22px; font-size: 14px; font-weight: 800;
+  background: rgba(10,25,18,0.95); border: 1px solid var(--line);
+  color: var(--gold); opacity: 0; pointer-events: none; z-index: 8;
+  transition: opacity .25s, transform .25s; white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+}
+.app-poker .seat.ai .toast{ top: calc(100% + 2px); }
+.app-poker .seat.me .toast{ bottom: calc(100% + 2px); }
+.app-poker .toast.show{ opacity: 1; transform: translateX(-50%) translateY(0); }
+.app-poker .toast.fold{ color: #ff8a8a; }
+.app-poker .toast.raise, .app-poker .toast.allin{ color: #ffd76a; }
+.app-poker .toast.allin{ border-color: #ff9d45; animation: allinGlow 0.8s ease infinite alternate; }
+@keyframes allinGlow{ from { box-shadow: 0 0 8px rgba(255,157,69,0.4);} to { box-shadow: 0 0 22px rgba(255,157,69,0.9);} }
+
+/* ============ 中央区域 ============ */
+.app-poker .center-area{
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  z-index: 2; padding: 6px 0;
+}
+.app-poker .pot-display{
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(0,0,0,0.45); border: 1px solid var(--line);
+  padding: 5px 18px; border-radius: 24px;
+  font-size: 16px; font-weight: 800; color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.app-poker .pot-display .lbl{ font-size: 11px; color: var(--txt-dim); font-weight: 600; }
+.app-poker .pot-display.bump{ animation: potBump .35s ease; }
+@keyframes potBump{ 40% { transform: scale(1.12); } }
+
+.app-poker .phase-label{ font-size: 12px; color: var(--txt-dim); letter-spacing: 2px; font-weight: 600; }
+.app-poker .phase-label b{ color: var(--gold); }
+
+/* ============ 卡牌 ============ */
+.app-poker .cards{ display: flex; gap: 8px; justify-content: center; align-items: center; min-height: calc(var(--card-h) + 4px); }
+.app-poker .card{
+  position: relative; width: var(--card-w); height: var(--card-h);
+  background: linear-gradient(160deg, #ffffff 0%, #f2f0ea 100%);
+  border-radius: calc(var(--card-w) * 0.11);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(0,0,0,0.08);
+  color: #151a17; flex-shrink: 0;
+  transform-style: preserve-3d;
+}
+.app-poker .card.red{ color: #c62828; }
+.app-poker .card .c-top{
+  position: absolute; top: 5%; left: 8%;
+  display: flex; flex-direction: column; align-items: center; line-height: 1.05;
+}
+.app-poker .card .c-top b{ font-size: calc(var(--card-w) * 0.30); font-weight: 900; }
+.app-poker .card .c-top span{ font-size: calc(var(--card-w) * 0.26); }
+.app-poker .card .c-pip{
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: calc(var(--card-w) * 0.52); opacity: 0.92;
+  transform: translateY(8%);
+}
+.app-poker .card.back{
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.14) 0 18%, transparent 19%),
+    repeating-linear-gradient(45deg, #1b3f74 0 6px, #16345f 6px 12px);
+  border: 3px solid #eef2ff;
+  display: flex; align-items: center; justify-content: center;
+}
+.app-poker .card.back::after{
+  content: "♠"; color: rgba(255,255,255,0.85); font-size: calc(var(--card-w) * 0.4);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+}
+.app-poker .card.slot{
+  background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.16);
+  box-shadow: none;
+}
+.app-poker .card.deal{ animation: cardDeal .38s cubic-bezier(.2,.9,.3,1.2) backwards; }
+@keyframes cardDeal{
+  0% { transform: translateY(-70px) scale(0.3) rotate(-14deg); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+.app-poker .card.flip{ animation: cardFlip .5s ease backwards; }
+@keyframes cardFlip{
+  0% { transform: rotateY(90deg) scale(0.85); opacity: 0.4; }
+  100% { transform: rotateY(0) scale(1); opacity: 1; }
+}
+.app-poker .card.win-card{ box-shadow: 0 0 18px rgba(233,196,106,0.9), 0 3px 8px rgba(0,0,0,0.4); }
+
+/* ============ 手牌强度条 ============ */
+.app-poker .strength-bar{
+  display: flex; align-items: center; gap: 10px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; padding: 6px 14px; font-size: 13px;
+  max-width: 860px; width: 100%; justify-content: center; min-height: 34px;
+}
+.app-poker .strength-bar .hand-name{ font-weight: 800; color: var(--gold); }
+.app-poker .strength-bar .eq-wrap{ display: none; align-items: center; gap: 6px; flex: 1; max-width: 260px; }
+.app-poker .strength-bar .eq-wrap.show{ display: flex; }
+.app-poker .eq-track{ flex: 1; height: 8px; border-radius: 6px; background: rgba(255,255,255,0.1); overflow: hidden; }
+.app-poker .eq-fill{ height: 100%; border-radius: 6px; background: linear-gradient(90deg, #d64545, #e9c46a 55%, #2fae64); transition: width .5s ease; }
+.app-poker .eq-num{ font-size: 12px; font-weight: 800; color: var(--txt); min-width: 40px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ============ 日志 ============ */
+.app-poker .log{
+  width: 100%; max-width: 860px; max-height: 64px; overflow-y: auto;
+  background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px; padding: 6px 12px; font-size: 12px; line-height: 1.7;
+  color: var(--txt-dim);
+}
+.app-poker .log .l-win{ color: #7bed7b; font-weight: 700; }
+.app-poker .log .l-fold{ color: #ff8a8a; }
+.app-poker .log .l-gold{ color: var(--gold); }
+.app-poker .log .l-sys{ color: #8fb8ff; }
+
+/* ============ 操作栏 ============ */
+.app-poker .action-bar{
+  position: sticky; bottom: 0; z-index: 60;
+  background: linear-gradient(180deg, rgba(6,14,10,0.9), rgba(4,10,7,0.98));
+  border-top: 1px solid var(--line);
+  backdrop-filter: blur(10px);
+  padding: 10px 14px calc(10px + var(--safe-b));
+  display: flex; flex-direction: column; gap: 8px;
+}
+.app-poker .raise-panel{ display: none; flex-direction: column; gap: 6px; max-width: 860px; width: 100%; margin: 0 auto; }
+.app-poker .raise-panel.show{ display: flex; }
+.app-poker .raise-top{ display: flex; align-items: center; gap: 12px; }
+.app-poker .raise-amt{
+  min-width: 86px; text-align: center; font-size: 18px; font-weight: 900; color: var(--gold);
+  font-variant-numeric: tabular-nums;
+  background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line);
+}
+.app-poker input[type="range"].raise-slider{
+  flex: 1; -webkit-appearance: none; appearance: none; height: 8px; border-radius: 6px;
+  background: linear-gradient(90deg, var(--gold-deep), var(--gold));
+  outline: none; cursor: pointer;
+}
+.app-poker input[type="range"].raise-slider::-webkit-slider-thumb{
+  -webkit-appearance: none; appearance: none; width: 26px; height: 26px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff, #d8d8d8);
+  border: 3px solid var(--gold-deep); box-shadow: 0 2px 8px rgba(0,0,0,0.5); cursor: pointer;
+}
+.app-poker input[type="range"].raise-slider::-moz-range-thumb{
+  width: 22px; height: 22px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff, #d8d8d8);
+  border: 3px solid var(--gold-deep); box-shadow: 0 2px 8px rgba(0,0,0,0.5); cursor: pointer;
+}
+.app-poker .quick-bets{ display: flex; gap: 6px; justify-content: center; }
+.app-poker .quick-bets button{
+  flex: 1; max-width: 130px; padding: 6px 4px; font-size: 12px; font-weight: 700;
+  background: rgba(255,255,255,0.07); color: var(--txt); border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 8px; cursor: pointer; transition: all .15s;
+}
+.app-poker .quick-bets button:hover{ border-color: var(--gold); color: var(--gold); }
+
+.app-poker .btn-row{ display: flex; gap: 8px; justify-content: center; max-width: 860px; width: 100%; margin: 0 auto; }
+.app-poker .act-btn{
+  flex: 1; max-width: 200px; padding: 13px 8px; border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px;
+  transition: transform .12s, box-shadow .12s, filter .12s;
+  color: #fff; position: relative;
+}
+.app-poker .act-btn small{ display: block; font-size: 10px; font-weight: 600; opacity: 0.75; margin-top: 1px; }
+.app-poker .act-btn:hover{ transform: translateY(-2px); filter: brightness(1.12); }
+.app-poker .act-btn:active{ transform: translateY(0) scale(0.97); }
+.app-poker .act-btn:disabled{ opacity: 0.35; cursor: not-allowed; transform: none; }
+.app-poker .act-btn.fold{ background: linear-gradient(180deg, #c74b4b, #a03333); box-shadow: 0 4px 14px rgba(199,75,75,0.35); }
+.app-poker .act-btn.check{ background: linear-gradient(180deg, #3f8ef7, #2a6cd4); box-shadow: 0 4px 14px rgba(63,142,247,0.35); }
+.app-poker .act-btn.raise{ background: linear-gradient(180deg, #35b36b, #23824c); box-shadow: 0 4px 14px rgba(53,179,107,0.35); }
+.app-poker .act-btn.allin{ background: linear-gradient(180deg, #e8873a, #c45f16); box-shadow: 0 4px 14px rgba(232,135,58,0.4); }
+.app-poker .act-btn.gold{ background: linear-gradient(180deg, #e9c46a, #b98f1f); color: #241a05; box-shadow: 0 4px 16px rgba(233,196,106,0.45); }
+.app-poker .act-btn.ghost{ background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); box-shadow: none; }
+.app-poker .kbd-hint{
+  font-size: 9px; opacity: 0.6; border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 4px; padding: 0 4px; margin-left: 4px; font-weight: 600;
+}
+@media (pointer: coarse){ .app-poker .kbd-hint{ display: none; }}
+
+.app-poker .thinking{
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  color: var(--gold); font-size: 14px; font-weight: 700; padding: 12px;
+}
+.app-poker .thinking .dots span{ animation: blink 1.2s infinite; display: inline-block; }
+.app-poker .thinking .dots span:nth-child(2){ animation-delay: .2s; }
+.app-poker .thinking .dots span:nth-child(3){ animation-delay: .4s; }
+@keyframes blink{ 0%,60%,100% { opacity: .2; } 30% { opacity: 1; } }
+
+/* ============ 弹窗 ============ */
+.app-poker .overlay{
+  position: absolute; inset: 0; z-index: 200;
+  background: rgba(3,8,6,0.8); backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center; padding: 16px;
+}
+.app-poker .overlay.show{ display: flex; animation: fadeIn .25s ease; }
+@keyframes fadeIn{ from { opacity: 0; } }
+.app-poker .modal{
+  background: linear-gradient(165deg, #10301f, #08170f);
+  border: 1px solid var(--line); border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 60px rgba(233,196,106,0.08);
+  padding: 26px 28px; text-align: center; max-width: 480px; width: 100%;
+  max-height: 85%; overflow-y: auto;
+  animation: popIn .3s cubic-bezier(.2,.9,.3,1.3);
+}
+@keyframes popIn{ 0% { transform: scale(0.8); opacity: 0; } }
+.app-poker .modal h2{ font-size: 26px; margin-bottom: 10px; }
+.app-poker .modal h2.win{ color: #7bed7b; } .app-poker .modal h2.lose{ color: #ff8a8a; } .app-poker .modal h2.tie{ color: var(--gold); }
+.app-poker .modal .detail{ font-size: 15px; margin: 6px 0; }
+.app-poker .modal .sub{ font-size: 13px; color: var(--txt-dim); margin: 4px 0 12px; }
+.app-poker .modal .showdown-cards{ display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+.app-poker .modal .sc-row{ display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 13px; }
+.app-poker .modal .sc-row .who-lbl{ min-width: 54px; text-align: right; color: var(--txt-dim); }
+.app-poker .modal .sc-row .hand-tag{ min-width: 70px; text-align: left; font-weight: 800; color: var(--gold); font-size: 12px; }
+.app-poker .modal .sc-row .mini-card{
+  width: 30px; height: 42px; border-radius: 4px; background: #fff; color: #151a17;
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; line-height: 1.1; margin: 0 2px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+.app-poker .modal .sc-row .mini-card.red{ color: #c62828; }
+.app-poker .modal .btn-col{ display: flex; gap: 10px; margin-top: 16px; }
+.app-poker .modal .btn-col .act-btn{ max-width: none; }
+
+/* 战绩/规则弹窗共用 */
+.app-poker .stat-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+.app-poker .stat-cell{ background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px 6px; }
+.app-poker .stat-cell .v{ font-size: 20px; font-weight: 900; color: var(--gold); }
+.app-poker .stat-cell .k{ font-size: 11px; color: var(--txt-dim); margin-top: 2px; }
+.app-poker .history-list{ text-align: left; font-size: 12px; max-height: 220px; overflow-y: auto; margin-top: 8px; }
+.app-poker .history-list .h-item{
+  display: flex; justify-content: space-between; gap: 8px; padding: 7px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06); color: var(--txt-dim);
+}
+.app-poker .history-list .h-item b{ font-weight: 700; }
+.app-poker .history-list .h-item .w{ color: #7bed7b; } .app-poker .history-list .h-item .l{ color: #ff8a8a; } .app-poker .history-list .h-item .t{ color: var(--gold); }
+.app-poker .rules-body{ text-align: left; font-size: 13px; line-height: 1.9; color: var(--txt-dim); }
+.app-poker .rules-body h3{ color: var(--gold); font-size: 14px; margin: 12px 0 4px; }
+.app-poker .rules-body .rank-line{ display: flex; justify-content: space-between; padding: 2px 0; }
+.app-poker .rules-body .rank-line b{ color: var(--txt); }
+.app-poker .rules-body kbd{
+  background: rgba(255,255,255,0.12); border-radius: 4px; padding: 1px 6px;
+  font-size: 11px; color: var(--txt); font-family: inherit;
+}
+
+/* ============ 彩带 ============ */
+.app-poker #confetti-canvas{ position: absolute; inset: 0; pointer-events: none; z-index: 300; }
+
+/* ============================================================
+   移动端适配
+   ============================================================ */
+@media (max-width: 768px){
+  .app-poker{ --card-w: 44px; --card-h: 62px; }
+  .app-poker .topbar{ padding: 6px 10px; }
+  .app-poker .brand{ font-size: 14px; } .app-poker .brand small{ display: none; }
+  .app-poker .icon-btn{ width: 34px; height: 34px; font-size: 15px; }
+  .app-poker .main{ padding: 6px 8px 4px; gap: 6px; }
+  .app-poker .table{
+    border-radius: 22px; border-width: 5px; padding: 10px 10px;
+    min-height: 0;
+  }
+  .app-poker .table::after{ display: none; }
+  .app-poker .seat{ gap: 8px; }
+  .app-poker .seat .who{ min-width: 64px; padding: 5px 7px; }
+  .app-poker .seat .avatar{ font-size: 20px; }
+  .app-poker .seat .name{ font-size: 10px; }
+  .app-poker .seat .stack{ font-size: 12px; }
+  .app-poker .cards{ gap: 5px; }
+  .app-poker .seat.ai .dealer-btn{ right: calc(50% - 120px); }
+  .app-poker .seat.me .dealer-btn{ left: calc(50% - 120px); }
+  .app-poker .dealer-btn{ width: 20px; height: 20px; font-size: 10px; }
+  .app-poker .seat.ai .bet-badge{ bottom: -30px; }
+  .app-poker .seat.me .bet-badge{ top: -30px; }
+  .app-poker .bet-badge{ font-size: 11px; padding: 3px 10px 3px 4px; }
+  .app-poker .bet-badge .mini-chip{ width: 16px; height: 16px; }
+  .app-poker .toast{ font-size: 12px; padding: 5px 12px; }
+  .app-poker .pot-display{ font-size: 14px; padding: 4px 14px; }
+  .app-poker .phase-label{ font-size: 10px; }
+  .app-poker .log{ max-height: 48px; font-size: 10.5px; padding: 4px 10px; line-height: 1.6; }
+  .app-poker .strength-bar{ font-size: 12px; padding: 5px 10px; min-height: 30px; }
+  .app-poker .action-bar{ padding: 8px 10px calc(8px + var(--safe-b)); gap: 6px; }
+  .app-poker .act-btn{ padding: 13px 4px; font-size: 14px; border-radius: 10px; }
+  .app-poker .act-btn small{ font-size: 9px; }
+  .app-poker .quick-bets button{ font-size: 11px; padding: 6px 2px; }
+  .app-poker .raise-amt{ font-size: 16px; min-width: 72px; }
+  .app-poker .modal{ padding: 20px 16px; }
+  .app-poker .modal h2{ font-size: 22px; }}
+
+/* 手机横屏：压缩 + 允许滚动 */
+@media (max-height: 520px) and (max-width: 960px){
+  .app-poker{ --card-w: 38px; --card-h: 54px; }
+  .app-poker .topbar{ padding: 3px 10px; }
+  .app-poker .brand{ font-size: 12px; }
+  .app-poker .icon-btn{ width: 30px; height: 30px; font-size: 13px; }
+  .app-poker .main{ padding: 3px 8px; gap: 4px; overflow-y: auto; }
+  .app-poker .table{ padding: 4px 10px; border-width: 4px; flex: none; min-height: 235px; }
+  .app-poker .log{ display: none; }
+  .app-poker .strength-bar{ display: none; }
+  .app-poker .center-area{ gap: 3px; padding: 2px 0; }
+  .app-poker .pot-display{ font-size: 12px; padding: 2px 12px; }
+  .app-poker .phase-label{ font-size: 10px; }
+  .app-poker .seat{ gap: 10px; }
+  .app-poker .seat .who{ flex-direction: row; min-width: 0; padding: 4px 8px; gap: 6px; align-items: center; }
+  .app-poker .seat .avatar{ font-size: 16px; }
+  .app-poker .seat .name{ font-size: 10px; }
+  .app-poker .seat .stack{ font-size: 11px; }
+  .app-poker .action-bar{ padding: 6px 10px calc(6px + var(--safe-b)); gap: 5px; }
+  .app-poker .act-btn{ padding: 9px 4px; font-size: 13px; }
+  .app-poker .raise-top{ gap: 8px; }
+  .app-poker input[type="range"].raise-slider{ height: 6px; }
+  .app-poker input[type="range"].raise-slider::-webkit-slider-thumb{ width: 20px; height: 20px; }}
+
+/* 窗口化适配补充：游戏撑满窗口体，根容器作为弹窗/彩带的定位上下文 */
+.app-window .window-body.poker-body { margin: 0; padding: 0; overflow: hidden; }
+.app-poker { position: relative; overflow: hidden; }
+/* 顶栏空间留给功能按钮：隐藏与窗口标题重复的副标题（独立版宽屏时才有位置显示） */
+.app-poker .brand small { display: none; }

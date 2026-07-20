@@ -35,6 +35,15 @@ window.WIN98_MODULES = [
     height: 380
   },
   {
+    id: 'poker',
+    title: '德州扑克',
+    icon: 'assets/icons/poker.png',
+    type: 'window',
+    app: 'poker',
+    width: 560,
+    height: 720
+  },
+  {
     id: 'friend-link',
     title: '友情链接',
     icon: 'assets/icons/globe.png',

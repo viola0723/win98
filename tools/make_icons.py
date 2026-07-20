@@ -142,6 +142,34 @@ def draw_mine(d):
     d.point([(13, 12), (14, 12), (13, 13)], fill=WHITE)  # 高光
 
 
+def draw_poker(d):
+    """扑克牌 + 筹码（德州扑克）"""
+    RED = '#c0392b'
+
+    def pip(x, y, rows, color):                  # 5x5 像素花色
+        for j, row in enumerate(rows):
+            for i, ch in enumerate(row):
+                if ch == '1':
+                    d.point([(x + i, y + j)], fill=color)
+
+    HEART = ['01010', '11111', '11111', '01110', '00100']
+    SPADE = ['00100', '01110', '11111', '11111', '00100']
+
+    # 底牌（红心，左后）
+    d.rectangle([3, 6, 15, 28], fill='#f0f0f0', outline=INK)
+    d.line([4, 7, 14, 7], fill=WHITE)            # 顶部高光
+    pip(7, 14, HEART, RED)
+    # 名牌（黑桃，右前）
+    d.rectangle([11, 3, 24, 25], fill=WHITE, outline=INK)
+    d.line([12, 4, 23, 4], fill='#e8e8e8')
+    pip(15, 9, SPADE, INK)
+    d.line([17, 14, 17, 16], fill=INK)           # 黑桃柄
+    # 筹码（右下）
+    d.ellipse([18, 20, 30, 30], fill=RED, outline=INK)
+    d.ellipse([21, 23, 27, 27], fill=WHITE)
+    d.ellipse([23, 25, 25, 25], fill=RED)
+
+
 ICONS = [
     ('computer', draw_computer),
     ('notepad', draw_notepad),
@@ -152,6 +180,7 @@ ICONS = [
     ('shutdown', draw_shutdown),
     ('folder', draw_folder),
     ('mine', draw_mine),
+    ('poker', draw_poker),
 ]
 
 
