@@ -35,170 +35,111 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       '</div>';
   };
 
-  /* ---------------- 记事本（localStorage 自动保存） ---------------- */
-  WIN98_APPS['notepad'] = function (bodyEl) {
-    var STORAGE_KEY = 'win98.notepad.content';
+  /* ---------------- 留言本（localStorage 持久化） ---------------- */
+  WIN98_APPS['guestbook'] = function (bodyEl) {
+    var STORAGE_KEY = 'win98.guestbook.messages';
+    var NAME_KEY = 'win98.guestbook.name';
+    var MAX_MESSAGES = 200;   // 超出后丢弃最早的留言，避免撑爆 localStorage
 
     bodyEl.innerHTML =
-      '<div class="app-notepad">' +
-      '  <div class="sunken-panel"><textarea spellcheck="false" placeholder="在这里写点什么……（会自动保存）"></textarea></div>' +
+      '<div class="app-guestbook">' +
+      '  <div class="sunken-panel guestbook-list" data-role="list"></div>' +
+      '  <div class="guestbook-form">' +
+      '    <div class="field-row">' +
+      '      <label for="gb-name">昵称</label>' +
+      '      <input id="gb-name" type="text" maxlength="20" placeholder="匿名" data-role="name">' +
+      '    </div>' +
+      '    <div class="field-row">' +
+      '      <input type="text" maxlength="200" placeholder="写点什么……" data-role="text">' +
+      '      <button type="button" data-role="submit">提交</button>' +
+      '    </div>' +
+      '  </div>' +
       '  <div class="status-bar">' +
       '    <p class="status-bar-field" data-role="status">就绪</p>' +
-      '    <p class="status-bar-field" data-role="count">0 个字符</p>' +
+      '    <p class="status-bar-field" data-role="count">共 0 条留言</p>' +
       '  </div>' +
       '</div>';
 
-    var textarea = bodyEl.querySelector('textarea');
+    var listEl = bodyEl.querySelector('[data-role="list"]');
+    var nameInput = bodyEl.querySelector('[data-role="name"]');
+    var textInput = bodyEl.querySelector('[data-role="text"]');
     var statusEl = bodyEl.querySelector('[data-role="status"]');
     var countEl = bodyEl.querySelector('[data-role="count"]');
-    var saveTimer = null;
 
-    function refreshCount() {
-      countEl.textContent = textarea.value.length + ' 个字符';
-    }
-
+    var messages = [];
     try {
-      textarea.value = localStorage.getItem(STORAGE_KEY) || '';
+      messages = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      if (!Array.isArray(messages)) messages = [];
+      nameInput.value = localStorage.getItem(NAME_KEY) || '';
     } catch (e) { /* localStorage 不可用时静默降级 */ }
-    refreshCount();
 
-    textarea.addEventListener('input', function () {
-      refreshCount();
-      statusEl.textContent = '正在输入……';
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(function () {
-        try {
-          localStorage.setItem(STORAGE_KEY, textarea.value);
-          var now = new Date();
-          statusEl.textContent = '已自动保存 ' +
-            ('0' + now.getHours()).slice(-2) + ':' +
-            ('0' + now.getMinutes()).slice(-2) + ':' +
-            ('0' + now.getSeconds()).slice(-2);
-        } catch (e) {
-          statusEl.textContent = '保存失败（浏览器存储不可用）';
-        }
-      }, 400);
-    });
-
-    textarea.focus();
-  };
-
-  /* ---------------- 计算器 ---------------- */
-  WIN98_APPS['calculator'] = function (bodyEl) {
-    bodyEl.innerHTML =
-      '<div class="app-calculator">' +
-      '  <input class="calc-display" type="text" value="0" readonly aria-label="计算结果显示">' +
-      '  <div class="calc-grid">' +
-      ['C', '←', '±', '÷', '7', '8', '9', '×', '4', '5', '6', '-', '1', '2', '3', '+', '0', '.', '=']
-        .map(function (label) { return '<button type="button" data-key="' + label + '">' + label + '</button>'; })
-        .join('') +
-      '  </div>' +
-      '</div>';
-
-    var display = bodyEl.querySelector('.calc-display');
-    var current = '0';      // 当前输入
-    var stored = null;      // 暂存的操作数
-    var pendingOp = null;   // 待执行的运算符
-    var waiting = false;    // 是否等待输入新数字
-
-    function show(value) {
-      display.value = value;
-    }
-
-    function calculate(a, b, op) {
-      switch (op) {
-        case '+': return a + b;
-        case '-': return a - b;
-        case '×': return a * b;
-        case '÷':
-          if (b === 0) return null;
-          return a / b;
+    function save() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+        return true;
+      } catch (e) {
+        return false;
       }
-      return b;
     }
 
-    function format(num) {
-      // 去掉浮点误差长尾
-      return String(parseFloat(num.toPrecision(12)));
+    function formatTime(ts) {
+      var d = new Date(ts);
+      return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate() + ' ' +
+        ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
     }
 
-    function inputDigit(d) {
-      if (waiting) {
-        current = d;
-        waiting = false;
+    function renderList() {
+      listEl.innerHTML = '';
+      if (!messages.length) {
+        var empty = document.createElement('p');
+        empty.className = 'guestbook-empty';
+        empty.textContent = '还没有留言，来抢沙发！';
+        listEl.appendChild(empty);
       } else {
-        current = current === '0' ? d : current + d;
+        messages.forEach(function (m) {
+          var item = document.createElement('div');
+          item.className = 'guestbook-item';
+          var head = document.createElement('p');
+          head.className = 'guestbook-head';
+          head.textContent = m.name + ' · ' + formatTime(m.ts);
+          var text = document.createElement('p');
+          text.className = 'guestbook-text';
+          text.textContent = m.text;   // 一律 textContent 写入，杜绝注入
+          item.appendChild(head);
+          item.appendChild(text);
+          listEl.appendChild(item);
+        });
       }
-      show(current);
+      countEl.textContent = '共 ' + messages.length + ' 条留言';
+      listEl.scrollTop = listEl.scrollHeight;
     }
 
-    function inputDot() {
-      if (waiting) {
-        current = '0.';
-        waiting = false;
-      } else if (current.indexOf('.') === -1) {
-        current += '.';
+    function submit() {
+      var text = textInput.value.trim();
+      if (!text) {
+        statusEl.textContent = '留言内容不能为空';
+        return;
       }
-      show(current);
-    }
-
-    function applyOp(nextOp) {
-      var value = parseFloat(current);
-      if (pendingOp && !waiting) {
-        var result = calculate(stored, value, pendingOp);
-        if (result === null) {
-          show('除数不能为零');
-          current = '0'; stored = null; pendingOp = null; waiting = true;
-          return;
-        }
-        current = format(result);
-        show(current);
-        value = result;
-      }
-      stored = value;
-      pendingOp = nextOp;
-      waiting = true;
-    }
-
-    function equals() {
-      if (pendingOp === null || stored === null) return;
-      var result = calculate(stored, parseFloat(current), pendingOp);
-      if (result === null) {
-        show('除数不能为零');
-        current = '0';
+      var name = nameInput.value.trim() || '匿名';
+      messages.push({ name: name, text: text, ts: Date.now() });
+      if (messages.length > MAX_MESSAGES) messages.shift();
+      if (save()) {
+        statusEl.textContent = '留言成功';
+        try { localStorage.setItem(NAME_KEY, name); } catch (e) {}
       } else {
-        current = format(result);
-        show(current);
+        statusEl.textContent = '保存失败（浏览器存储不可用）';
       }
-      stored = null;
-      pendingOp = null;
-      waiting = true;
+      textInput.value = '';
+      renderList();
+      textInput.focus();
     }
 
-    bodyEl.querySelector('.calc-grid').addEventListener('click', function (e) {
-      var key = e.target.dataset && e.target.dataset.key;
-      if (!key) return;
-      if (/^[0-9]$/.test(key)) inputDigit(key);
-      else if (key === '.') inputDot();
-      else if (key === 'C') { current = '0'; stored = null; pendingOp = null; waiting = false; show(current); }
-      else if (key === '←') { current = current.length > 1 ? current.slice(0, -1) : '0'; show(current); }
-      else if (key === '±') { current = format(-parseFloat(current) || 0); show(current); }
-      else if (key === '=') equals();
-      else applyOp(key);
+    bodyEl.querySelector('[data-role="submit"]').addEventListener('click', submit);
+    textInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') submit();
     });
-  };
 
-  /* ---------------- 回收站（彩蛋） ---------------- */
-  WIN98_APPS['recycle'] = function (bodyEl, win) {
-    bodyEl.innerHTML =
-      '<div class="app-recycle">' +
-      '  <img src="assets/icons/bin.png" alt="回收站">' +
-      '  <p>回收站是空的。</p>' +
-      '  <p>就像新电脑开机的第一天，干干净净。</p>' +
-      '  <button type="button" data-role="ok" style="min-width:88px">确定</button>' +
-      '</div>';
-    bodyEl.querySelector('[data-role="ok"]').addEventListener('click', function () {
-      win.close();
-    });
+    renderList();
+    textInput.focus();
   };
 })();

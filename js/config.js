@@ -17,37 +17,28 @@ window.WIN98_MODULES = [
     height: 380
   },
   {
-    id: 'notepad',
-    title: '记事本',
+    id: 'guestbook',
+    title: '留言本',
     icon: 'assets/icons/notepad.png',
     type: 'window',
-    app: 'notepad',
+    app: 'guestbook',
     width: 520,
     height: 400
   },
   {
-    id: 'calculator',
-    title: '计算器',
-    icon: 'assets/icons/calculator.png',
+    id: 'mine',
+    title: '扫雷',
+    icon: 'assets/icons/mine.png',
     type: 'window',
-    app: 'calculator',
+    app: 'mine',
     width: 280,
-    height: 320
+    height: 380
   },
   {
     id: 'friend-link',
     title: '友情链接',
     icon: 'assets/icons/globe.png',
     type: 'link',
-    url: 'https://example.com'   // TODO: 替换成你自己的链接
-  },
-  {
-    id: 'recycle',
-    title: '回收站',
-    icon: 'assets/icons/bin.png',
-    type: 'window',
-    app: 'recycle',
-    width: 340,
-    height: 240
+    url: 'https://www.mihoyo.com'
   }
 ];

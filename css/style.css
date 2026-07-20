@@ -351,66 +351,186 @@ body.dragging {
 .app-about h3 { margin: 4px 0 8px; }
 .app-about ul { margin: 4px 0; padding-left: 20px; }
 
-.app-notepad {
+/* ---------------- 留言本 ---------------- */
+
+.app-guestbook {
   display: flex;
   flex-direction: column;
   height: 100%;
   margin: 0;
+  gap: 6px;
 }
 
-.app-notepad .sunken-panel {
+/* 留言列表：白底凹陷面板，可滚动 */
+.app-guestbook .guestbook-list {
   flex: 1;
   min-height: 0;
-  margin: 0 0 4px;
-  overflow: hidden;
-  display: flex;
+  margin: 0;
+  overflow-y: auto;
+  padding: 6px 8px;
+  background: #fff;
 }
 
-.app-notepad textarea {
-  flex: 1;
-  border: none;
-  resize: none;
-  outline: none;
-  font-size: 13px;
+.guestbook-empty {
+  margin: 4px 0;
+  color: #808080;
+}
+
+.guestbook-item {
+  margin-bottom: 8px;
+}
+
+.guestbook-head {
+  margin: 0;
+  font-size: 11px;
+  font-weight: bold;
+  color: #000080;
+}
+
+.guestbook-text {
+  margin: 2px 0 0;
+  font-size: 12px;
   line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
 }
 
-.app-calculator {
+.guestbook-form .field-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.guestbook-form .field-row:first-child {
+  margin-top: 0;
+}
+
+.guestbook-form input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------------- 扫雷 ---------------- */
+
+.app-mine {
+  --mine-cell: 24px;         /* 格子边长（js 里 CELL_PX 用它自适应窗口尺寸） */
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 220px;
-  margin: 0 auto;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.app-calculator .calc-display {
-  text-align: right;
-  font-size: 18px;
-  padding: 4px 8px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.app-calculator .calc-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+.mine-toolbar {
+  display: flex;
   gap: 4px;
+  align-self: flex-start;
 }
 
-.app-calculator .calc-grid button {
-  min-height: 30px;
-  font-size: 13px;
+.mine-toolbar button {
+  min-width: 52px;
 }
 
-.app-recycle {
-  text-align: center;
+/* 当前难度的按钮保持按下态（同任务栏 active 样式） */
+.mine-toolbar button.active {
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+  font-weight: bold;
 }
 
-.app-recycle img {
-  width: 48px;
-  height: 48px;
-  margin: 8px 0;
+/* 面板 = 凸起边框把计数器头和雷区包成一体（经典扫雷窗口的观感） */
+.mine-panel {
+  padding: 6px;
+  background: silver;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
 }
+
+.mine-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  margin-bottom: 6px;
+}
+
+/* 红字黑底 LED 计数器 */
+.mine-lcd {
+  background: #000;
+  color: #f00;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 3px;
+  letter-spacing: 1px;
+}
+
+.mine-face,
+.mine-face:active {
+  min-width: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 17px;
+  line-height: 1;
+  color: #222;
+  text-shadow: none;         /* 重置 98.css 的文字阴影 hack，否则笑脸 emoji 只剩一团黑影 */
+}
+
+.mine-board {
+  display: grid;
+  gap: 0;
+  padding: 4px;
+  touch-action: manipulation;
+}
+
+/* 格子：覆盖 98.css 按钮的 min-width/padding/text-shadow  hack */
+.mine-cell,
+.mine-cell:active {
+  min-width: 0;
+  min-height: 0;
+  width: var(--mine-cell);
+  height: var(--mine-cell);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
+  color: #222;
+  text-shadow: none;         /* 98.css 用 text-shadow 画按钮文字，数字配色必须关掉它 */
+  cursor: pointer;
+}
+
+.mine-cell:focus {
+  outline: none;
+}
+
+/* 已翻开的格子：拍平 + 细点边框（:active 也要压住 98.css 的按下态） */
+.mine-cell.revealed,
+.mine-cell.revealed:active {
+  box-shadow: none;
+  border: 1px dotted #808080;
+  cursor: default;
+}
+
+/* 踩中的那颗雷：红底 */
+.mine-cell.mine-hit,
+.mine-cell.mine-hit:active {
+  background: #f00;
+}
+
+/* 经典数字配色 1~8 */
+.mine-cell.n1 { color: #0000ff; }
+.mine-cell.n2 { color: #008000; }
+.mine-cell.n3 { color: #ff0000; }
+.mine-cell.n4 { color: #000080; }
+.mine-cell.n5 { color: #800000; }
+.mine-cell.n6 { color: #008080; }
+.mine-cell.n7 { color: #000000; }
+.mine-cell.n8 { color: #808080; }
 
 /* ---------------- 手机端适配（≤640px） ---------------- */
 

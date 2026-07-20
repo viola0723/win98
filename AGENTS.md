@@ -6,10 +6,11 @@
 
 仿 Windows 98 桌面的个人网站：每个桌面图标 = 一个功能模块窗口或一个外链入口，纯静态零构建，PC/手机双端适配。
 
-## 当前状态（v0.1，2026-07-20）
+## 当前状态（v0.2，2026-07-20）
 
 - 已可用：桌面图标渲染、窗口系统（拖拽/置顶/最小化/最大化/关闭/单例）、任务栏（开始按钮、开始菜单、任务按钮、时钟）、关机彩蛋、手机端适配（窗口默认最大化、双触打开图标）
-- 已有模块（见 `js/config.js`）：我的电脑(about)、记事本(notepad)、计算器(calculator)、友情链接(link 示例)、回收站(recycle)
+- 已有模块（见 `js/config.js`）：我的电脑(about)、留言本(guestbook)、扫雷(mine)、友情链接(link → mihoyo.com)
+- 已下架：记事本、计算器、回收站（渲染函数已从 apps.js 一并移除，git 历史可恢复）
 - 图标已全部替换为自绘无版权像素图标（`tools/make_icons.py` 生成，微软原版素材已移除）
 - 已部署 GitHub Pages（见文末「环境备忘」），无头浏览器截图验收流程已就绪
 
@@ -29,6 +30,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 |---|---|
 | `js/config.js` | **图标注册表 `WIN98_MODULES`，增删功能只改这里** |
 | `js/apps.js` | 模块渲染函数注册表 `WIN98_APPS['id'] = fn(bodyEl, win, cfg)` |
+| `js/apps/minesweeper.js` | 扫雷模块（大模块单文件示例，index.html 里单独 `<script>` 引入） |
 | `js/windowManager.js` | 窗口生命周期，对外 `WindowManager.open(module)` |
 | `js/desktop.js` | 图标渲染与打开（`WIN98_DESKTOP.openModule`，link→新标签页 / window→开窗） |
 | `js/taskbar.js` | 任务栏、开始菜单、时钟；`WIN98_TASKBAR.sync()` 由窗口系统回调 |
@@ -37,7 +39,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `assets/icons/` | 自绘像素图标 PNG（生成器产出，**勿手改**） |
 | `tools/make_icons.py` | 像素图标生成器（需 Pillow），加图标：写 `draw_xxx` → 注册 `ICONS` → 重跑 |
 
-脚本加载顺序（index.html）：config → windowManager → apps → desktop → taskbar → main。普通 script 标签（非 module），保证 `file://` 可跑。
+脚本加载顺序（index.html）：config → windowManager → apps → apps/minesweeper → desktop → taskbar → main。普通 script 标签（非 module），保证 `file://` 可跑。
 
 ## 铁律
 
@@ -46,6 +48,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 3. 新模块 UI 必须用 98.css 组件类，保持 Win98 观感。
 4. 触屏用 Pointer Events；手机上窗口默认最大化（`WindowManager.isMobile()`）。
 5. 每次迭代改完：更新 `config.js` 注释、本文件「当前状态」、`PROJECT_PLAN.md` 第 8 节。
+6. 阶段性收尾：提交部署前，杀掉本地临时服务（如 `python3 -m http.server 8098`）、删除临时验证脚本/截图等产物（仓库外 `../tools/` 下的东西），工作区保持干净。
 
 ## 加模块三步（详见 PROJECT_PLAN.md 第 6 节）
 
@@ -55,7 +58,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 
 ## Backlog 快照
 
-扫雷（图标已备 `mine.png`）、Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、画图、留言板、图标拖拽排序、右键菜单、壁纸/音效。每次只挑一两个，做完不留半成品。
+Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、画图、图标拖拽排序、右键菜单、壁纸/音效。每次只挑一两个，做完不留半成品。
 
 ## 环境备忘
 
