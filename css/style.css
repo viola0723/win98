@@ -1084,3 +1084,19 @@ body.dragging {
 .app-poker { position: relative; overflow: hidden; }
 /* 顶栏空间留给功能按钮：隐藏与窗口标题重复的副标题（独立版宽屏时才有位置显示） */
 .app-poker .brand small { display: none; }
+/* 98.css 给 button 设的 75px 最小宽度会撑爆游戏顶栏与快捷注额排，模块内重置 */
+.app-poker button { min-width: 0; min-height: 0; }
+/* 加注滑块：清掉 98.css 的黑色 Win98 轨道，恢复游戏的金色轨道 */
+.app-poker input[type="range"].raise-slider::-webkit-slider-runnable-track {
+  background: transparent; border: none; box-shadow: none; height: 8px; border-radius: 6px;
+}
+.app-poker input[type="range"].raise-slider::-moz-range-track {
+  background: transparent; border: none; box-shadow: none; height: 8px; border-radius: 6px;
+}
+/* 窄屏（手机/窄窗口）顶栏再紧凑一点：品牌文字可收缩裁切，给功能按钮让位 */
+@media (max-width: 768px) {
+  .app-poker .topbar { padding: 6px 8px; gap: 6px; }
+  .app-poker .brand { min-width: 0; overflow: hidden; }
+  .app-poker .top-actions { gap: 4px; flex-shrink: 0; }
+  .app-poker .icon-btn { width: 32px; height: 32px; }
+}
