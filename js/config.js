@@ -17,15 +17,6 @@ window.WIN98_MODULES = [
     height: 380
   },
   {
-    id: 'guestbook',
-    title: '留言本',
-    icon: 'assets/icons/notepad.png',
-    type: 'window',
-    app: 'guestbook',
-    width: 520,
-    height: 400
-  },
-  {
     id: 'mine',
     title: '扫雷',
     icon: 'assets/icons/mine.png',
