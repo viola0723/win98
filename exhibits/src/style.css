@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* 字体只用本机系统字体栈（含中文回退），严禁外部字体 */
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  background: #0a0f1e;
+}

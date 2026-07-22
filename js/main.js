@@ -12,6 +12,13 @@
     // 手机端窗口会全屏挡住图标，不自动弹，直接展示桌面
     var about = (window.WIN98_MODULES || []).filter(function (m) { return m.id === 'about'; })[0];
     if (about && !window.WindowManager.isMobile()) window.WindowManager.open(about);
+
+    // 深链接：URL 带 #open=模块id 时直接打开对应模块（便于分享直达某个作品，也便于自动化验收）
+    var match = (location.hash || '').match(/^#open=([\w-]+)$/);
+    if (match) {
+      var target = (window.WIN98_MODULES || []).filter(function (m) { return m.id === match[1]; })[0];
+      if (target && target.type === 'window') window.WindowManager.open(target);
+    }
   }
 
   if (document.readyState === 'loading') {

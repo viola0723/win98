@@ -23,6 +23,7 @@ python3 -m http.server 8098
 - `AGENTS.md` — 项目总结与迭代锚点（先读这个）
 - `PROJECT_PLAN.md` — 详细项目规划提示词（架构约定、加模块步骤、路线图）
 - `tools/make_icons.py` — 自绘像素图标生成器（需 Pillow），新模块的图标用它生成
+- `exhibits/` — 展柜工程：现代特效展品（唯一允许构建工具链的目录；改动后 `cd exhibits && npm run build` 并把 dist 提交进 git）
 
 ## 加一个新桌面图标（30 秒版）
 

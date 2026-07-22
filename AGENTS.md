@@ -6,11 +6,13 @@
 
 仿 Windows 98 桌面的个人网站「旧电脑」：复古的壳 × 现代的芯——1998 年的桌面里装着 AI 时代的新作品（歌/画/文/游戏/特效），每个桌面图标 = 一个作品/功能模块或一个外链入口，纯静态零构建，PC/手机双端适配。
 
-## 当前状态（v0.4，2026-07-22）
+## 当前状态（v0.5，2026-07-22）
 
 - 定名「旧电脑」，新增主题宪章 `THEME.md` v1.0：确立"复古壳 × 现代芯"方向、内容容器规划（文/画/歌/视频/屏保/游戏）、作品档案（右键属性）规范
+- 「现代的芯」双通道落地：欢迎窗原生特效（星空跃迁 Canvas + 乱序解码标题，零依赖）＋ `exhibits/` 展柜通道（唯一允许构建的目录：Vite+Vue+Tailwind，dist 提交进 git；通用 iframe 渲染器 `js/apps/exhibit.js`，新展品只改 `config.js` 的 exhibit 路径）
+- URL 深链接：`#open=模块id` 直接打开对应窗口（便于分享与自动化验收）
 - 已可用：桌面图标渲染、窗口系统（拖拽/置顶/最小化/最大化/关闭/单例/右下角拖柄自由缩放）、任务栏（开始按钮、开始菜单、任务按钮、时钟）、关机彩蛋、手机端适配（窗口默认最大化、双触打开图标）
-- 已有模块（见 `js/config.js`）：我的电脑(about)、扫雷(mine)、德州扑克(poker)、友情链接(link → mihoyo.com)
+- 已有模块（见 `js/config.js`）：我的电脑(about)、扫雷(mine)、德州扑克(poker)、友情链接(link → mihoyo.com)、展品 001(exhibit → 流星雨，组件来自 inspira-ui/Meteors，MIT)
 - 已下架：记事本、计算器、回收站、留言本（渲染函数已从 apps.js 一并移除，git 历史可恢复）
 - 图标已全部替换为自绘无版权像素图标（`tools/make_icons.py` 生成，微软原版素材已移除）
 - 已部署 GitHub Pages（见文末「环境备忘」），无头浏览器截图验收流程已就绪
@@ -33,20 +35,22 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `js/apps.js` | 模块渲染函数注册表 `WIN98_APPS['id'] = fn(bodyEl, win, cfg)` |
 | `js/apps/minesweeper.js` | 扫雷模块（大模块单文件示例，index.html 里单独 `<script>` 引入） |
 | `js/apps/poker.js` | 德州扑克模块（移植自独立版单文件游戏；样式在 style.css 末尾以 `.app-poker` 为作用域） |
+| `js/apps/exhibit.js` | 展柜通用渲染器：iframe 加载 `cfg.exhibit` 指定的展品页（exhibits/dist/...） |
 | `js/windowManager.js` | 窗口生命周期，对外 `WindowManager.open(module)` |
 | `js/desktop.js` | 图标渲染与打开（`WIN98_DESKTOP.openModule`，link→新标签页 / window→开窗） |
 | `js/taskbar.js` | 任务栏、开始菜单、时钟；`WIN98_TASKBAR.sync()` 由窗口系统回调 |
-| `js/main.js` | 启动：渲染桌面 → 初始化任务栏 → 自动打开 about |
+| `js/main.js` | 启动：渲染桌面 → 初始化任务栏 → 自动打开 about（PC）→ 处理 `#open=` 深链接 |
 | `css/98.css` + 字体 | 第三方库（**勿改**）；自定义样式一律进 `css/style.css` |
 | `assets/icons/` | 自绘像素图标 PNG（生成器产出，**勿手改**） |
 | `tools/make_icons.py` | 像素图标生成器（需 Pillow），加图标：写 `draw_xxx` → 注册 `ICONS` → 重跑 |
+| `exhibits/` | 展柜工程：现代特效展品（唯一允许构建工具链的目录，Vite+Vue+Tailwind；`dist` 提交进 git、勿 ignore；选题库 inspira-ui.com） |
 
-脚本加载顺序（index.html）：config → windowManager → apps → apps/minesweeper → apps/poker → desktop → taskbar → main。普通 script 标签（非 module），保证 `file://` 可跑。
+脚本加载顺序（index.html）：config → windowManager → apps → apps/minesweeper → apps/poker → apps/exhibit → desktop → taskbar → main。普通 script 标签（非 module），保证 `file://` 可跑（注意：展品 iframe 是 ES module，`file://` 下加载不了，需 http 预览或线上访问）。
 
 ## 铁律
 
 1. 配置驱动：图标只注册在 `config.js`，UI 只写在 `apps.js`（或 `js/apps/xxx.js` 单文件模块）。
-2. 零构建纯静态，不引框架/打包器/CDN 外链，素材全部本地化。
+2. 零构建纯静态，不引框架/打包器/CDN 外链，素材全部本地化（唯一例外：`exhibits/` 展柜目录，构建产物静态化提交进 git）。
 3. 新模块 UI 必须用 98.css 组件类，保持 Win98 观感。
 4. 触屏用 Pointer Events；手机上窗口默认最大化（`WindowManager.isMobile()`）。
 5. 每次迭代改完：更新 `config.js` 注释、本文件「当前状态」、`PROJECT_PLAN.md` 第 8 节。
@@ -60,7 +64,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 
 ## Backlog 快照
 
-Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、画图、图标拖拽排序、右键菜单、壁纸/音效。每次只挑一两个，做完不留半成品。
+Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键菜单+属性对话框（作品档案）、画图、图标拖拽排序、壁纸/音效、更多 Inspira 展品（选题库 inspira-ui.com）。每次只挑一两个，做完不留半成品。
 
 ## 环境备忘
 

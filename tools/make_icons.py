@@ -170,6 +170,29 @@ def draw_poker(d):
     d.ellipse([23, 25, 25, 25], fill=RED)
 
 
+def draw_exhibit(d):
+    """展品画框：金色相框里的流星夜空（展柜 exhibits 入口）"""
+    SKY = '#141a33'
+    GOLD = '#caa14a'
+    GOLD_D = '#8a6a24'
+    # 相框
+    d.rectangle([4, 5, 27, 24], fill=GOLD, outline=INK)
+    d.rectangle([6, 7, 25, 22], fill=GOLD_D)
+    d.rectangle([7, 8, 24, 21], fill=SKY)
+    # 星星
+    d.point([(10, 11)], fill=WHITE)
+    d.point([(12, 19)], fill=WHITE)
+    d.point([(21, 17)], fill=WHITE)
+    d.point([(9, 15)], fill='#8fb8ff')
+    # 流星（右上往左下：尾巴 + 亮头）
+    d.line([13, 18, 20, 11], fill='#8fb8ff')
+    d.line([15, 17, 21, 11], fill='#c9e2ff')
+    d.point([(21, 11), (22, 11), (21, 10), (22, 10)], fill=WHITE)
+    # 展台小牌
+    d.rectangle([11, 26, 20, 29], fill=GRAY, outline=INK)
+    d.line([13, 27, 18, 27], fill=WHITE)
+
+
 ICONS = [
     ('computer', draw_computer),
     ('notepad', draw_notepad),
@@ -181,6 +204,7 @@ ICONS = [
     ('folder', draw_folder),
     ('mine', draw_mine),
     ('poker', draw_poker),
+    ('exhibit', draw_exhibit),
 ]
 
 

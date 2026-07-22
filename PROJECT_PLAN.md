@@ -21,6 +21,7 @@
 
 1. **配置驱动**：桌面图标全部定义在 `js/config.js` 的 `WIN98_MODULES` 数组里。增删功能**只改这一个数组**（外加新模块的渲染函数），严禁把图标写死在 HTML/JS 其他位置。
 2. **零构建、纯静态**：原生 HTML/CSS/JS，不用任何框架、不引入打包工具。双击 `index.html` 就能跑，扔到任何静态托管（GitHub Pages / Vercel / 服务器目录）就能上线。
+   - **唯一例外**：`exhibits/` 展柜目录允许现代工具链（Vite + Vue + Tailwind）开发特效展品；构建产物（纯静态、无外链）提交进 git，主站以 iframe 开窗展示。主站本体永远零构建。注意展品页是 ES module，`file://` 双击打不开（http 服务与线上均正常）。
 3. **离线自足**：所有美术素材（样式、字体、图标）一律下载到本地 `assets/` / `css/`，不允许依赖外链 CDN，保证网站永远能打开。
 4. **小而美地迭代**：每次只加一两个模块，每个模块都要完整可用，不留半成品占位。
 5. **还原度优先**：视觉细节向 Windows 98 靠拢（像素图标、凸起/凹陷边框、青色桌面、像素字体），新模块的 UI 必须看起来像「当年能跑在 Win98 上的程序」。
@@ -55,6 +56,7 @@ win98/
 │   └── main.js            # 启动入口
 ├── assets/
 │   └── icons/             # 自绘像素图标 PNG（tools/make_icons.py 生成）
+├── exhibits/              # 展柜：现代特效展品（唯一允许构建工具链的目录，Vite+Vue+Tailwind；dist 产物提交进 git，主站 iframe 开窗展示）
 └── tools/
     └── make_icons.py      # 像素图标生成器（Pillow），加图标改这里再重跑
 ```
@@ -153,6 +155,9 @@ window.WIN98_APPS['myapp'] = function (bodyEl, win, moduleConfig) {
 - [x] 已下架：记事本、计算器、回收站、留言本（渲染函数已随配置一并移除，如需恢复从 git 历史找回）
 - [x] 响应式：手机端窗口默认最大化、图标自适应、触控热区加大
 - [x] 站点定名「旧电脑」，新增主题宪章 `THEME.md` v1.0（复古壳 × 现代芯、内容容器规划、作品档案规范）
+- [x] 欢迎窗现代特效：星空跃迁 Canvas + 乱序解码标题（原生 JS 零依赖，灵感来自 inspira-ui warp-background / hyper-text）
+- [x] URL 深链接：`#open=模块id` 直接打开对应窗口模块
+- [x] `exhibits/` 展柜通道：Vite+Vue+Tailwind 工具链（唯一构建例外，dist 进 git）；通用 iframe 渲染器 `js/apps/exhibit.js`；首个展品「流星雨」（inspira-ui Meteors，MIT）
 
 ## 9. 后续路线图（Backlog，按建议优先级排序）
 
@@ -163,6 +168,7 @@ window.WIN98_APPS['myapp'] = function (bodyEl, win, moduleConfig) {
 3. **工具型模块**：画图（canvas 涂鸦）、播放器（本地音频）、时钟屏保
 4. **桌面体验增强**：图标自由拖拽排序（localStorage 记忆位置）、右键菜单、开机音效（用户首次交互后播放）、壁纸更换
 5. **工程增强**：多语言（中/英切换）、PWA 离线缓存
+6. **展柜扩充**：从 inspira-ui 选题库（inspira-ui.com）挑特效进 `exhibits/` 或原生重写；右键菜单 + 属性对话框承载作品档案（规范见 `THEME.md`）
 
 做 Backlog 时同样遵守第 2 节原则：配置驱动、小而美、不留半成品。
 

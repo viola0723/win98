@@ -14,7 +14,7 @@ window.WIN98_MODULES = [
     type: 'window',
     app: 'about',
     width: 460,
-    height: 380
+    height: 500
   },
   {
     id: 'mine',
@@ -40,5 +40,17 @@ window.WIN98_MODULES = [
     icon: 'assets/icons/globe.png',
     type: 'link',
     url: 'https://www.mihoyo.com'
+  },
+  /* 展柜：exhibits/ 下的 Inspira UI 特效展品（iframe 加载，渲染器见 js/apps/exhibit.js）。
+     未来新展品复用 app: 'exhibit'，只改 id/title 和 exhibit 路径即可 */
+  {
+    id: 'exhibit-001',
+    title: '展品 001',
+    icon: 'assets/icons/exhibit.png',
+    type: 'window',
+    app: 'exhibit',
+    exhibit: 'exhibits/dist/index.html',
+    width: 640,
+    height: 480
   }
 ];

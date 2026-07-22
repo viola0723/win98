@@ -1,0 +1,24 @@
+{
+  "name": "win98-exhibits",
+  "private": true,
+  "version": "0.1.0",
+  "description": "旧电脑 · 展柜：Inspira UI 特效展品页（Vite + Vue3 + Tailwind v4，产物纯静态）",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "motion-v": "^2.3.0",
+    "tailwind-merge": "^3.6.0",
+    "vue": "^3.5.40"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.1.5"
+  }
+}
