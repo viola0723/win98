@@ -9,7 +9,7 @@
 ## 当前状态（v0.5，2026-07-22）
 
 - 定名「旧电脑」，新增主题宪章 `THEME.md`（现 v1.1）：确立"复古壳 × 现代芯"方向、slogan「机器会旧，人会老，想象力不会」、内容容器规划（文/画/歌/视频/屏保/游戏）、作品档案（右键属性）规范
-- 「现代的芯」双通道落地：欢迎窗原生特效（星空跃迁 Canvas + 乱序解码标题，零依赖）＋ `exhibits/` 展柜通道（唯一允许构建的目录：Vite+Vue+Tailwind，dist 提交进 git；通用 iframe 渲染器 `js/apps/exhibit.js`，新展品只改 `config.js` 的 exhibit 路径）
+- 「现代的芯」双通道落地：欢迎窗原生特效（星空跃迁 Canvas + 乱序解码标题，零依赖）＋ `exhibits/` 展柜通道（唯一允许构建的目录：Vite+Vue+Tailwind，dist 提交进 git；通用 iframe 渲染器 `js/apps/exhibit.js`，新展品只改 `config.js` 的 exhibit 路径；选题表 `exhibits/CANDIDATES.md`）
 - URL 深链接：`#open=模块id` 直接打开对应窗口（便于分享与自动化验收）
 - 已可用：桌面图标渲染、窗口系统（拖拽/置顶/最小化/最大化/关闭/单例/右下角拖柄自由缩放）、任务栏（开始按钮、开始菜单、任务按钮、时钟）、关机彩蛋、手机端适配（窗口默认最大化、双触打开图标）
 - 已有模块（见 `js/config.js`）：我的电脑(about)、扫雷(mine)、德州扑克(poker)、友情链接(link → mihoyo.com)、展品 001(exhibit → 流星雨，组件来自 inspira-ui/Meteors，MIT)
@@ -64,7 +64,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 
 ## Backlog 快照
 
-Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键菜单+属性对话框（作品档案）、画图、图标拖拽排序、壁纸/音效、更多 Inspira 展品（选题库 inspira-ui.com）。每次只挑一两个，做完不留半成品。
+Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键菜单+属性对话框（作品档案）、画图、图标拖拽排序、壁纸/音效、更多 Inspira 展品（选题表 `exhibits/CANDIDATES.md`；待做工程优化：组件源本地镜像、展品页 `?ex=` 参数路由）。每次只挑一两个，做完不留半成品。
 
 ## 环境备忘
 

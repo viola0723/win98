@@ -40,13 +40,15 @@
 
 - [x] 欢迎窗现代特效（星空跃迁 + 乱序标题，原生 Canvas 零依赖）
 - [x] exhibits 展柜通道打通，展品 001「流星雨」（inspira-ui Meteors）上架
+- [x] Inspira 展品选题表（`exhibits/CANDIDATES.md`，131 组件按场景×难度分档 + 优先级推荐）
 - [ ] 右键菜单 + 属性对话框（作品档案机制落地）
 - [ ] 我的文档（Markdown 阅读器）
 - [ ] 图片查看器
 - [ ] 媒体播放器
 - [ ] 屏保框架（闲置触发 + 首个特效作品）
 - [ ] 扫雷彩蛋：雷皮肤可替换、过程/胜利语音
-- [ ] 更多 Inspira 展品（选题库：inspira-ui.com，按双通道原则选原生或展柜）
+- [ ] 更多 Inspira 展品（从 `exhibits/CANDIDATES.md` 点将）
+- [ ] exhibits 工程优化：组件源本地镜像（../tools/）+ 展品页 ?ex= 参数路由
 
 ## 版本记录
 
