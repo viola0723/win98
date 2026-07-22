@@ -13,8 +13,8 @@ window.WIN98_APPS = window.WIN98_APPS || {};
   WIN98_APPS['about'] = function (bodyEl) {
     bodyEl.innerHTML =
       '<div class="app-about">' +
-      '  <h3>欢迎来到我的桌面！</h3>' +
-      '  <p>这是一个仿 Windows 98 风格的个人网站。桌面上的每个图标都是一个功能模块或一个链接入口，以后会不断增加新图标、新功能。</p>' +
+      '  <h3>欢迎来到我的旧电脑！</h3>' +
+      '  <p>这是一台 1998 年的旧电脑，里面装的却是 AI 时代的新作品——游戏、文章、画作、音乐、动画……都会以桌面图标的形式陆续住进来。复古的壳，现代的芯，要的就是这个反差。</p>' +
       '  <fieldset>' +
       '    <legend>使用说明</legend>' +
       '    <ul>' +
@@ -27,7 +27,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       '  <fieldset>' +
       '    <legend>系统信息</legend>' +
       '    <ul>' +
-      '      <li>操作系统：Win98 Web Edition 1.0</li>' +
+      '      <li>操作系统：旧电脑 OS 1.0（Win98 兼容模式）</li>' +
       '      <li>内存：640K（对任何人来说都应该够用了）</li>' +
       '      <li>硬盘：剩余空间 取决于站长的心情</li>' +
       '    </ul>' +
