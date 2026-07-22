@@ -15,7 +15,7 @@
 
 目标氛围：让人打开网站的瞬间以为穿越回了 1998 年。
 
-本站定名「旧电脑」：复古的壳 × 现代的芯，反差感即品牌。主题定位、内容容器规划、作品档案规范见根目录 `THEME.md`（每次项目开启/阶段收尾必读，方向演进时迭代其版本号）。
+本站定名「旧电脑」：复古的壳 × 现代的芯——机器会旧，人会老，想象力不会。主题定位、内容容器规划、作品档案规范见根目录 `THEME.md`（每次项目开启/阶段收尾必读，方向演进时迭代其版本号）。
 
 ## 2. 核心设计原则（不可违背）
 
@@ -158,6 +158,7 @@ window.WIN98_APPS['myapp'] = function (bodyEl, win, moduleConfig) {
 - [x] 欢迎窗现代特效：星空跃迁 Canvas + 乱序解码标题（原生 JS 零依赖，灵感来自 inspira-ui warp-background / hyper-text）
 - [x] URL 深链接：`#open=模块id` 直接打开对应窗口模块
 - [x] `exhibits/` 展柜通道：Vite+Vue+Tailwind 工具链（唯一构建例外，dist 进 git）；通用 iframe 渲染器 `js/apps/exhibit.js`；首个展品「流星雨」（inspira-ui Meteors，MIT）
+- [x] 欢迎窗文案与全站 slogan 定调：「机器会旧，人会老，想象力不会」（替换原"反差"直白表述）
 
 ## 9. 后续路线图（Backlog，按建议优先级排序）
 
