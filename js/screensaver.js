@@ -11,7 +11,7 @@
   var CHECK_MS = 5000;       // 巡检间隔
   var EXHIBIT_URL = 'exhibits/dist/index.html?ex=meteors&chrome=0';
 
-  var overlay = null, iframe = null;
+  var overlay = null, iframe = null, hint = null, hintTimer = null;
   var active = false, lastInput = Date.now(), shownAt = 0;
 
   var INPUT_EVENTS = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'];
@@ -39,15 +39,32 @@
       iframe = document.createElement('iframe');
       iframe.src = EXHIBIT_URL;
       iframe.title = '屏幕保护';
-      iframe.style.cssText = 'width:100%;height:100%;border:0;display:block;';
+      // pointer-events:none 关键：事件穿透到覆盖层，否则 iframe 会吞掉所有
+      // 鼠标/触摸输入（iframe 内事件不冒泡到父页面），屏保将无法退出
+      iframe.style.cssText =
+        'width:100%;height:100%;border:0;display:block;pointer-events:none;';
       overlay.appendChild(iframe);
     }
+    if (!hint) {
+      hint = document.createElement('div');
+      hint.textContent = '移动指针、触摸屏幕或按任意键退出';
+      hint.style.cssText =
+        'position:absolute;left:0;right:0;bottom:48px;text-align:center;' +
+        'color:#7f8ea3;font:12px/1.5 sans-serif;letter-spacing:.15em;' +
+        'opacity:0;transition:opacity .8s;pointer-events:none;';
+      overlay.appendChild(hint);
+    }
     overlay.style.display = 'block';
+    // 退出提示短暂出现后淡出（每次触发重新提示一次）
+    hint.style.opacity = '1';
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(function () { hint.style.opacity = '0'; }, 3500);
   }
 
   function hide() {
     if (!active) return;
     active = false;
+    clearTimeout(hintTimer);
     overlay.style.display = 'none';
   }
 

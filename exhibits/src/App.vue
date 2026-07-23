@@ -21,9 +21,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- 展品页：全屏展出 + 左上角返回大厅 -->
+  <!-- 展品页：全屏展出 + 左上角返回大厅（bare = chrome=0 嵌入模式，透传给展品） -->
   <template v-if="Exhibit">
-    <component :is="Exhibit" />
+    <component :is="Exhibit" :bare="bare" />
     <a
       v-if="!bare"
       href="./index.html"

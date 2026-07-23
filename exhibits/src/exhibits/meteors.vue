@@ -3,6 +3,11 @@
 import { onMounted, reactive, ref } from 'vue'
 import Meteors from '../components/inspira/Meteors.vue'
 
+// bare = chrome=0 嵌入模式（屏保）：不展示交互提示（屏保里点击是退出而非召唤）
+defineProps({
+  bare: Boolean,
+})
+
 onMounted(() => {
   document.title = '展品 001 · 流星雨'
 })
@@ -62,7 +67,7 @@ function summon() {
         把一场 2026 年的流星雨，塞进 1998 年的窗口。
       </p>
       <p class="fade-in text-xs text-slate-500" style="animation-delay: 1.8s">
-        点击夜空，唤一场更大的雨。
+        {{ bare ? '别碰键盘，让星星落一会儿。' : '点击夜空，唤一场更大的雨。' }}
       </p>
     </div>
 
