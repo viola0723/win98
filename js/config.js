@@ -22,8 +22,8 @@ window.WIN98_MODULES = [
     icon: 'assets/icons/mine.png',
     type: 'window',
     app: 'mine',
-    /* 初始尺寸仅为占位：模块打开后由 js/apps/minesweeper.js 的 fitWindow()
-       按当前难度棋盘的实测尺寸自动贴合（此处值 ≈ 初级 9×9 的实测量） */
+    /* 初始尺寸仅为占位：模块打开后由 js/apps/mine-core.js 的 fitWindowToContent()
+       按当前模式/难度棋盘的实测尺寸自动贴合（此处值 ≈ 经典初级 9×9 + Tab 行的实测量） */
     width: 262,
     height: 364
   },

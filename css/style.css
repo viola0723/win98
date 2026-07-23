@@ -546,6 +546,263 @@ body.dragging {
 .mine-cell.n7 { color: #000000; }
 .mine-cell.n8 { color: #808080; }
 
+/* ---------------- 扫雷：模式容器（Tab 行 / 挂载点）与自定义难度对话框 ---------------- */
+
+/* 模式挂载点与 .app-mine 同布局（flex 列 + 6px 缝）：
+   .mine-panel 的 margin-inline:auto 收缩贴合只在 flex 容器里成立（块级容器里 auto 边距解析为 0、
+   面板被撑满），fitWindowToContent 的实测宽度依赖这一收缩 */
+.mine-mode-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* 模式切换 Tab：按压式按钮，激活态凹陷加粗（同 .mine-toolbar button.active） */
+.mine-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;      /* 手机窄屏允许换行 */
+  width: 100%;
+}
+
+.mine-tabs button {
+  min-width: 64px;
+}
+
+.mine-tabs button.active {
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+  font-weight: bold;
+}
+
+/* 难度加到四档后工具栏可能超宽，允许换行（手机 390px 不溢出） */
+.mine-toolbar {
+  flex-wrap: wrap;
+}
+
+/* 自定义对话框覆盖层的定位锚点：relative 无偏移，对其他模块零影响
+   （about 横幅锚在 .app-about-banner、poker 锚在 .app-poker，均不受影响） */
+.app-window .window-body {
+  position: relative;
+}
+
+/* 覆盖窗口内容区的模态层；覆盖期间棋盘输入由 core 的 canInteract 钩子拦截 */
+.mine-dialog-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(192, 192, 192, 0.6);
+}
+
+.mine-dialog {
+  width: 240px;
+  max-width: calc(100% - 16px);
+}
+
+/* 输入框等宽，范围提示不换行 */
+.mine-dialog input[type="number"] {
+  width: 56px;
+}
+
+.mine-dialog-hint {
+  white-space: nowrap;
+  color: #444;
+}
+
+/* 按钮行右对齐（98.css 的 field-row 本身是 flex） */
+.mine-dialog-buttons {
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  /* Tab 按钮与难度按钮（见下方手机端区块 .mine-toolbar button）同样加高，方便手指点按 */
+  .mine-tabs button {
+    min-height: 32px;
+  }
+}
+
+/* ---------------- 扫雷·地下城（mine-dungeon）专属样式 ----------------
+ * 选择器全部挂在 .app-mine-dg 下，不与现有规则冲突。
+ * 复用：.mine-panel/.mine-header/.mine-lcd/.mine-face/.mine-board/.mine-cell
+ *       均为顶层类，此处不重复定义；--mine-cell 变量自外层 .app-mine 继承。 */
+
+/* 根容器（覆盖层/toast 的定位锚） */
+.app-mine-dg {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;   /* iOS 长按格子不弹系统菜单 */
+}
+
+/* HUD（第一排）：层数徽章/心心/增益/最深纪录 */
+.app-mine-dg .mine-dg-hud {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;               /* 手机端 390px 允许换行、不溢出 */
+  width: 100%;
+}
+
+/* 层数徽章「B1」：小号凸起铭牌 */
+.app-mine-dg .mine-dg-floor {
+  font-weight: bold;
+  padding: 1px 6px;
+  background: silver;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+  white-space: nowrap;
+}
+
+.app-mine-dg .mine-dg-hearts {
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.app-mine-dg .mine-dg-perks {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.app-mine-dg .mine-dg-perk {
+  cursor: help;                  /* title 里有名称+描述 */
+  white-space: nowrap;
+}
+
+/* 护甲本层已消耗：置灰提示 */
+.app-mine-dg .mine-dg-perk.off {
+  opacity: 0.35;
+}
+
+/* 最深纪录（同经典扫雷 .mine-best 的右对齐位） */
+.app-mine-dg .mine-dg-deepest {
+  margin-left: auto;
+  align-self: center;
+  white-space: nowrap;
+}
+
+/* 棋盘装饰（配合 decorateCell 钩子） */
+
+/* 已显形的出口🕳️：呼吸闪 + 手型，提示「点我下楼」 */
+.app-mine-dg .mine-cell.mine-dg-exit,
+.app-mine-dg .mine-cell.mine-dg-exit:active {
+  cursor: pointer;
+  animation: mine-dg-exit-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes mine-dg-exit-blink {
+  0%, 100% { background: silver; }
+  50% { background: #e0ffe0; }
+}
+
+/* 覆盖层（抽卡 / 本局结束） */
+.app-mine-dg .mine-dg-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  overflow: auto;                /* 卡片换行后超高时可滚，不顶破小窗口 */
+  background: rgba(192, 192, 192, 0.88);   /* 半透明银灰：压住棋盘又不全遮死 */
+}
+
+/* 对话框：经典凸起面板 */
+.app-mine-dg .mine-dg-dialog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  padding: 12px;
+  background: silver;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+}
+
+.app-mine-dg .mine-dg-title {
+  font-weight: bold;
+  text-align: center;
+}
+
+.app-mine-dg .mine-dg-stats {
+  text-align: center;
+}
+
+/* 三选一抽卡：纵排行式卡（icon 左 + 名称/描述右）。
+   不用横排三栏——B1 小棋盘窗口仅 ~260px 宽，横排必裁切；纵排任何楼层尺寸都放得下 */
+.app-mine-dg .mine-dg-cards {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  max-width: 250px;
+}
+
+.app-mine-dg .mine-dg-card,
+.app-mine-dg .mine-dg-card:active {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 8px;
+  align-items: center;
+  text-align: left;
+  padding: 6px 10px;
+  color: #222;                   /* 98.css 按钮 color:transparent + text-shadow 画字 */
+  text-shadow: none;             /* emoji/描述要原色，两个 hack 都得关 */
+  white-space: normal;
+}
+
+.app-mine-dg .mine-dg-card-icon {
+  grid-row: span 2;              /* icon 纵向居中跨名称/描述两行 */
+  font-size: 22px;
+  line-height: 1;
+}
+
+.app-mine-dg .mine-dg-card-name {
+  font-weight: bold;
+}
+
+.app-mine-dg .mine-dg-card-desc {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* toast（底部居中淡出小条） */
+.app-mine-dg .mine-dg-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 11;
+  max-width: 90%;
+  padding: 2px 8px;
+  background: #ffffe1;           /* 经典 tooltip 黄 */
+  border: 1px solid #000;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  pointer-events: none;          /* 纯提示，不挡棋盘点击 */
+  transition: opacity 0.25s;
+}
+
+.app-mine-dg .mine-dg-toast.show {
+  opacity: 1;
+}
+
+/* 手机端适配（≤640px）：HUD 换行由 .mine-dg-hud 的 flex-wrap 处理，抽卡默认纵排无需覆写 */
+
 /* ---------------- 手机端适配（≤640px） ---------------- */
 
 @media (max-width: 640px) {

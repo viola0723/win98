@@ -6,8 +6,9 @@
 
 仿 Windows 98 桌面的个人网站「旧电脑」：复古的壳 × 现代的芯——1998 年的桌面里装着 AI 时代的新作品（歌/画/文/游戏/特效），每个桌面图标 = 一个作品/功能模块或一个外链入口，纯静态零构建，PC/手机双端适配。
 
-## 当前状态（v0.9，2026-07-23）
+## 当前状态（v1.0，2026-07-23）
 
+- 扫雷双模式落地（PC/手机 Playwright e2e 31 项断言全过）：① 引擎拆分——棋盘数据/首击安全/输入/绘制抽成共享引擎 `js/apps/mine-core.js`（`WIN98_MINE_CORE.createBoard`，钩子制：canInteract/onMineHit 可存活/onAllClear/onCellRevealed/onRevealedClick/decorateCell 等；`MODES` 模式注册表）；`js/apps/minesweeper.js` 改为容器（Tab 切模式，模式脚本缺失时 Tab 整行隐藏优雅降级）+ 经典模式 ② 经典模式新增自定义难度（宽 9–30/高 9–24/雷 10–(宽-1)×(高-1) 钳制，对话框雷数上限随宽高联动，自定义档不记最佳时间；配置存 `win98.mine.custom`）③ 新模式「地下城」= 扫雷×肉鸽（`js/apps/mine-dungeon.js`）：HP 制踩雷掉血（减伤链 护甲→排雷靴→HP）、每层藏出口🕳️点它下楼、下楼三选一增益（📡探测仪/🛡️护甲/💗强心剂/🥾排雷靴/🔮透视/💊急救包，数据驱动 POOL，局外成长留口子=抽卡前过滤池）、楼层 B1…尺寸雷密渐增（9×9/12% 起，封顶 16×16/22%）、全清回血+自动下楼、最深纪录 `win98.mine.dungeon.deepest`；**注意：两模式 fitWindowToContent 锚点统一是容器根 `.app-mine`（含 Tab 行），锚模式内层根会少算 Tab 行高度**
 - 屏保加固三连修（真实浏览器复测通过）：① 修无法退出——iframe 加 `pointer-events:none` 让事件穿透到覆盖层（iframe 内事件不冒泡到父页面，勿删）；② 修 PC 二次触发显示异常——`show()` 每次重设 `iframe.src`，首/N 次触发路径归一（规避隐藏 iframe 复显的 GPU 合成层怪癖，无头环境无法复现此类问题）；③ 屏保画面精简——`chrome=0` 时展品按 `bare` prop 只留纯特效 + 右下角署名（App.vue 透传，展品自行响应）
 - 展览馆入口确立：桌面「展品 001」升级为博物馆入口「展览馆」（新像素图标 gallery.png），开窗即现代展厅大厅（暗色展品墙 + EXHIBIT 编号制）；展品元数据集中在 `exhibits/src/exhibits/manifest.js`——新展品 = 拷组件 + `src/exhibits/xxx.vue` + manifest 一条 + build，主站 `config.js` 零改动；`?ex=xxx` 直达单展品、`?chrome=0` 嵌入模式（屏保用）
 - 展品 001 作品化：创作阐述居中渐显、组件署名挪角落小字、指针视差（Pointer Events）、点击夜空召唤一阵流星（独立 Meteors 实例，数秒后撤下）
@@ -39,7 +40,9 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 |---|---|
 | `js/config.js` | **图标注册表 `WIN98_MODULES`，增删功能只改这里** |
 | `js/apps.js` | 模块渲染函数注册表 `WIN98_APPS['id'] = fn(bodyEl, win, cfg)` |
-| `js/apps/minesweeper.js` | 扫雷模块（大模块单文件示例，index.html 里单独 `<script>` 引入） |
+| `js/apps/mine-core.js` | 扫雷共享引擎 `WIN98_MINE_CORE`：棋盘数据/首击安全/输入（点按/右键/长按）/绘制，钩子制（模式可改踩雷为存活、装饰格子等）；`MODES` 模式注册表；`fitWindowToContent` 按内容实测贴合窗口（锚点=容器根 `.app-mine`） |
+| `js/apps/minesweeper.js` | 扫雷容器 `WIN98_APPS['mine']`（Tab 切模式，缺失模式自动隐藏 Tab）+ 经典模式（三档+自定义难度：宽 9–30/高 9–24/雷 10–(宽-1)×(高-1) 钳制，自定义档不记最佳） |
+| `js/apps/mine-dungeon.js` | 扫雷·地下城模式（肉鸽）：HP 制、出口🕳️下楼、三选一增益 POOL（数据驱动）、楼层尺寸/雷密渐增、全清回血、最深纪录 |
 | `js/apps/poker.js` | 德州扑克模块（移植自独立版单文件游戏；样式在 style.css 末尾以 `.app-poker` 为作用域） |
 | `js/apps/exhibit.js` | 展览馆渲染器：iframe 加载 `cfg.exhibit` 指定的展厅/展品页（exhibits/dist/...） |
 | `js/screensaver.js` | 屏幕保护：闲置 60s 全屏播放展品（当前 = 流星雨，每次触发重载 iframe），任意输入退出；`WIN98_SAVER.show()` 供开始菜单预览 |
@@ -52,7 +55,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `tools/make_icons.py` | 像素图标生成器（需 Pillow），加图标：写 `draw_xxx` → 注册 `ICONS` → 重跑 |
 | `exhibits/` | 展柜工程：现代特效展品（唯一允许构建工具链的目录，Vite+Vue+Tailwind；`dist` 提交进 git、勿 ignore；选题库 inspira-ui.com）。`src/App.vue` 是壳：无参 = 展览馆大厅，`?ex=xxx` 动态加载 `src/exhibits/xxx.vue`，`?chrome=0` 隐藏返回按钮；展品清单 `src/exhibits/manifest.js`（纯数据）；组件源本地镜像 `../tools/inspira-ui` |
 
-脚本加载顺序（index.html）：config → windowManager → apps → apps/minesweeper → apps/poker → apps/exhibit → desktop → taskbar → screensaver → main。普通 script 标签（非 module），保证 `file://` 可跑（注意：展品 iframe 是 ES module，`file://` 下加载不了，需 http 预览或线上访问）。
+脚本加载顺序（index.html）：config → windowManager → apps → apps/mine-core → apps/minesweeper → apps/mine-dungeon → apps/poker → apps/exhibit → desktop → taskbar → screensaver → main。普通 script 标签（非 module），保证 `file://` 可跑（注意：展品 iframe 是 ES module，`file://` 下加载不了，需 http 预览或线上访问）。
 
 ## 铁律
 

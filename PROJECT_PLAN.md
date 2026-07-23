@@ -163,6 +163,7 @@ window.WIN98_APPS['myapp'] = function (bodyEl, win, moduleConfig) {
 - [x] 展柜工程优化：inspira-ui 组件源本地镜像（浅克隆 `../tools/inspira-ui`）；官方 CLI 验证结论——走 shadcn-vue CLI + inspira registry，支持纯 Vite（详见 CANDIDATES.md 待办区）；展品页 `?ex=` 参数路由（App.vue 按 `import.meta.glob` 动态加载 `src/exhibits/*.vue`，新展品零改壳代码，config.js 传 `?ex=xxx` 即可）
 - [x] 展览馆入口：桌面单图标「展览馆」（博物馆立面像素图标）→ 开窗即现代展厅大厅（暗色展品墙 + EXHIBIT 编号制 + slogan 馆头）；展品元数据集中在 `exhibits/src/exhibits/manifest.js`（纯数据，配置驱动），新展品主站 `config.js` 零改动；`?chrome=0` 嵌入模式隐藏返回按钮；展品 001 作品化（创作阐述渐显、指针视差、点击召唤阵雨、署名角落化）
 - [x] 屏保框架（.scr 容器）：`js/screensaver.js` 闲置 60s 全屏播放展品（当前 = 流星雨，每次触发重载 iframe），任意输入退出（iframe `pointer-events:none` 穿透事件；0.8s 触发宽限防误触；关机状态不触发；页面隐藏不计时）；开始菜单新增「屏幕保护」手动预览；屏保模式（`chrome=0`）展品只留纯特效 + 角落署名
+- [x] 扫雷双模式：棋盘/输入/绘制抽成共享引擎 `js/apps/mine-core.js`（钩子制 + `MODES` 模式注册表），容器窗口顶栏 Tab 切模式；经典模式新增自定义难度（宽 9–30/高 9–24/雷 10–(宽-1)×(高-1) 钳制、雷数上限随宽高联动、自定义档不记最佳）；新增「地下城」肉鸽模式（`js/apps/mine-dungeon.js`：HP 制踩雷掉血、每层藏出口🕳️点它下楼、下楼三选一增益——探测仪/护甲/强心剂/排雷靴/透视/急救包、楼层尺寸雷密渐增、全清回血、最深纪录 localStorage，局外成长预留按解锁过滤增益池的口子）
 
 ## 9. 后续路线图（Backlog，按建议优先级排序）
 
