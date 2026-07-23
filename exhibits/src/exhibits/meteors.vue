@@ -3,7 +3,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import Meteors from '../components/inspira/Meteors.vue'
 
-// bare = chrome=0 嵌入模式（屏保）：不展示交互提示（屏保里点击是退出而非召唤）
+// bare = chrome=0 嵌入模式（屏保）：只留纯流星雨 + 右下角署名，题签与文案不渲染
 defineProps({
   bare: Boolean,
 })
@@ -53,8 +53,9 @@ function summon() {
     <Meteors :count="40" />
     <Meteors v-for="b in bursts" :key="b" :count="8" />
 
-    <!-- 作品题签：编号 / 作品名 / 创作阐述 -->
+    <!-- 作品题签：编号 / 作品名 / 创作阐述（屏保嵌入模式不渲染） -->
     <div
+      v-if="!bare"
       class="relative z-10 flex h-full flex-col items-center justify-center gap-3 px-6 text-center select-none"
       :style="{
         transform: `translate(${tilt.x * 10}px, ${tilt.y * 7}px)`,
@@ -67,7 +68,7 @@ function summon() {
         把一场 2026 年的流星雨，塞进 1998 年的窗口。
       </p>
       <p class="fade-in text-xs text-slate-500" style="animation-delay: 1.8s">
-        {{ bare ? '别碰键盘，让星星落一会儿。' : '点击夜空，唤一场更大的雨。' }}
+        点击夜空，唤一场更大的雨。
       </p>
     </div>
 
