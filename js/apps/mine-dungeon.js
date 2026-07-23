@@ -1,5 +1,5 @@
 /* ============================================================
- * 扫雷·地下城 2.0「记忆胶囊」（mine-dungeon）—— 经典扫雷 × 地下城肉鸽
+ * 扫雷·寻找时间胶囊（mine-dungeon，原「地下城」2.0）—— 经典扫雷 × 肉鸽
  *
  * 故事：硬盘深处 11 层坏道区，最底层（B11）封存着一枚 1998 年的时间胶囊——
  *       机主小时候写给未来的信。数据散成了碎片，下去把它修好。
@@ -349,7 +349,7 @@
       ov.className = 'mine-dg-overlay';
       ov.innerHTML =
         '<div class="mine-dg-dialog mine-dg-wide">' +
-        '  <div class="mine-dg-title">扫雷 · 地下城「记忆胶囊」</div>' +
+        '  <div class="mine-dg-title">扫雷 · 寻找时间胶囊</div>' +
         '  <div class="mine-dg-story">' + STORY_INTRO + '</div>' +
         (seenGood ? '<div class="mine-dg-badge">💊 时间胶囊已解封</div>' : '') +
         '  <div class="mine-dg-cards" data-role="classes"></div>' +
@@ -708,6 +708,12 @@
       }
     });
     updateMinesLcd();
+
+    /* 挂载即贴合窗口：经典模式在 newGame 里 fit，地下城若等选完职业（startFloor）才 fit，
+       切 Tab 到职业选择这段时间窗口仍是上一模式的尺寸，内容会被裁出滚动条 */
+    if (typeof CORE.fitWindowToContent === 'function') {
+      CORE.fitWindowToContent(win, bodyEl, rootEl, hudEl, panelEl);
+    }
 
     /* ---------------- 脸按钮 = 回职业选择（放弃当前局） ---------------- */
     faceEl.addEventListener('click', function () { showClassSelect(); });

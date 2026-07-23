@@ -629,7 +629,7 @@ body.dragging {
   }
 }
 
-/* ---------------- 扫雷·地下城（mine-dungeon）专属样式 ----------------
+/* ---------------- 扫雷·寻找时间胶囊（mine-dungeon）专属样式 ----------------
  * 选择器全部挂在 .app-mine-dg 下，不与现有规则冲突。
  * 复用：.mine-panel/.mine-header/.mine-lcd/.mine-face/.mine-board/.mine-cell
  *       均为顶层类，此处不重复定义；--mine-cell 在本作用域覆盖为 30px

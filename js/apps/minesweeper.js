@@ -1,6 +1,6 @@
 /* ============================================================
  * 扫雷 —— 模式容器 + 经典模式
- * 容器 WIN98_APPS['mine']：Tab 行（经典模式 / 地下城）+ 模式挂载点，
+ * 容器 WIN98_APPS['mine']：Tab 行（经典模式 / 寻找时间胶囊）+ 模式挂载点，
  *   模式实现注册在 WIN98_MINE_CORE.MODES（引擎见 js/apps/mine-core.js）；
  *   地下城脚本未加载时 Tab 整行隐藏，退化为纯经典模式（优雅降级）。
  * 经典模式 MODES.classic：三档难度 + 自定义、LCD 计数、笑脸重开、
@@ -341,7 +341,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
 
   var MODE_DEFS = [
     { id: 'classic', label: '经典模式' },
-    { id: 'dungeon', label: '地下城' }
+    { id: 'dungeon', label: '寻找时间胶囊' }
   ];
 
   WIN98_APPS['mine'] = function (bodyEl, win) {
