@@ -6,9 +6,10 @@
 
 仿 Windows 98 桌面的个人网站「旧电脑」：复古的壳 × 现代的芯——1998 年的桌面里装着 AI 时代的新作品（歌/画/文/游戏/特效），每个桌面图标 = 一个作品/功能模块或一个外链入口，纯静态零构建，PC/手机双端适配。
 
-## 当前状态（v0.8，2026-07-23）
+## 当前状态（v0.9，2026-07-23）
 
-- 展览馆入口确立：桌面「展品 001」升级为博物馆入口「展览馆」（新像素图标 gallery.png），开窗即现代展厅大厅（暗色展品墙 + EXHIBIT 编号制）；展品元数据集中在 `exhibits/src/exhibits/manifest.js`——新展品 = 拷组件 + `src/exhibits/xxx.vue` + manifest 一条 + build，主站 `config.js` 零改动；`?ex=xxx` 直达单展品、`?chrome=0` 隐藏返回按钮（屏保嵌入用）
+- 屏保加固三连修（真实浏览器复测通过）：① 修无法退出——iframe 加 `pointer-events:none` 让事件穿透到覆盖层（iframe 内事件不冒泡到父页面，勿删）；② 修 PC 二次触发显示异常——`show()` 每次重设 `iframe.src`，首/N 次触发路径归一（规避隐藏 iframe 复显的 GPU 合成层怪癖，无头环境无法复现此类问题）；③ 屏保画面精简——`chrome=0` 时展品按 `bare` prop 只留纯特效 + 右下角署名（App.vue 透传，展品自行响应）
+- 展览馆入口确立：桌面「展品 001」升级为博物馆入口「展览馆」（新像素图标 gallery.png），开窗即现代展厅大厅（暗色展品墙 + EXHIBIT 编号制）；展品元数据集中在 `exhibits/src/exhibits/manifest.js`——新展品 = 拷组件 + `src/exhibits/xxx.vue` + manifest 一条 + build，主站 `config.js` 零改动；`?ex=xxx` 直达单展品、`?chrome=0` 嵌入模式（屏保用）
 - 展品 001 作品化：创作阐述居中渐显、组件署名挪角落小字、指针视差（Pointer Events）、点击夜空召唤一阵流星（独立 Meteors 实例，数秒后撤下）
 - 屏保框架落地（.scr 容器）：`js/screensaver.js` 闲置 60s 全屏播放 `?ex=meteors&chrome=0`，任意输入退出（触发后 0.8s 宽限防误触退出；关机彩蛋播放中不触发；页面隐藏不计时）；开始菜单新增「屏幕保护」手动预览（saver.png 图标）
 - 展柜工程优化落地：① inspira-ui 组件源本地镜像就位（浅克隆 `../tools/inspira-ui`，组件源在 `app/components/inspira/ui/<组件名>/`；官方 CLI 验证结论：shadcn-vue CLI + inspira registry 支持纯 Vite，但依赖体系重，本项目坚持镜像手工拷贝，结论详见 `exhibits/CANDIDATES.md` 待办区）② 展品页 `?ex=` 参数路由：`exhibits/src/App.vue` 改为路由壳，`import.meta.glob('./exhibits/*.vue')` 按参数动态加载，新展品零改壳代码；无参/未知参数自动列出全部展品
@@ -41,7 +42,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `js/apps/minesweeper.js` | 扫雷模块（大模块单文件示例，index.html 里单独 `<script>` 引入） |
 | `js/apps/poker.js` | 德州扑克模块（移植自独立版单文件游戏；样式在 style.css 末尾以 `.app-poker` 为作用域） |
 | `js/apps/exhibit.js` | 展览馆渲染器：iframe 加载 `cfg.exhibit` 指定的展厅/展品页（exhibits/dist/...） |
-| `js/screensaver.js` | 屏幕保护：闲置 60s 全屏播放展品（当前 = 流星雨），任意输入退出；`WIN98_SAVER.show()` 供开始菜单预览 |
+| `js/screensaver.js` | 屏幕保护：闲置 60s 全屏播放展品（当前 = 流星雨，每次触发重载 iframe），任意输入退出；`WIN98_SAVER.show()` 供开始菜单预览 |
 | `js/windowManager.js` | 窗口生命周期，对外 `WindowManager.open(module)` |
 | `js/desktop.js` | 图标渲染与打开（`WIN98_DESKTOP.openModule`，link→新标签页 / window→开窗） |
 | `js/taskbar.js` | 任务栏、开始菜单、时钟；`WIN98_TASKBAR.sync()` 由窗口系统回调 |
