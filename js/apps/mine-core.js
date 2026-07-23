@@ -1,7 +1,9 @@
 /* ============================================================
  * 扫雷共享引擎（mine-core）—— 棋盘数据 / 输入 / 绘制，与模式 UI 解耦
  * 暴露 window.WIN98_MINE_CORE：
- *   MODES               模式注册表：MODES.xxx = function (containerEl, ctx)，ctx = { win, bodyEl }
+ *   MODES               模式注册表：MODES.xxx = function (containerEl, ctx)
+ *                       ctx = { win, bodyEl, setGuard(fn) }；setGuard 登记「对局进行中」
+ *                       判断（可选），容器在切模式 Tab 前据此弹「放弃当前对局」确认
  *   pad3(n)             LCD 三位补零（-99~999，负数如 -09）
  *   fitWindowToContent  按内容实测尺寸反推窗口（原 minesweeper.js fitWindow 的泛化）
  *   createBoard(opts)   创建一块雷区，返回 board（见下）
@@ -23,7 +25,8 @@
  *           neighbors, reveal, chord, toggleFlag, paint, paintAll, lose, reset,
  *           revealRandomSafe, markRandomMines, remainingFlags }
  * cell = { mine, count, revealed, flagged, known, exploded }
- *   known：已标记雷——禁止翻开、chord 时计为旗数（地下城探测仪用；经典永远 false）
+ *   known：已标记雷——禁止翻开、chord 时计为旗数、remainingFlags 计入已发现
+ *           （地下城探测仪/声呐用；经典永远 false）
  *   exploded：已爆雷——revealed=true、chord 计为旗数、不计入 revealedCount（雷格本就不计）
  * ============================================================ */
 window.WIN98_MINE_CORE = (function () {
@@ -121,7 +124,12 @@ window.WIN98_MINE_CORE = (function () {
       reset: reset,
       revealRandomSafe: revealRandomSafe,
       markRandomMines: markRandomMines,
-      remainingFlags: function () { return board.mines - board.flagCount; }
+      // 剩余未发现的雷 = 总雷数 - 插旗 - known 标记（标记即算发现；known 格再插旗不重复计）
+      remainingFlags: function () {
+        var known = 0;
+        for (var i = 0; i < cells.length; i++) if (cells[i].known && !cells[i].flagged) known++;
+        return board.mines - board.flagCount - known;
+      }
     };
 
     /* 未结束且模式方未拦截（覆盖层打开等）时才响应格子输入与表情变化 */

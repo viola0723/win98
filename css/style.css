@@ -594,6 +594,7 @@ body.dragging {
   align-items: center;
   justify-content: center;
   background: rgba(192, 192, 192, 0.6);
+  touch-action: none;   /* 模态期间禁掉底层滚动：锚在 window-body 的覆盖层会被滚动卷走 */
 }
 
 .mine-dialog {
@@ -611,6 +612,11 @@ body.dragging {
   color: #444;
 }
 
+/* 确认对话框（误触保护）的提示语 */
+.mine-dialog-text {
+  margin-bottom: 8px;
+}
+
 /* 按钮行右对齐（98.css 的 field-row 本身是 flex） */
 .mine-dialog-buttons {
   justify-content: flex-end;
@@ -626,10 +632,12 @@ body.dragging {
 /* ---------------- 扫雷·地下城（mine-dungeon）专属样式 ----------------
  * 选择器全部挂在 .app-mine-dg 下，不与现有规则冲突。
  * 复用：.mine-panel/.mine-header/.mine-lcd/.mine-face/.mine-board/.mine-cell
- *       均为顶层类，此处不重复定义；--mine-cell 变量自外层 .app-mine 继承。 */
+ *       均为顶层类，此处不重复定义；--mine-cell 在本作用域覆盖为 30px
+ *       （比经典 24px 大，最大楼层 12 列 × 30px ≈ 380px，手机 390px 刚好放下）。 */
 
 /* 根容器（覆盖层/toast 的定位锚） */
 .app-mine-dg {
+  --mine-cell: 30px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -690,6 +698,57 @@ body.dragging {
   white-space: nowrap;
 }
 
+/* HUD 金币 / 记忆碎片 */
+.app-mine-dg .mine-dg-gold,
+.app-mine-dg .mine-dg-frags {
+  white-space: nowrap;
+}
+
+/* 装备栏（棋盘下方的展示/操作位）：技能按钮 + 消耗品 + 已拥有装备图标。
+   margin-inline:auto 收缩贴合居中，与 .mine-panel 同一套思路（见经典模式注释） */
+.app-mine-dg .mine-dg-belt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;               /* 手机窄屏允许换行 */
+  margin-inline: auto;
+  padding: 4px 6px;
+  background: silver;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+}
+
+.app-mine-dg .mine-dg-skill {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.app-mine-dg .mine-dg-items {
+  display: flex;
+  gap: 4px;
+}
+
+/* 消耗品按钮：图标×数量，显示即所得（数量 = 可用次数），0 或没布雷时 disabled 置灰 */
+.app-mine-dg .mine-dg-item {
+  min-width: 0;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+
+/* 装备图标靠右，纯展示（title 悬浮描述）；护甲本层已消耗时置灰（复用 .mine-dg-perk.off） */
+.app-mine-dg .mine-dg-gear {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* toast 的定位锚：压在棋盘面板下缘，不再盖住棋盘下方的装备栏 */
+.app-mine-dg .mine-panel {
+  position: relative;
+}
+
 /* 棋盘装饰（配合 decorateCell 钩子） */
 
 /* 已显形的出口🕳️：呼吸闪 + 手型，提示「点我下楼」 */
@@ -732,6 +791,54 @@ body.dragging {
 .app-mine-dg .mine-dg-title {
   font-weight: bold;
   text-align: center;
+}
+
+/* 职业选择 / 结局的宽对话框（卡片缝收窄一档，三张职业卡在小窗口里尽量不滚） */
+.app-mine-dg .mine-dg-wide {
+  max-width: min(340px, 100%);
+  gap: 8px;
+}
+
+.app-mine-dg .mine-dg-wide .mine-dg-cards {
+  gap: 6px;
+}
+
+/* 故事引入 / 坏结局补言 */
+.app-mine-dg .mine-dg-story {
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;
+}
+
+/* 「时间胶囊已解封」徽章 */
+.app-mine-dg .mine-dg-badge {
+  font-size: 12px;
+}
+
+/* 结局信纸：白底等宽字体模拟记事本；限高可滚，不顶破小窗口 */
+.app-mine-dg .mine-dg-letter {
+  background: #fff;
+  color: #111;
+  font-family: monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  text-align: left;
+  white-space: pre-wrap;
+  padding: 8px 12px;
+  max-width: 320px;
+  max-height: 40vh;
+  overflow: auto;
+  box-shadow: inset 1px 1px #808080, inset -1px -1px #fff, inset 2px 2px #0a0a0a, inset -2px -2px #dfdfdf;
+}
+
+/* 信纸顶部的「时间胶囊.txt」文件名行 */
+.app-mine-dg .mine-dg-notepad {
+  display: block;
+  margin: -2px 0 6px;
+  padding-bottom: 2px;
+  font-size: 11px;
+  color: #444;
+  border-bottom: 1px solid #808080;
 }
 
 .app-mine-dg .mine-dg-stats {
@@ -858,6 +965,12 @@ body.dragging {
 
   /* 扫雷工具栏按钮加高，方便手指点按 */
   .mine-toolbar button {
+    min-height: 32px;
+  }
+
+  /* 地下城装备栏按钮（技能/消耗品）同样加高 */
+  .app-mine-dg .mine-dg-skill,
+  .app-mine-dg .mine-dg-item {
     min-height: 32px;
   }
 }

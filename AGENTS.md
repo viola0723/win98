@@ -8,6 +8,8 @@
 
 ## 当前状态（v1.0，2026-07-23）
 
+- 扫雷·地下城 2.0「记忆胶囊」（PC/手机 Playwright e2e 10 项断言全过，含防误触回归）：三职业（维修技师/探测员/拾荒者，被动+每层 1 次主动技能，数据驱动 CLASSES）、装备（永久被动 5 种，三选一/商店获得）与一次性消耗品（📡🔮💊 数量制，显示=可用次数）分家；每层 1 宝箱（随机金币+35% 记忆碎片）、每过 2 层出商店（会员卡 -20%）；11 层主线——B11 Boss 层无出口须全清、踩雷伤害 2；结局按碎片（≥5）双判定：好结局=1998 年写给未来的信（记事本样式）、坏结局=□□残缺信，好结局达成后职业选择显示「💊 已解封」；格子 24→30px、楼层封顶 12×12（手机 390px 刚好）、棋盘下新增装备栏 belt（技能/消耗品/装备图标，toast 锚在棋盘面板内不盖 belt）；引擎 `remainingFlags` 计入 known（雷达标记即算发现）；排雷靴删除（与护甲趋同）
+- 扫雷防误触重置（PC/手机 Playwright e2e 5 项断言全过）：对局进行中点难度按钮/切模式 Tab 先弹「放弃当前对局」确认框（`confirmGiveUp`，模态期间 app 根元素 inert 锁指针+键盘、默认焦点「取消」、遮罩加 `touch-action:none` 防滚动卷走）；未开局/已结束直接放行；点已激活 Tab 不再重置；笑脸仍是即点即重开。模式经 `ctx.setGuard(fn)` 向容器登记 hasProgress——经典=已开局未结束；地下城=本层已开局或已深入 B2+ 且未结束（B1 未开局无进度可丢）
 - 接力扩编：Windows 机就位（`C:/Kimi Code/win98`，机器互认信息见 `COLLAB.md`「当前在役机器」）——clone 走 gh-proxy 镜像、push/pull 走 SSH 443（密钥方案，公钥已入 GitHub 账号）、Playwright Chromium 验收能力与 Mac 对齐；双机接力链路已实测（fetch/push 均通）
 - 扫雷双模式落地（PC/手机 Playwright e2e 31 项断言全过）：① 引擎拆分——棋盘数据/首击安全/输入/绘制抽成共享引擎 `js/apps/mine-core.js`（`WIN98_MINE_CORE.createBoard`，钩子制：canInteract/onMineHit 可存活/onAllClear/onCellRevealed/onRevealedClick/decorateCell 等；`MODES` 模式注册表）；`js/apps/minesweeper.js` 改为容器（Tab 切模式，模式脚本缺失时 Tab 整行隐藏优雅降级）+ 经典模式 ② 经典模式新增自定义难度（宽 9–30/高 9–24/雷 10–(宽-1)×(高-1) 钳制，对话框雷数上限随宽高联动，自定义档不记最佳时间；配置存 `win98.mine.custom`）③ 新模式「地下城」= 扫雷×肉鸽（`js/apps/mine-dungeon.js`）：HP 制踩雷掉血（减伤链 护甲→排雷靴→HP）、每层藏出口🕳️点它下楼、下楼三选一增益（📡探测仪/🛡️护甲/💗强心剂/🥾排雷靴/🔮透视/💊急救包，数据驱动 POOL，局外成长留口子=抽卡前过滤池）、楼层 B1…尺寸雷密渐增（9×9/12% 起，封顶 16×16/22%）、全清回血+自动下楼、最深纪录 `win98.mine.dungeon.deepest`；**注意：两模式 fitWindowToContent 锚点统一是容器根 `.app-mine`（含 Tab 行），锚模式内层根会少算 Tab 行高度**
 - 屏保加固三连修（真实浏览器复测通过）：① 修无法退出——iframe 加 `pointer-events:none` 让事件穿透到覆盖层（iframe 内事件不冒泡到父页面，勿删）；② 修 PC 二次触发显示异常——`show()` 每次重设 `iframe.src`，首/N 次触发路径归一（规避隐藏 iframe 复显的 GPU 合成层怪癖，无头环境无法复现此类问题）；③ 屏保画面精简——`chrome=0` 时展品按 `bare` prop 只留纯特效 + 右下角署名（App.vue 透传，展品自行响应）
@@ -41,9 +43,9 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 |---|---|
 | `js/config.js` | **图标注册表 `WIN98_MODULES`，增删功能只改这里** |
 | `js/apps.js` | 模块渲染函数注册表 `WIN98_APPS['id'] = fn(bodyEl, win, cfg)` |
-| `js/apps/mine-core.js` | 扫雷共享引擎 `WIN98_MINE_CORE`：棋盘数据/首击安全/输入（点按/右键/长按）/绘制，钩子制（模式可改踩雷为存活、装饰格子等）；`MODES` 模式注册表；`fitWindowToContent` 按内容实测贴合窗口（锚点=容器根 `.app-mine`） |
+| `js/apps/mine-core.js` | 扫雷共享引擎 `WIN98_MINE_CORE`：棋盘数据/首击安全/输入（点按/右键/长按）/绘制，钩子制（模式可改踩雷为存活、装饰格子等）；`MODES` 模式注册表（ctx 含 `setGuard` 误触保护登记）；`remainingFlags` 计入 known 标记雷；`fitWindowToContent` 按内容实测贴合窗口（锚点=容器根 `.app-mine`） |
 | `js/apps/minesweeper.js` | 扫雷容器 `WIN98_APPS['mine']`（Tab 切模式，缺失模式自动隐藏 Tab）+ 经典模式（三档+自定义难度：宽 9–30/高 9–24/雷 10–(宽-1)×(高-1) 钳制，自定义档不记最佳） |
-| `js/apps/mine-dungeon.js` | 扫雷·地下城模式（肉鸽）：HP 制、出口🕳️下楼、三选一增益 POOL（数据驱动）、楼层尺寸/雷密渐增、全清回血、最深纪录 |
+| `js/apps/mine-dungeon.js` | 扫雷·地下城 2.0「记忆胶囊」（肉鸽）：三职业（被动+主动技能）、装备/一次性消耗品分家、宝箱+每 2 层商店、11 层主线（B11 Boss 全清）、记忆碎片双结局；数据驱动 CLASSES/GEAR/ITEMS/PACKS；格子 30px、楼层封顶 12×12 |
 | `js/apps/poker.js` | 德州扑克模块（移植自独立版单文件游戏；样式在 style.css 末尾以 `.app-poker` 为作用域） |
 | `js/apps/exhibit.js` | 展览馆渲染器：iframe 加载 `cfg.exhibit` 指定的展厅/展品页（exhibits/dist/...） |
 | `js/screensaver.js` | 屏幕保护：闲置 60s 全屏播放展品（当前 = 流星雨，每次触发重载 iframe），任意输入退出；`WIN98_SAVER.show()` 供开始菜单预览 |

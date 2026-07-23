@@ -5,6 +5,8 @@
  *   地下城脚本未加载时 Tab 整行隐藏，退化为纯经典模式（优雅降级）。
  * 经典模式 MODES.classic：三档难度 + 自定义、LCD 计数、笑脸重开、
  *   每难度最佳时间，棋盘数据与输入全部交给 WIN98_MINE_CORE.createBoard。
+ * 误触保护：对局进行中点难度按钮 / 模式 Tab 先弹「放弃当前对局」确认框
+ *   （confirmGiveUp；模式经 ctx.setGuard 向容器登记「有进度」判断）。
  * ============================================================ */
 window.WIN98_APPS = window.WIN98_APPS || {};
 (function () {
@@ -26,6 +28,43 @@ window.WIN98_APPS = window.WIN98_APPS || {};
   }
   function storageSet(key, value) {
     try { window.localStorage.setItem(key, value); } catch (err) { /* 忽略 */ }
+  }
+
+  /* ---------------- 误触保护：放弃对局确认框 ----------------
+   * 覆盖整个窗口内容区的模态层（锚 window-body，同自定义对话框）；
+   * 打开期间 app 根元素 inert——指针与键盘都够不到棋盘和其余按钮。 */
+  function confirmGiveUp(bodyEl, lockEl, message, onConfirm) {
+    bodyEl.scrollLeft = 0;   // 覆盖层锚在 window-body（position:relative），先滚回原点保证对齐
+    bodyEl.scrollTop = 0;
+    var overlay = document.createElement('div');
+    overlay.className = 'mine-dialog-overlay';
+    overlay.innerHTML =
+      '<div class="window mine-dialog" role="dialog" aria-label="确认">' +
+      '  <div class="title-bar"><div class="title-bar-text">确认</div></div>' +
+      '  <div class="window-body">' +
+      '    <div class="mine-dialog-text">' + message + '</div>' +
+      '    <div class="field-row mine-dialog-buttons">' +
+      '      <button type="button" data-role="ok">确定</button>' +
+      '      <button type="button" data-role="cancel">取消</button>' +
+      '    </div>' +
+      '  </div>' +
+      '</div>';
+    bodyEl.appendChild(overlay);
+    if (lockEl && 'inert' in lockEl) lockEl.inert = true;
+
+    function close() {
+      if (lockEl) lockEl.inert = false;
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }
+    overlay.querySelector('[data-role="ok"]').addEventListener('click', function () {
+      close();
+      onConfirm();
+    });
+    overlay.querySelector('[data-role="cancel"]').addEventListener('click', close);
+    // 点遮罩空白处 = 取消
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+    // 默认焦点给「取消」：误触进来时连打回车也不误伤
+    overlay.querySelector('[data-role="cancel"]').focus();
   }
 
   /* ==================== 经典模式 ==================== */
@@ -156,6 +195,9 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       }
     });
 
+    // 误触保护：向容器登记「对局进行中」判断，切模式 Tab 前容器会先弹确认
+    if (ctx.setGuard) ctx.setGuard(function () { return board.started && !board.over; });
+
     /* ---------------- 自定义难度 ---------------- */
 
     /* 钳制：宽 9–30、高 9–24、雷 10 – (宽-1)×(高-1)；「|0」顺带把非数字输入兜成 0 再夹到下限 */
@@ -271,12 +313,21 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       CORE.fitWindowToContent(win, bodyEl, appEl, toolbarEl, panelEl);
     }
 
-    // 难度切换（「自定义」只弹对话框，确定后才开新局）/ 笑脸重开
+    /* 难度切换带误触保护：对局进行中先确认再开新局（未开局/已结束直接换） */
+    function requestNewGame(key) {
+      if (board.started && !board.over) {
+        confirmGiveUp(bodyEl, appEl, '当前对局尚未结束，确定放弃并开始新游戏吗？', function () { newGame(key); });
+      } else {
+        newGame(key);
+      }
+    }
+
+    // 难度切换（「自定义」只弹对话框，确定后才开新局）/ 笑脸重开（专职重开钮，不拦截）
     toolbarEl.addEventListener('click', function (e) {
       var btn = e.target && e.target.closest ? e.target.closest('button[data-level]') : null;
       if (!btn) return;
       if (btn.dataset.level === 'custom') { openCustomDialog(); return; }
-      newGame(btn.dataset.level);
+      requestNewGame(btn.dataset.level);
     });
     faceEl.addEventListener('click', function () { newGame(levelKey); });
 
@@ -302,6 +353,9 @@ window.WIN98_APPS = window.WIN98_APPS || {};
 
     var tabsEl = bodyEl.querySelector('.mine-tabs');
     var mountEl = bodyEl.querySelector('.mine-mode-body');
+    var appEl = bodyEl.querySelector('.app-mine');
+    var currentMode = null;
+    var guardFn = null;   // 当前模式经 ctx.setGuard 登记的「有未结束对局」判断（误触保护）
 
     // 只渲染已注册的模式：地下城脚本未加载/加载失败时整行 Tab 隐藏（优雅降级）
     var available = MODE_DEFS.filter(function (m) { return typeof CORE.MODES[m.id] === 'function'; });
@@ -319,16 +373,28 @@ window.WIN98_APPS = window.WIN98_APPS || {};
 
     function switchMode(id) {
       storageSet('win98.mine.mode', id);
+      currentMode = id;
+      guardFn = null;   // 旧模式的 guard 随 DOM 一起销毁，等新模式重新登记
       tabsEl.querySelectorAll('button').forEach(function (b) {
         b.classList.toggle('active', b.dataset.mode === id);
       });
       mountEl.innerHTML = '';
-      CORE.MODES[id](mountEl, { win: win, bodyEl: bodyEl });
+      CORE.MODES[id](mountEl, {
+        win: win, bodyEl: bodyEl,
+        setGuard: function (fn) { guardFn = fn; }
+      });
     }
 
     tabsEl.addEventListener('click', function (e) {
       var btn = e.target && e.target.closest ? e.target.closest('button[data-mode]') : null;
-      if (btn && typeof CORE.MODES[btn.dataset.mode] === 'function') switchMode(btn.dataset.mode);
+      if (!btn || typeof CORE.MODES[btn.dataset.mode] !== 'function') return;
+      var id = btn.dataset.mode;
+      if (id === currentMode) return;   // 点已激活的 Tab 不重置当前模式
+      if (guardFn && guardFn()) {       // 对局进行中：先确认，防误触丢进度
+        confirmGiveUp(bodyEl, appEl, '当前对局尚未结束，切换模式将放弃进度。确定切换吗？', function () { switchMode(id); });
+        return;
+      }
+      switchMode(id);
     });
 
     // 恢复上次模式（默认经典）；记录的模式未注册时回落经典
