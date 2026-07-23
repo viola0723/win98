@@ -160,6 +160,7 @@ window.WIN98_APPS['myapp'] = function (bodyEl, win, moduleConfig) {
 - [x] `exhibits/` 展柜通道：Vite+Vue+Tailwind 工具链（唯一构建例外，dist 进 git）；通用 iframe 渲染器 `js/apps/exhibit.js`；首个展品「流星雨」（inspira-ui Meteors，MIT）
 - [x] 欢迎窗文案与全站 slogan 定调：「机器会旧，人会老，想象力不会」（替换原"反差"直白表述）
 - [x] Inspira 展品选题表 `exhibits/CANDIDATES.md`（131 组件按场景 × 难度分档，附优先级推荐与待办）
+- [x] 展柜工程优化：inspira-ui 组件源本地镜像（浅克隆 `../tools/inspira-ui`）；官方 CLI 验证结论——走 shadcn-vue CLI + inspira registry，支持纯 Vite（详见 CANDIDATES.md 待办区）；展品页 `?ex=` 参数路由（App.vue 按 `import.meta.glob` 动态加载 `src/exhibits/*.vue`，新展品零改壳代码，config.js 传 `?ex=xxx` 即可）
 
 ## 9. 后续路线图（Backlog，按建议优先级排序）
 
@@ -170,7 +171,7 @@ window.WIN98_APPS['myapp'] = function (bodyEl, win, moduleConfig) {
 3. **工具型模块**：画图（canvas 涂鸦）、播放器（本地音频）、时钟屏保
 4. **桌面体验增强**：图标自由拖拽排序（localStorage 记忆位置）、右键菜单、开机音效（用户首次交互后播放）、壁纸更换
 5. **工程增强**：多语言（中/英切换）、PWA 离线缓存
-6. **展柜扩充**：从 inspira-ui 选题库挑特效进 `exhibits/` 或原生重写（选题表 `exhibits/CANDIDATES.md`；待做工程优化：组件源本地镜像 `../tools/`、展品页 `?ex=` 参数路由）；右键菜单 + 属性对话框承载作品档案（规范见 `THEME.md`）
+6. **展柜扩充**：从 inspira-ui 选题库挑特效进 `exhibits/` 或原生重写（选题表 `exhibits/CANDIDATES.md`；组件源本地镜像 `../tools/inspira-ui` 已就位，新展品走 `src/exhibits/xxx.vue` + `?ex=xxx` 参数）；右键菜单 + 属性对话框承载作品档案（规范见 `THEME.md`）
 
 做 Backlog 时同样遵守第 2 节原则：配置驱动、小而美、不留半成品。
 

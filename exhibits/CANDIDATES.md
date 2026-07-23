@@ -138,5 +138,6 @@
 
 ## 待办（下次找时间做）
 
-- [ ] inspira-ui 组件源本地镜像（浅克隆到 `../tools/inspira-ui`，拷组件不用联网翻 GitHub；顺便验证官方 CLI 是否支持纯 Vite 项目）
-- [ ] 展品页 `?ex=` 参数路由（App.vue 按参数动态加载展品，新展品免改 exhibits 代码）
+- [x] ~~inspira-ui 组件源本地镜像~~（2026-07-23 完成：浅克隆于 `../tools/inspira-ui`，组件源在 `app/components/inspira/ui/<组件名>/`，示例在 `.../examples/`）
+- [x] ~~官方 CLI 是否支持纯 Vite~~（2026-07-23 验证结论：**支持，但不推荐在本项目用**——官方 CLI 即 shadcn-vue CLI + inspira registry：`npx shadcn-vue@latest add "https://inspira-ui.com/r/<组件>.json"`，registry 实测可用，shadcn-vue 官方有 Vite 安装指南；但 CLI 会按 shadcn 体系引入 components.json、`@inspira-ui/plugins`（组件内 `cn` 从它导入）等一整套依赖与配置，与本项目轻量路线不符，继续从本地镜像手工拷贝 + 改用 `src/lib/utils` 的 cn）
+- [x] ~~展品页 `?ex=` 参数路由~~（2026-07-23 完成：App.vue 用 `import.meta.glob('./exhibits/*.vue')` 按 `?ex=` 动态加载，新展品只加 `src/exhibits/xxx.vue` + rebuild，壳零改动；无参/未知参数自动列出全部展品入口）

@@ -44,14 +44,16 @@ window.WIN98_MODULES = [
     url: 'https://www.mihoyo.com'
   },
   /* 展柜：exhibits/ 下的 Inspira UI 特效展品（iframe 加载，渲染器见 js/apps/exhibit.js）。
-     未来新展品复用 app: 'exhibit'，只改 id/title 和 exhibit 路径即可 */
+     新展品三步：① 组件源从本地镜像 ../tools/inspira-ui 拷进 exhibits/src/components/inspira/
+                ② exhibits/src/exhibits/ 加 xxx.vue 舞台组件 → npm run build（App.vue 按 ?ex= 动态加载，零改动）
+                ③ 这里复用 app: 'exhibit'，exhibit 写 'exhibits/dist/index.html?ex=xxx' */
   {
     id: 'exhibit-001',
     title: '展品 001',
     icon: 'assets/icons/exhibit.png',
     type: 'window',
     app: 'exhibit',
-    exhibit: 'exhibits/dist/index.html',
+    exhibit: 'exhibits/dist/index.html?ex=meteors',
     width: 640,
     height: 480
   }
