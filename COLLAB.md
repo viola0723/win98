@@ -6,10 +6,18 @@
 
 1. 装好 **git** 和 **Node.js**（`node --check` 语法检查、验收脚本都要用，是唯一硬依赖）。
 2. `git clone https://github.com/viola0723/win98.git`（公开仓库，clone 不需要登录）。
-3. 预览验证：`python3 -m http.server 8098` → http://localhost:8098 ，双击桌面「扫雷」能开窗即正常。
+3. 预览验证：`python3 -m http.server 8098` → http://localhost:8098 ，双击桌面「扫雷」能开窗即正常（没装 Python 的机器用 `npx -y http-server -p 8098 -s`，等价）。
 4. **推送凭据**：首次 `git push` 时 git 会要认证 —— GitHub 用户名 + PAT（GitHub 网页 Settings → Developer settings → Personal access tokens 生成，勾 `repo` 权限），填一次后系统凭据管理器会记住，之后免输。
    - 注意：登录的是 git 凭据，不是 VS Code 账户；VS Code 的 GitHub 登录与本流程无关。
+   - 备选（github.com 网页/443 直连被墙的网络）：SSH 密钥方案——`ssh-keygen -t ed25519` 生成密钥对，公钥加到 GitHub 网页 Settings → SSH Keys（任何能开 github.com 的设备上加都行，加一次全账号通用）；remote 改用 `ssh://git@ssh.github.com:443/<owner>/<repo>.git`（SSH 走 443 通常能穿墙），配仓库级 `core.sshCommand` 指向私钥即可，push/pull 都不依赖代理。
 5. 让 agent 接力：在仓库目录启动 agent，它读 `AGENTS.md`（30 秒上手锚点：当前状态、架构、铁律、环境备忘）即可续作，不需要解释前情。
+
+### 当前在役机器（互认信息）
+
+| 机器 | 仓库位置 | 推送凭据 | 预览 | 备注 |
+|---|---|---|---|---|
+| Mac（主力） | （本仓库所在机） | PAT 存 macOS 钥匙串；gh CLI 在 `../tools/gh_2.96.0_macOS_amd64/bin/gh` | `python3 -m http.server 8098` | Playwright Chromium 已装 |
+| Windows | `C:/Kimi Code/win98` | SSH 密钥（私钥在仓库 `.git/ssh/`，公钥名 `win98-relay-windows`），走 ssh.github.com:443，`core.sshCommand` 已配好 | `npx -y http-server -p 8098 -s`（未装 Python） | Playwright Chromium 已装；github.com 直连不稳，克隆备用镜像 `https://gh-proxy.com/https://github.com/viola0723/win98.git` |
 
 ### 按需安装（不做对应工作就不用装）
 
