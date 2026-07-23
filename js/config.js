@@ -43,18 +43,18 @@ window.WIN98_MODULES = [
     type: 'link',
     url: 'https://www.mihoyo.com'
   },
-  /* 展柜：exhibits/ 下的 Inspira UI 特效展品（iframe 加载，渲染器见 js/apps/exhibit.js）。
-     新展品三步：① 组件源从本地镜像 ../tools/inspira-ui 拷进 exhibits/src/components/inspira/
-                ② exhibits/src/exhibits/ 加 xxx.vue 舞台组件 → npm run build（App.vue 按 ?ex= 动态加载，零改动）
-                ③ 这里复用 app: 'exhibit'，exhibit 写 'exhibits/dist/index.html?ex=xxx' */
+  /* 展览馆：特效作品的统一入口（iframe 加载展厅大厅，渲染器见 js/apps/exhibit.js）。
+     新展品不再动这里，全部进馆：① 组件源从本地镜像 ../tools/inspira-ui 拷进 exhibits/src/components/inspira/
+     ② exhibits/src/exhibits/ 加 xxx.vue 舞台组件 + manifest.js 加一条记录 → npm run build
+     ③ 大厅自动列出（?ex=xxx 直达单个展品；?chrome=0 隐藏返回按钮，供屏保嵌入） */
   {
-    id: 'exhibit-001',
-    title: '展品 001',
-    icon: 'assets/icons/exhibit.png',
+    id: 'gallery',
+    title: '展览馆',
+    icon: 'assets/icons/gallery.png',
     type: 'window',
     app: 'exhibit',
-    exhibit: 'exhibits/dist/index.html?ex=meteors',
-    width: 640,
-    height: 480
+    exhibit: 'exhibits/dist/index.html',
+    width: 720,
+    height: 560
   }
 ];

@@ -83,6 +83,20 @@
       list.appendChild(li);
     });
 
+    // 屏幕保护（手动预览，触发逻辑见 js/screensaver.js）
+    var saver = document.createElement('li');
+    saver.tabIndex = 0;
+    var svImg = document.createElement('img');
+    svImg.src = 'assets/icons/saver.png';
+    svImg.alt = '';
+    saver.appendChild(svImg);
+    saver.appendChild(document.createTextNode('屏幕保护'));
+    saver.addEventListener('click', function () {
+      closeStartMenu();
+      if (window.WIN98_SAVER) window.WIN98_SAVER.show();
+    });
+    list.appendChild(saver);
+
     // 分隔线 + 关机
     var sep = document.createElement('li');
     sep.className = 'menu-separator';

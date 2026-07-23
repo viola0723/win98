@@ -193,6 +193,43 @@ def draw_exhibit(d):
     d.line([13, 27, 18, 27], fill=WHITE)
 
 
+def draw_gallery(d):
+    """博物馆立面：三角楣 + 立柱 + 台阶（展览馆入口）"""
+    GOLD = '#caa14a'
+    # 三角楣（中央一颗小星，暗合展品 001）
+    d.polygon([(16, 3), (28, 10), (4, 10)], fill='#e8e8e8', outline=INK)
+    d.point([(15, 6), (16, 6), (15, 7), (16, 7)], fill=GOLD)
+    # 楣梁
+    d.rectangle([4, 11, 27, 13], fill=GRAY, outline=INK)
+    d.line([5, 12, 26, 12], fill=WHITE)
+    # 四根立柱
+    for x in (5, 11, 17, 23):
+        d.rectangle([x, 14, x + 3, 22], fill='#f0f0f0', outline=INK)
+        d.line([x + 1, 15, x + 1, 21], fill=GRAY_D)
+    # 基座 + 两级台阶
+    d.rectangle([3, 23, 28, 25], fill=GRAY, outline=INK)
+    d.rectangle([2, 26, 29, 28], fill=GRAY_D, outline=INK)
+
+
+def draw_saver(d):
+    """屏保小显示器：屏幕里的星空流星（屏幕保护程序入口）"""
+    SKY = '#0a0f1e'
+    d.rectangle([5, 4, 26, 21], fill=DARK, outline=INK)      # 显示器外框
+    d.rectangle([7, 6, 24, 18], fill=SKY)                    # 屏幕夜空
+    # 星星
+    d.point([(10, 9)], fill=WHITE)
+    d.point([(21, 15)], fill=WHITE)
+    d.point([(12, 14)], fill='#8fb8ff')
+    # 流星（右上往左下：尾巴 + 亮头）
+    d.line([14, 14, 20, 8], fill='#8fb8ff')
+    d.line([16, 13, 21, 8], fill='#c9e2ff')
+    d.point([(20, 8), (21, 8), (20, 7), (21, 7)], fill=WHITE)
+    # 支架 + 底座
+    d.rectangle([13, 22, 18, 23], fill=GRAY, outline=INK)
+    d.rectangle([9, 24, 22, 26], fill=GRAY, outline=INK)
+    d.line([10, 25, 21, 25], fill=WHITE)
+
+
 ICONS = [
     ('computer', draw_computer),
     ('notepad', draw_notepad),
@@ -205,6 +242,8 @@ ICONS = [
     ('mine', draw_mine),
     ('poker', draw_poker),
     ('exhibit', draw_exhibit),
+    ('gallery', draw_gallery),
+    ('saver', draw_saver),
 ]
 
 

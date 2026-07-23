@@ -7,6 +7,7 @@
   function boot() {
     window.WIN98_DESKTOP.render();   // 渲染桌面图标
     window.WIN98_TASKBAR_INIT();     // 初始化任务栏 / 开始菜单 / 时钟
+    window.WIN98_SAVER_INIT();       // 屏幕保护（闲置触发）
 
     // PC 端首次打开自动弹出「我的电脑」让访客知道怎么玩；
     // 手机端窗口会全屏挡住图标，不自动弹，直接展示桌面

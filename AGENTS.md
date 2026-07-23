@@ -6,9 +6,12 @@
 
 仿 Windows 98 桌面的个人网站「旧电脑」：复古的壳 × 现代的芯——1998 年的桌面里装着 AI 时代的新作品（歌/画/文/游戏/特效），每个桌面图标 = 一个作品/功能模块或一个外链入口，纯静态零构建，PC/手机双端适配。
 
-## 当前状态（v0.7，2026-07-23）
+## 当前状态（v0.8，2026-07-23）
 
-- 展柜工程优化落地：① inspira-ui 组件源本地镜像就位（浅克隆 `../tools/inspira-ui`，组件源在 `app/components/inspira/ui/<组件名>/`；官方 CLI 验证结论：shadcn-vue CLI + inspira registry 支持纯 Vite，但依赖体系重，本项目坚持镜像手工拷贝，结论详见 `exhibits/CANDIDATES.md` 待办区）② 展品页 `?ex=` 参数路由：`exhibits/src/App.vue` 改为路由壳，`import.meta.glob('./exhibits/*.vue')` 按参数动态加载，新展品 = 加 `src/exhibits/xxx.vue` + rebuild + config.js 传 `?ex=xxx`，壳代码零改动；无参/未知参数自动列出全部展品
+- 展览馆入口确立：桌面「展品 001」升级为博物馆入口「展览馆」（新像素图标 gallery.png），开窗即现代展厅大厅（暗色展品墙 + EXHIBIT 编号制）；展品元数据集中在 `exhibits/src/exhibits/manifest.js`——新展品 = 拷组件 + `src/exhibits/xxx.vue` + manifest 一条 + build，主站 `config.js` 零改动；`?ex=xxx` 直达单展品、`?chrome=0` 隐藏返回按钮（屏保嵌入用）
+- 展品 001 作品化：创作阐述居中渐显、组件署名挪角落小字、指针视差（Pointer Events）、点击夜空召唤一阵流星（独立 Meteors 实例，数秒后撤下）
+- 屏保框架落地（.scr 容器）：`js/screensaver.js` 闲置 60s 全屏播放 `?ex=meteors&chrome=0`，任意输入退出（触发后 0.8s 宽限防误触退出；关机彩蛋播放中不触发；页面隐藏不计时）；开始菜单新增「屏幕保护」手动预览（saver.png 图标）
+- 展柜工程优化落地：① inspira-ui 组件源本地镜像就位（浅克隆 `../tools/inspira-ui`，组件源在 `app/components/inspira/ui/<组件名>/`；官方 CLI 验证结论：shadcn-vue CLI + inspira registry 支持纯 Vite，但依赖体系重，本项目坚持镜像手工拷贝，结论详见 `exhibits/CANDIDATES.md` 待办区）② 展品页 `?ex=` 参数路由：`exhibits/src/App.vue` 改为路由壳，`import.meta.glob('./exhibits/*.vue')` 按参数动态加载，新展品零改壳代码；无参/未知参数自动列出全部展品
 - 扫雷模块修复+增强：修掉 PC 端窗口默认尺寸总比内容小一截的问题（fitWindow 改为按棋盘实测尺寸反推窗口，勿再用估算常数）；修掉手机端中/高级横滚后左侧内容永远看不到的问题（`.app-mine` 弃用 `align-items:center` 负溢出，改 `margin-inline:auto` 居中）；新增 chord 快开（点已翻开数字格、周围旗数凑够时批量翻开）、按下 😮 反馈、每难度最佳时间记录（localStorage `win98.mine.best.*`）；雷区凹框改经典银灰底
 - 定名「旧电脑」，新增主题宪章 `THEME.md`（现 v1.1）：确立"复古壳 × 现代芯"方向、slogan「机器会旧，人会老，想象力不会」、内容容器规划（文/画/歌/视频/屏保/游戏）、作品档案（右键属性）规范
 - 「现代的芯」双通道落地：欢迎窗原生特效（星空跃迁 Canvas + 乱序解码标题，零依赖）＋ `exhibits/` 展柜通道（唯一允许构建的目录：Vite+Vue+Tailwind，dist 提交进 git；通用 iframe 渲染器 `js/apps/exhibit.js`，新展品只改 `config.js` 的 exhibit 路径；选题表 `exhibits/CANDIDATES.md`）
@@ -37,7 +40,8 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `js/apps.js` | 模块渲染函数注册表 `WIN98_APPS['id'] = fn(bodyEl, win, cfg)` |
 | `js/apps/minesweeper.js` | 扫雷模块（大模块单文件示例，index.html 里单独 `<script>` 引入） |
 | `js/apps/poker.js` | 德州扑克模块（移植自独立版单文件游戏；样式在 style.css 末尾以 `.app-poker` 为作用域） |
-| `js/apps/exhibit.js` | 展柜通用渲染器：iframe 加载 `cfg.exhibit` 指定的展品页（exhibits/dist/...） |
+| `js/apps/exhibit.js` | 展览馆渲染器：iframe 加载 `cfg.exhibit` 指定的展厅/展品页（exhibits/dist/...） |
+| `js/screensaver.js` | 屏幕保护：闲置 60s 全屏播放展品（当前 = 流星雨），任意输入退出；`WIN98_SAVER.show()` 供开始菜单预览 |
 | `js/windowManager.js` | 窗口生命周期，对外 `WindowManager.open(module)` |
 | `js/desktop.js` | 图标渲染与打开（`WIN98_DESKTOP.openModule`，link→新标签页 / window→开窗） |
 | `js/taskbar.js` | 任务栏、开始菜单、时钟；`WIN98_TASKBAR.sync()` 由窗口系统回调 |
@@ -45,9 +49,9 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `css/98.css` + 字体 | 第三方库（**勿改**）；自定义样式一律进 `css/style.css` |
 | `assets/icons/` | 自绘像素图标 PNG（生成器产出，**勿手改**） |
 | `tools/make_icons.py` | 像素图标生成器（需 Pillow），加图标：写 `draw_xxx` → 注册 `ICONS` → 重跑 |
-| `exhibits/` | 展柜工程：现代特效展品（唯一允许构建工具链的目录，Vite+Vue+Tailwind；`dist` 提交进 git、勿 ignore；选题库 inspira-ui.com）。`src/App.vue` 是路由壳，按 `?ex=xxx` 动态加载 `src/exhibits/xxx.vue`；组件源本地镜像 `../tools/inspira-ui` |
+| `exhibits/` | 展柜工程：现代特效展品（唯一允许构建工具链的目录，Vite+Vue+Tailwind；`dist` 提交进 git、勿 ignore；选题库 inspira-ui.com）。`src/App.vue` 是壳：无参 = 展览馆大厅，`?ex=xxx` 动态加载 `src/exhibits/xxx.vue`，`?chrome=0` 隐藏返回按钮；展品清单 `src/exhibits/manifest.js`（纯数据）；组件源本地镜像 `../tools/inspira-ui` |
 
-脚本加载顺序（index.html）：config → windowManager → apps → apps/minesweeper → apps/poker → apps/exhibit → desktop → taskbar → main。普通 script 标签（非 module），保证 `file://` 可跑（注意：展品 iframe 是 ES module，`file://` 下加载不了，需 http 预览或线上访问）。
+脚本加载顺序（index.html）：config → windowManager → apps → apps/minesweeper → apps/poker → apps/exhibit → desktop → taskbar → screensaver → main。普通 script 标签（非 module），保证 `file://` 可跑（注意：展品 iframe 是 ES module，`file://` 下加载不了，需 http 预览或线上访问）。
 
 ## 铁律
 
@@ -66,7 +70,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 
 ## Backlog 快照
 
-Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键菜单+属性对话框（作品档案）、画图、图标拖拽排序、壁纸/音效、更多 Inspira 展品（选题表 `exhibits/CANDIDATES.md`，走 `src/exhibits/xxx.vue` + `?ex=xxx` 流程）。每次只挑一两个，做完不留半成品。
+Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键菜单+属性对话框（作品档案）、画图、图标拖拽排序、壁纸/音效、更多 Inspira 展品（选题表 `exhibits/CANDIDATES.md`，进馆 = `src/exhibits/xxx.vue` + `manifest.js` 一条 + build）。每次只挑一两个，做完不留半成品。
 
 ## 环境备忘
 

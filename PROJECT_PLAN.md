@@ -161,6 +161,8 @@ window.WIN98_APPS['myapp'] = function (bodyEl, win, moduleConfig) {
 - [x] 欢迎窗文案与全站 slogan 定调：「机器会旧，人会老，想象力不会」（替换原"反差"直白表述）
 - [x] Inspira 展品选题表 `exhibits/CANDIDATES.md`（131 组件按场景 × 难度分档，附优先级推荐与待办）
 - [x] 展柜工程优化：inspira-ui 组件源本地镜像（浅克隆 `../tools/inspira-ui`）；官方 CLI 验证结论——走 shadcn-vue CLI + inspira registry，支持纯 Vite（详见 CANDIDATES.md 待办区）；展品页 `?ex=` 参数路由（App.vue 按 `import.meta.glob` 动态加载 `src/exhibits/*.vue`，新展品零改壳代码，config.js 传 `?ex=xxx` 即可）
+- [x] 展览馆入口：桌面单图标「展览馆」（博物馆立面像素图标）→ 开窗即现代展厅大厅（暗色展品墙 + EXHIBIT 编号制 + slogan 馆头）；展品元数据集中在 `exhibits/src/exhibits/manifest.js`（纯数据，配置驱动），新展品主站 `config.js` 零改动；`?chrome=0` 嵌入模式隐藏返回按钮；展品 001 作品化（创作阐述渐显、指针视差、点击召唤阵雨、署名角落化）
+- [x] 屏保框架（.scr 容器）：`js/screensaver.js` 闲置 60s 全屏播放展品（当前 = 流星雨），任意输入退出（0.8s 触发宽限防误触；关机状态不触发；页面隐藏不计时）；开始菜单新增「屏幕保护」手动预览
 
 ## 9. 后续路线图（Backlog，按建议优先级排序）
 
@@ -171,7 +173,7 @@ window.WIN98_APPS['myapp'] = function (bodyEl, win, moduleConfig) {
 3. **工具型模块**：画图（canvas 涂鸦）、播放器（本地音频）、时钟屏保
 4. **桌面体验增强**：图标自由拖拽排序（localStorage 记忆位置）、右键菜单、开机音效（用户首次交互后播放）、壁纸更换
 5. **工程增强**：多语言（中/英切换）、PWA 离线缓存
-6. **展柜扩充**：从 inspira-ui 选题库挑特效进 `exhibits/` 或原生重写（选题表 `exhibits/CANDIDATES.md`；组件源本地镜像 `../tools/inspira-ui` 已就位，新展品走 `src/exhibits/xxx.vue` + `?ex=xxx` 参数）；右键菜单 + 属性对话框承载作品档案（规范见 `THEME.md`）
+6. **展柜扩充**：从 inspira-ui 选题库挑特效进馆（选题表 `exhibits/CANDIDATES.md`；进馆 = `src/exhibits/xxx.vue` + `manifest.js` 一条 + build；屏保内容也可换 `js/screensaver.js` 的 EXHIBIT_URL）；右键菜单 + 属性对话框承载作品档案（规范见 `THEME.md`）
 
 做 Backlog 时同样遵守第 2 节原则：配置驱动、小而美、不留半成品。
 
