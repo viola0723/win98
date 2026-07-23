@@ -408,23 +408,37 @@ body.dragging {
 /* ---------------- 扫雷 ---------------- */
 
 .app-mine {
-  --mine-cell: 24px;         /* 格子边长（js 里 CELL_PX 用它自适应窗口尺寸） */
+  --mine-cell: 24px;         /* 格子边长；改动后窗口尺寸由 js 实测自动适配，无需同步其他代码 */
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 6px;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;   /* iOS 长按格子不弹系统菜单 */
+}
+
+/* 面板水平居中用 margin:auto 而非 align-items:center：
+   后者在棋盘比窗口窄屏更宽时产生「负向溢出」，左侧内容永远滚不到（手机端 bug）；
+   auto 边距在空间不足时解析为 0，内容左对齐、右侧溢出可完整滚动 */
+.mine-panel {
+  margin-inline: auto;
 }
 
 .mine-toolbar {
   display: flex;
   gap: 4px;
-  align-self: flex-start;
+  width: 100%;
 }
 
 .mine-toolbar button {
   min-width: 52px;
+}
+
+/* 当前难度最佳时间（经典「扫雷英雄榜」的精简版） */
+.mine-best {
+  margin-left: auto;
+  align-self: center;
+  white-space: nowrap;
 }
 
 /* 当前难度的按钮保持按下态（同任务栏 active 样式） */
@@ -438,6 +452,12 @@ body.dragging {
   padding: 6px;
   background: silver;
   box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+}
+
+/* 凹框默认白底（98.css .sunken-panel），经典扫雷的计数器头和雷区都是银灰底 */
+.mine-header,
+.mine-board {
+  background: silver;
 }
 
 .mine-header {
@@ -502,11 +522,11 @@ body.dragging {
   outline: none;
 }
 
-/* 已翻开的格子：拍平 + 细点边框（:active 也要压住 98.css 的按下态） */
+/* 已翻开的格子：拍平 + 细灰边框连成网格（:active 也要压住 98.css 的按下态） */
 .mine-cell.revealed,
 .mine-cell.revealed:active {
   box-shadow: none;
-  border: 1px dotted #808080;
+  border: 1px solid #808080;
   cursor: default;
 }
 
@@ -577,6 +597,11 @@ body.dragging {
   .title-bar-controls button {
     min-width: 20px;
     min-height: 18px;
+  }
+
+  /* 扫雷工具栏按钮加高，方便手指点按 */
+  .mine-toolbar button {
+    min-height: 32px;
   }
 }
 

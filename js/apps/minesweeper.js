@@ -13,7 +13,6 @@ window.WIN98_APPS = window.WIN98_APPS || {};
     intermediate: { label: '中级', cols: 16, rows: 16, mines: 40 },
     expert:       { label: '高级', cols: 30, rows: 16, mines: 99 }
   };
-  var CELL_PX = 24;          // 与 css/style.css 里 --mine-cell 保持一致（仅用于自适应窗口尺寸）
   var LONG_PRESS_MS = 450;   // 触屏长按插旗的判定时长
 
   WIN98_APPS['mine'] = function (bodyEl, win) {
@@ -36,6 +35,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       Object.keys(LEVELS).map(function (key) {
         return '<button type="button" data-level="' + key + '">' + LEVELS[key].label + '</button>';
       }).join('') +
+      '    <span class="mine-best" data-role="best"></span>' +
       '  </div>' +
       '  <div class="mine-panel">' +
       '    <div class="mine-header sunken-panel">' +
@@ -47,10 +47,14 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       '  </div>' +
       '</div>';
 
+    var appEl = bodyEl.querySelector('.app-mine');
+    var toolbarEl = bodyEl.querySelector('.mine-toolbar');
+    var panelEl = bodyEl.querySelector('.mine-panel');
     var boardEl = bodyEl.querySelector('[data-role="board"]');
     var faceEl = bodyEl.querySelector('[data-role="face"]');
     var minesEl = bodyEl.querySelector('[data-role="mines"]');
     var timeEl = bodyEl.querySelector('[data-role="time"]');
+    var bestEl = bodyEl.querySelector('[data-role="best"]');
 
     /* ---------------- 计数器 / 计时器 ---------------- */
 
@@ -81,6 +85,29 @@ window.WIN98_APPS = window.WIN98_APPS || {};
         clearInterval(timerId);
         timerId = null;
       }
+    }
+
+    /* ---------------- 最佳时间（localStorage，每难度一条） ---------------- */
+
+    function bestKey() { return 'win98.mine.best.' + levelKey; }
+
+    function loadBest() {
+      try {
+        var v = parseInt(window.localStorage.getItem(bestKey()), 10);
+        return v > 0 ? v : 0;   // 0 = 暂无记录
+      } catch (err) {           // file:// 或隐私模式下 localStorage 可能不可用
+        return 0;
+      }
+    }
+
+    function saveBest(v) {
+      try { window.localStorage.setItem(bestKey(), String(v)); } catch (err) { /* 忽略 */ }
+    }
+
+    function updateBestLabel() {
+      var b = loadBest();
+      bestEl.textContent = b > 0 ? '最佳 ' + b + 's' : '';
+      bestEl.title = LEVELS[levelKey].label + '最佳时间';
     }
 
     /* ---------------- 雷区数据 ---------------- */
@@ -159,6 +186,20 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       if (revealedCount === cols * rows - mineTotal) winGame();
     }
 
+    /* 点已翻开的数字格：周围旗数凑够时一次翻开其余格子（经典双键快开的单键版，触屏同样可用） */
+    function chord(i) {
+      if (over) return;
+      var c = cells[i];
+      if (!c.revealed || c.count === 0) return;
+      var ns = neighbors(i);
+      var flags = 0;
+      ns.forEach(function (j) { if (cells[j].flagged) flags++; });
+      if (flags !== c.count) return;
+      ns.forEach(function (j) {
+        if (!cells[j].revealed && !cells[j].flagged) reveal(j);
+      });
+    }
+
     function toggleFlag(i) {
       if (over) return;
       var c = cells[i];
@@ -194,15 +235,40 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       });
       flagCount = mineTotal;
       updateCounters();
+      var elapsed = Math.max(1, seconds);   // 首击即胜的极端情况按 1 秒记
+      var best = loadBest();
+      if (!best || elapsed < best) saveBest(elapsed);
+      updateBestLabel();
     }
 
-    /* 切换难度后按棋盘实际大小调整窗口（最大化/手机端不动，超出屏幕则收敛） */
+    /* 切换难度后按棋盘实际大小调整窗口（最大化/手机端不动）。
+       不用估算常数，直接量「内容需要多大」+「窗口框架占多少」反推：
+       - 框架 = win 与 body 的 offset 尺寸差（窗口 padding + 标题栏 + body margin 全在里面，
+         因为 body 的 margin 占窗口空间却不计入 body 自身 offset，勿再加一遍）；
+       - 内容高 = 工具栏 + 面板（offsetHeight 是布局尺寸，不受当前窗口裁切影响）；
+       - 内容宽 = 面板与工具栏的较大者（toolbar 宽 100%，其内容宽由子元素逐个求和得到）。 */
     function fitWindow() {
       if (win.maximized) return;
       var layer = document.getElementById('windows');
       if (!layer) return;
-      win.el.style.width = Math.min(cols * CELL_PX + 52, layer.clientWidth) + 'px';
-      win.el.style.height = Math.min(rows * CELL_PX + 140, layer.clientHeight) + 'px';
+      var chromeW = win.el.offsetWidth - bodyEl.offsetWidth;
+      var chromeH = win.el.offsetHeight - bodyEl.offsetHeight;
+      var gap = parseFloat(window.getComputedStyle(appEl).rowGap) || 0;
+      var toolbarGap = parseFloat(window.getComputedStyle(toolbarEl).columnGap) || 0;
+      var toolbarNeed = 0;
+      for (var t = 0; t < toolbarEl.children.length; t++) {
+        toolbarNeed += toolbarEl.children[t].offsetWidth;
+      }
+      if (toolbarEl.children.length > 1) toolbarNeed += toolbarGap * (toolbarEl.children.length - 1);
+      var needW = Math.max(panelEl.offsetWidth, toolbarNeed);
+      var needH = toolbarEl.offsetHeight + gap + panelEl.offsetHeight;
+      var w = Math.min(Math.ceil(needW + chromeW), layer.clientWidth);
+      var h = Math.min(Math.ceil(needH + chromeH), layer.clientHeight);
+      win.el.style.width = w + 'px';
+      win.el.style.height = h + 'px';
+      // 尺寸变化后若右/下边缘越出屏幕，把窗口拉回来
+      win.el.style.left = Math.max(0, Math.min(win.el.offsetLeft, layer.clientWidth - w)) + 'px';
+      win.el.style.top = Math.max(0, Math.min(win.el.offsetTop, layer.clientHeight - h)) + 'px';
     }
 
     function newGame(key) {
@@ -240,7 +306,10 @@ window.WIN98_APPS = window.WIN98_APPS || {};
         frag.appendChild(el);
       });
       boardEl.appendChild(frag);
+      bodyEl.scrollLeft = 0;   // 切换难度后滚回左上角（手机端上个难度的横向滚动位置会残留）
+      bodyEl.scrollTop = 0;
       updateCounters();
+      updateBestLabel();
       fitWindow();
     }
 
@@ -251,12 +320,12 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       return cell ? Number(cell.dataset.idx) : -1;
     }
 
-    // 翻开（鼠标左键 / 触屏轻点）
+    // 翻开（鼠标左键 / 触屏轻点）；点已翻开的数字格则尝试 chord 快开
     boardEl.addEventListener('click', function (e) {
       var idx = cellFromEvent(e);
       if (idx < 0) return;
       if (suppressClick) { suppressClick = false; return; }
-      reveal(idx);
+      if (cells[idx].revealed) chord(idx); else reveal(idx);
     });
 
     // 插旗（鼠标右键；部分触屏系统的长按也会派发此事件，需与长按去重）
@@ -268,11 +337,13 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       toggleFlag(idx);
     });
 
-    // 插旗（触屏长按；鼠标右键走上面的 contextmenu，不重复处理）
+    // 插旗（触屏长按；鼠标右键走上面的 contextmenu，不重复处理）。
+    // 顺带还原经典细节：按下格子时笑脸张嘴 😮，松开/移出恢复（右键插旗不变脸）
     boardEl.addEventListener('pointerdown', function (e) {
-      if (e.pointerType === 'mouse') return;
       var idx = cellFromEvent(e);
       if (idx < 0) return;
+      if (!over && e.button !== 2) faceEl.textContent = '😮';
+      if (e.pointerType === 'mouse') return;
       clearTimeout(pressTimer);
       pressTimer = setTimeout(function () {
         suppressClick = true;
@@ -284,6 +355,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       boardEl.addEventListener(type, function () {
         clearTimeout(pressTimer);
         pressTimer = null;
+        if (!over) faceEl.textContent = '🙂';
       });
     });
 
