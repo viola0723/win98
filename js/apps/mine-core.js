@@ -104,8 +104,8 @@ window.WIN98_MINE_CORE = (function () {
     var cols = 0, rows = 0, mines = 0;
     var cells = [];
     var pressTimer = null;     // 触屏长按计时
-    var lastFlagTime = 0;      // 上次「长按插旗」的时间，仅用于给系统随后派发的 contextmenu 去重
-    var suppressClick = false; // 长按插旗后抑制紧随的 click，避免又翻开
+    var lastFlagTime = 0;      // 上次「长按插旗」的时间：给系统随后派发的 contextmenu 去重，
+                               // 也用于忽略紧随的迟到 click（原生或 touchTap 补发），避免又翻开
 
     var board = {
       cols: 0, rows: 0, mines: 0,
@@ -298,7 +298,7 @@ window.WIN98_MINE_CORE = (function () {
       board.flagCount = 0;
       clearTimeout(pressTimer);
       pressTimer = null;
-      suppressClick = false;
+      lastFlagTime = 0;
       boardEl.style.gridTemplateColumns = 'repeat(' + cols + ', var(--mine-cell))';
       boardEl.innerHTML = '';
       var frag = document.createDocumentFragment();
@@ -352,7 +352,7 @@ window.WIN98_MINE_CORE = (function () {
     boardEl.addEventListener('click', function (e) {
       var idx = cellFromEvent(e);
       if (idx < 0) return;
-      if (suppressClick) { suppressClick = false; return; }
+      if (Date.now() - lastFlagTime < 700) return;   // 长按插旗后的迟到 click 不翻开（原生或 touchTap 补发）
       if (!interactable()) return;
       if (cells[idx].revealed) {
         if (hooks.onRevealedClick && hooks.onRevealedClick(idx, board)) return;
@@ -384,7 +384,6 @@ window.WIN98_MINE_CORE = (function () {
       pressTimer = setTimeout(function () {
         pressTimer = null;
         if (!interactable()) return;
-        suppressClick = true;
         toggleFlag(idx);
         lastFlagTime = Date.now(); // 只记长按插旗：部分触屏系统随后还会派发 contextmenu，靠它去重
       }, LONG_PRESS_MS);

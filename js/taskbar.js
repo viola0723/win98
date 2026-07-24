@@ -153,6 +153,13 @@
         closeStartMenu();
       }
     });
+    // 触屏补一道：iOS 真机 click 可能不派发，点到菜单外（含非按钮区域）也该收起；
+    // 开始按钮自身走上面的 click 切换（stopPropagation 到不了这里），这里仅判断包含关系兜底
+    document.addEventListener('pointerup', function (e) {
+      if (!startMenu.hidden && !startMenu.contains(e.target) && !startButton.contains(e.target)) {
+        closeStartMenu();
+      }
+    });
 
     // 关机彩蛋：点击任意处“重新开机”
     shutdownOverlay.addEventListener('click', function () {

@@ -8,6 +8,7 @@
 
 ## 当前状态（v1.0，2026-07-23）
 
+- **iOS 真机 click 失效根治（2026-07-24，Playwright 34 项断言三端全过）**：iPhone 真机复测发现上一条修复后窗口内仍然「全部点不动」——格子轻点不翻开（但按下变脸 😮 正常）、难度/Tab/标题栏三键无反应，只有长按插旗（pointerdown+计时器）能用。诊断：窗口内 Pointer Events 正常而 **click 事件整个不派发**（凡是 click 驱动的全灭、pointer/timer 驱动的全活；桌面图标能用只是因为早走了 pointerup 逻辑），疑似 WebKit 点击命中测试与 DOM 事件不一致的祖传怪癖（与 `#windows` 曾设 `pointer-events:none` 同源），无头 WebKit 无法复现。修复 = 绕开系统合成 click：新增 `js/touchTap.js`——触屏 pointerdown 记录并 `preventDefault()`（规范上可抑制随后的合成 click），pointerup 校验时长≤600ms/位移≤12px/起落同控件后直接 `el.click()` 补发（全站 `button`、开始菜单 `li`、`#shutdown-overlay`；`.click()` 走完整冒泡链，委托与 onclick 均覆盖），个别 preventDefault 不生效的平台由捕获阶段「同控件 700ms」去重，保证只激活一次；鼠标路径（pointerType=mouse）完全不动。配套：`mine-core.js` 长按插旗的 `suppressClick` 布尔改为 `lastFlagTime` 时间戳判定（布尔法在补发 click 路径下会残留并误吞下一次轻点）；`taskbar.js` 开始菜单补 pointerup 外点收起（iOS 下点桌面空白也能收）。**注意：TAP_MS 600 必须 > 扫雷长按判定 450ms；长按后抬手的补发 click 由 lastFlagTime 700ms 窗口挡住，不会误翻开**。真机需用户终验。
 - **真机触控修复（2026-07-24）**：用户反馈 iOS 上打开窗口后标题栏按钮/窗口内容全部点不动。根因：iOS Safari 下 `#windows` 的 `pointer-events:none` 会让子元素即使声明 `pointer-events:auto` 也接收不到触摸；现 `windowManager.js` 动态控制 `#windows` 的 `pointer-events`——存在最大化窗口时设为 `auto`（保证手机全屏窗口内按钮可点），其余情况恢复 `none`（不挡桌面）。同时修复 `@media (max-width:640px)` 把标题栏按钮热区意外覆盖回 20×18 的问题；`desktop.js` 的 `suppressNextClick()` 增加 `touchstart` 撤防，进一步降低误吞真实点击的风险。PC/手机 WebKit Playwright 回归测试通过，真机需复测。
 - 阶段质检三端过检（PC/安卓 Chromium + 苹果 WebKit 双引擎 Playwright 88 项断言全过，真机复测待用户确认）：① **修触屏开窗串扰（苹果端"功能失效"主嫌）**——图标第二击在 pointerup 同步开窗，浏览器随后派发的合成 click 落在图标原屏幕位置（已是新窗口内容），双触扫雷会直接点进「寻找时间胶囊」Tab/误点格子；现 `desktop.js` 开窗即 `suppressNextClick()` 吞掉紧随的一次合成 click（capture 拦截；真实新点击从 pointerdown 开始先撤防再放行，不误吞真实点按，500ms 兜底）② 触屏打开图标放宽：点选后再点一次即开，**去掉 450ms 限时**（手机上双击节奏不可靠，限时=怎么点都打不开）③ iOS 适配加固：viewport 加 `viewport-fit=cover` + 任务栏/桌面/开始菜单计入 `env(safe-area-inset-*)`（开始按钮不再被 home 指示条压住）；**窗口层 `#windows` 四向都让出 safe-area——最大化窗口标题栏按钮若陷进刘海/状态栏区域，iOS 会把那里的触摸拦截给系统，最小化/最大化/关闭全部点不动（真机专属，无头 WebKit 无刘海测不出）**；触屏标题栏按钮热区加大到 32×28（`@media (pointer: coarse)`）；`color-scheme: light` meta 防 iOS 深色模式反色控件；body 级 `touch-action: manipulation` 防 iOS 双击缩放错位（iOS 10+ 忽略 user-scalable=no）；`.mine-board` 加 `-webkit-touch-callout:none` 保长按插旗 ④ 图标对比度重绘 5 枚（make_icons.py 重跑）：扫雷加浅色光晕（不再糊成黑团）、关机浅灰面琥珀符号、屏保浅灰机身、开始浅蓝窗面、展览馆藏青大门+深色内庭；**注意：Playwright WebKit 合成 tap 在全屏覆盖层上不派发事件（harness 局限，真机正常），屏保退出用例需手动 dispatch pointerdown 验证**
 - 扫雷体验修（Playwright e2e 5 项断言全过）：模式更名「地下城」→「寻找时间胶囊」（MODE_DEFS label + 职业选择标题 + style 注释同步，模式 id 仍为 `dungeon`）；修 PC 切模式瞬间窗口不贴合——根因：`fitWindowToContent` 只在 startFloor（选完职业）执行，挂载到选职业这段窗口仍是上一模式尺寸（内容 294×433 被裁进 240×348）；现挂载即 fit，选职业前后窗口尺寸一致
@@ -53,6 +54,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `js/apps/exhibit.js` | 展览馆渲染器：iframe 加载 `cfg.exhibit` 指定的展厅/展品页（exhibits/dist/...） |
 | `js/screensaver.js` | 屏幕保护：闲置 60s 全屏播放展品（当前 = 流星雨，每次触发重载 iframe），任意输入退出；`WIN98_SAVER.show()` 供开始菜单预览 |
 | `js/windowManager.js` | 窗口生命周期，对外 `WindowManager.open(module)` |
+| `js/touchTap.js` | 触屏轻点激活兜底（iOS 真机 click 不派发）：pointerup 校验后 `el.click()` 补发 + 原生 click 去重，全站 button/开始菜单 li/关机遮罩生效；鼠标路径不动 |
 | `js/desktop.js` | 图标渲染与打开（`WIN98_DESKTOP.openModule`，link→新标签页 / window→开窗） |
 | `js/taskbar.js` | 任务栏、开始菜单、时钟；`WIN98_TASKBAR.sync()` 由窗口系统回调 |
 | `js/main.js` | 启动：渲染桌面 → 初始化任务栏 → 自动打开 about（PC）→ 处理 `#open=` 深链接 |
@@ -61,7 +63,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `tools/make_icons.py` | 像素图标生成器（需 Pillow），加图标：写 `draw_xxx` → 注册 `ICONS` → 重跑 |
 | `exhibits/` | 展柜工程：现代特效展品（唯一允许构建工具链的目录，Vite+Vue+Tailwind；`dist` 提交进 git、勿 ignore；选题库 inspira-ui.com）。`src/App.vue` 是壳：无参 = 展览馆大厅，`?ex=xxx` 动态加载 `src/exhibits/xxx.vue`，`?chrome=0` 隐藏返回按钮；展品清单 `src/exhibits/manifest.js`（纯数据）；组件源本地镜像 `../tools/inspira-ui` |
 
-脚本加载顺序（index.html）：config → windowManager → apps → apps/mine-core → apps/minesweeper → apps/mine-dungeon → apps/poker → apps/exhibit → desktop → taskbar → screensaver → main。普通 script 标签（非 module），保证 `file://` 可跑（注意：展品 iframe 是 ES module，`file://` 下加载不了，需 http 预览或线上访问）。
+脚本加载顺序（index.html）：config → windowManager → touchTap → apps → apps/mine-core → apps/minesweeper → apps/mine-dungeon → apps/poker → apps/exhibit → desktop → taskbar → screensaver → main。普通 script 标签（非 module），保证 `file://` 可跑（注意：展品 iframe 是 ES module，`file://` 下加载不了，需 http 预览或线上访问）。
 
 ## 铁律
 
