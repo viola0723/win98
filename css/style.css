@@ -19,6 +19,9 @@ html, body {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
+  /* iOS 10+ 忽略 user-scalable=no：双击空白处会缩放整页、布局错位、点击偏移。
+     manipulation 禁掉双击缩放（浏览器取触摸目标祖先链上 touch-action 的交集，故在 body 设全站生效） */
+  touch-action: manipulation;
 }
 
 /* 中文字体回退：98.css 的像素字体没有中文字形，补全回退链 */
@@ -35,7 +38,8 @@ img {
 
 #desktop {
   position: fixed;
-  inset: 0 0 var(--taskbar-h) 0;
+  /* 底部让出任务栏（含 iPhone 底部横条安全区，viewport-fit=cover 后 env 生效） */
+  inset: 0 0 calc(var(--taskbar-h) + env(safe-area-inset-bottom, 0px)) 0;
   background: var(--desktop-teal);
   display: flex;
   flex-direction: column;      /* 经典布局：从左上角逐列向下排 */
@@ -43,6 +47,8 @@ img {
   align-content: flex-start;
   gap: 6px;
   padding: 10px;
+  padding-top: calc(10px + env(safe-area-inset-top, 0px));   /* 避开刘海/状态栏 */
+  padding-left: calc(10px + env(safe-area-inset-left, 0px)); /* 横屏避开左侧刘海 */
   box-sizing: border-box;
   user-select: none;
   -webkit-user-select: none;
@@ -93,7 +99,7 @@ img {
 
 #windows {
   position: fixed;
-  inset: 0 0 var(--taskbar-h) 0;
+  inset: 0 0 calc(var(--taskbar-h) + env(safe-area-inset-bottom, 0px)) 0;
   pointer-events: none;   /* 空白处不挡桌面点击，窗口本身恢复可点 */
   z-index: 10;
 }
@@ -170,13 +176,15 @@ body.dragging {
   left: 0;
   right: 0;
   bottom: 0;
-  height: var(--taskbar-h);
+  /* 高度 + 底部 padding 都计入 iPhone 底部横条安全区，开始按钮不被 home 指示条压住 */
+  height: calc(var(--taskbar-h) + env(safe-area-inset-bottom, 0px));
   background: #c0c0c0;
   border-top: 2px solid #fff;
   display: flex;
   align-items: stretch;
   gap: 4px;
   padding: 3px 4px;
+  padding-bottom: calc(3px + env(safe-area-inset-bottom, 0px));
   box-sizing: border-box;
   z-index: 1000;
   user-select: none;
@@ -257,7 +265,7 @@ body.dragging {
 #start-menu {
   position: fixed;
   left: 2px;
-  bottom: var(--taskbar-h);
+  bottom: calc(var(--taskbar-h) + env(safe-area-inset-bottom, 0px));
   z-index: 1100;
   display: flex;
   padding: 3px;
@@ -497,6 +505,10 @@ body.dragging {
   gap: 0;
   padding: 4px;
   touch-action: manipulation;
+  /* iOS 长按弹放大镜/选中菜单会抢手势，长按插旗就靠这个保住 */
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* 格子：覆盖 98.css 按钮的 min-width/padding/text-shadow  hack */

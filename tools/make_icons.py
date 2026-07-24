@@ -110,18 +110,23 @@ def draw_bin(d):
 
 
 def draw_start(d):
-    """开始按钮用的小窗口图标"""
-    d.rectangle([5, 5, 27, 27], fill=WHITE, outline=INK)
+    """开始按钮用的小窗口图标：浅蓝窗面，避免融进银色任务栏"""
+    d.rectangle([5, 5, 27, 27], fill=BLUE_L, outline=INK)
     d.rectangle([5, 5, 27, 9], fill=NAVY)        # 标题栏
-    d.line([16, 12, 16, 25], fill=GRAY)          # 2x2 窗格
-    d.line([7, 17, 25, 17], fill=GRAY)
+    d.line([16, 12, 16, 25], fill=INK)           # 2x2 窗格
+    d.line([7, 17, 25, 17], fill=INK)
+    d.point([(8, 13), (9, 13)], fill=TEAL)       # 左上窗格点缀
+    d.point([(19, 20), (20, 20)], fill=TEAL)
 
 
 def draw_shutdown(d):
-    """电源符号"""
-    d.rectangle([4, 4, 28, 28], fill=DARK, outline=INK)
-    d.arc([9, 7, 23, 21], start=300, end=240, fill=AMBER, width=3)
-    d.line([16, 5, 16, 14], fill=AMBER, width=3)
+    """电源符号：浅灰按钮面 + 琥珀符号（深色面在小尺寸下容易糊成一团黑）"""
+    d.rectangle([4, 4, 28, 28], fill=BTN, outline=INK)
+    d.line([5, 5, 27, 5], fill=WHITE)                        # 顶部高光
+    d.arc([9, 7, 23, 21], start=300, end=240, fill='#c05a10', width=4)
+    d.arc([9, 7, 23, 21], start=300, end=240, fill=AMBER, width=2)
+    d.line([16, 5, 16, 14], fill='#c05a10', width=4)
+    d.line([16, 5, 16, 14], fill=AMBER, width=2)
 
 
 def draw_folder(d):
@@ -133,13 +138,18 @@ def draw_folder(d):
 
 
 def draw_mine(d):
-    """水雷（扫雷备用）"""
+    """水雷（扫雷）：黑体 + 浅色描边光晕，保证在青色桌面和银色任务栏上都看得清"""
     c = 16
-    for dx, dy in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (1, -1), (-1, 1), (1, 1)]:
+    dirs = [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (1, -1), (-1, 1), (1, 1)]
+    # 先铺一圈浅色光晕（粗线 + 粗圆描边），再叠深色本体
+    for dx, dy in dirs:
+        d.line([c, c, c + dx * 11, c + dy * 11], fill='#e8e8e8', width=4)
+    d.ellipse([8, 8, 24, 24], outline='#e8e8e8', width=3)
+    for dx, dy in dirs:
         d.line([c, c, c + dx * 11, c + dy * 11], fill=INK, width=2)
-    d.ellipse([8, 26, 24, 29], fill=GRAY_D)      # 底座阴影
-    d.ellipse([10, 10, 22, 22], fill='#202020', outline='#000000')
-    d.point([(13, 12), (14, 12), (13, 13)], fill=WHITE)  # 高光
+    d.ellipse([10, 10, 22, 22], fill='#2e2e2e', outline='#000000')
+    d.line([12, 12, 15, 15], fill='#7a7a7a', width=2)      # 大高光
+    d.point([(13, 12), (14, 12)], fill=WHITE)              # 亮点
 
 
 def draw_poker(d):
@@ -194,7 +204,7 @@ def draw_exhibit(d):
 
 
 def draw_gallery(d):
-    """博物馆立面：三角楣 + 立柱 + 台阶（展览馆入口）"""
+    """博物馆立面：三角楣 + 立柱 + 台阶（展览馆入口）；藏青大门加强小尺寸对比"""
     GOLD = '#caa14a'
     # 三角楣（中央一颗小星，暗合展品 001）
     d.polygon([(16, 3), (28, 10), (4, 10)], fill='#e8e8e8', outline=INK)
@@ -202,26 +212,32 @@ def draw_gallery(d):
     # 楣梁
     d.rectangle([4, 11, 27, 13], fill=GRAY, outline=INK)
     d.line([5, 12, 26, 12], fill=WHITE)
+    # 立柱间的深色内庭（衬出立柱）
+    d.rectangle([5, 14, 26, 22], fill='#5a6a7a')
     # 四根立柱
     for x in (5, 11, 17, 23):
         d.rectangle([x, 14, x + 3, 22], fill='#f0f0f0', outline=INK)
         d.line([x + 1, 15, x + 1, 21], fill=GRAY_D)
+    # 大门（藏青 + 金门把）
+    d.rectangle([13, 16, 18, 22], fill=NAVY, outline=INK)
+    d.point([(17, 19)], fill=GOLD)
     # 基座 + 两级台阶
     d.rectangle([3, 23, 28, 25], fill=GRAY, outline=INK)
     d.rectangle([2, 26, 29, 28], fill=GRAY_D, outline=INK)
 
 
 def draw_saver(d):
-    """屏保小显示器：屏幕里的星空流星（屏幕保护程序入口）"""
-    SKY = '#0a0f1e'
-    d.rectangle([5, 4, 26, 21], fill=DARK, outline=INK)      # 显示器外框
-    d.rectangle([7, 6, 24, 18], fill=SKY)                    # 屏幕夜空
+    """屏保小显示器：浅灰机身 + 屏幕里的星空流星（屏幕保护程序入口）"""
+    SKY = '#12244a'
+    d.rectangle([4, 4, 27, 21], fill=GRAY, outline=INK)      # 显示器外框（与电脑图标同款浅色机身）
+    d.line([5, 5, 26, 5], fill=WHITE)                        # 顶部高光
+    d.rectangle([7, 6, 24, 18], fill=SKY)                    # 屏幕夜空（稍亮，小尺寸下不死黑）
     # 星星
-    d.point([(10, 9)], fill=WHITE)
-    d.point([(21, 15)], fill=WHITE)
-    d.point([(12, 14)], fill='#8fb8ff')
+    d.point([(10, 9), (11, 9), (10, 10)], fill=WHITE)
+    d.point([(21, 15), (22, 15)], fill=WHITE)
+    d.point([(12, 14), (13, 15)], fill='#8fb8ff')
     # 流星（右上往左下：尾巴 + 亮头）
-    d.line([14, 14, 20, 8], fill='#8fb8ff')
+    d.line([14, 14, 20, 8], fill='#8fb8ff', width=2)
     d.line([16, 13, 21, 8], fill='#c9e2ff')
     d.point([(20, 8), (21, 8), (20, 7), (21, 7)], fill=WHITE)
     # 支架 + 底座

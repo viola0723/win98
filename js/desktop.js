@@ -5,9 +5,7 @@
 (function () {
   'use strict';
 
-  var DOUBLE_TAP_MS = 450;
   var lastTapId = null;
-  var lastTapTime = 0;
 
   function getDesktop() {
     return document.getElementById('desktop');
@@ -30,6 +28,21 @@
   function selectIcon(el) {
     clearSelection();
     el.classList.add('selected');
+  }
+
+  /* 触屏第二击在 pointerup 里同步开了窗，但浏览器随后派发的合成 click
+     会落在「图标原屏幕位置」——此时那里已经是新窗口的内容（Tab/格子/按钮），
+     造成误点（真实案例：双触扫雷直接点进了「寻找时间胶囊」Tab）。
+     开窗后吞掉紧随的一次 click（500ms 保险期内没来就撤掉） */
+  function suppressNextClick() {
+    function swallow(e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    document.addEventListener('click', swallow, { capture: true, once: true });
+    setTimeout(function () {
+      document.removeEventListener('click', swallow, { capture: true });
+    }, 500);
   }
 
   function createIcon(moduleConfig) {
@@ -61,18 +74,18 @@
       openModule(moduleConfig);
     });
 
-    // 触屏：点按选中；在已选中的图标上再点一次（间隔较短）打开
+    // 触屏：点按选中；再点一次已选中的图标即打开。
+    // 不限时间窗——手机上「快速双击」节奏不可靠，限时会导致怎么点都打不开
     el.addEventListener('pointerup', function (e) {
       if (e.pointerType !== 'touch') return;
-      var now = Date.now();
       var wasSelected = el.classList.contains('selected');
       selectIcon(el);
-      if (wasSelected && lastTapId === moduleConfig.id && now - lastTapTime < DOUBLE_TAP_MS) {
-        openModule(moduleConfig);
+      if (wasSelected && lastTapId === moduleConfig.id) {
         lastTapId = null;
+        suppressNextClick();
+        openModule(moduleConfig);
       } else {
         lastTapId = moduleConfig.id;
-        lastTapTime = now;
       }
     });
 
