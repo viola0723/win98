@@ -981,8 +981,8 @@ body.dragging {
   }
 
   .title-bar-controls button {
-    min-width: 20px;
-    min-height: 18px;
+    min-width: 32px;
+    min-height: 28px;
   }
 
   /* 扫雷工具栏按钮加高，方便手指点按 */

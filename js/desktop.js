@@ -44,9 +44,11 @@
     function disarm() {
       document.removeEventListener('click', swallow, { capture: true });
       document.removeEventListener('pointerdown', disarm, { capture: true });
+      document.removeEventListener('touchstart', disarm, { capture: true });
     }
     document.addEventListener('click', swallow, { capture: true });
     document.addEventListener('pointerdown', disarm, { capture: true });
+    document.addEventListener('touchstart', disarm, { capture: true });
     setTimeout(disarm, 500);
   }
 

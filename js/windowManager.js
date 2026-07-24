@@ -36,6 +36,7 @@
       handle.minimized = false;
       handle.el.style.display = '';
     }
+    updateLayerPointerEvents();
     notifyTaskbar();
   }
 
@@ -49,6 +50,7 @@
       next.el.classList.add('active');
     }
     handle.el.classList.remove('active');
+    updateLayerPointerEvents();
     notifyTaskbar();
   }
 
@@ -95,9 +97,22 @@
     var idx = openWindows.indexOf(handle);
     if (idx !== -1) openWindows.splice(idx, 1);
     handle.el.remove();
+    updateLayerPointerEvents();
     var next = visibleTopMost();
     if (next) focusWindow(next);
     notifyTaskbar();
+  }
+
+  /* 当存在可见窗口时，让窗口层接收事件；否则保持 pointer-events:none，
+     让点击穿透到桌面图标。这是为了解决 iOS 上 pointer-events:none 的祖先
+     导致子元素即使写了 pointer-events:auto 也点不动的问题。
+     但在 PC 端（窗口非最大化）恢复 none，避免遮挡桌面空白处。 */
+  function updateLayerPointerEvents() {
+    var layer = getLayer();
+    if (!layer) return;
+    var visible = openWindows.filter(function (h) { return !h.minimized; });
+    var hasMaximized = visible.some(function (h) { return h.maximized; });
+    layer.style.pointerEvents = hasMaximized ? 'auto' : 'none';
   }
 
   /* 标题栏拖拽（Pointer Events：鼠标 / 触屏通用） */
@@ -274,6 +289,7 @@
       close: function () { closeWindow(handle); }
     };
     openWindows.push(handle);
+    updateLayerPointerEvents();
 
     // --- 尺寸与初始位置 ---
     var w = Math.min(moduleConfig.width || 420, layer.clientWidth);
