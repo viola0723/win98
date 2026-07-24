@@ -33,16 +33,21 @@
   /* 触屏第二击在 pointerup 里同步开了窗，但浏览器随后派发的合成 click
      会落在「图标原屏幕位置」——此时那里已经是新窗口的内容（Tab/格子/按钮），
      造成误点（真实案例：双触扫雷直接点进了「寻找时间胶囊」Tab）。
-     开窗后吞掉紧随的一次 click（500ms 保险期内没来就撤掉） */
+     开窗后吞掉紧随的一次 click；真实新点击从 pointerdown 开始，先撤防再放行，
+     保证只吞合成 click、绝不误吞用户的下一次真实点按（500ms 兜底撤除） */
   function suppressNextClick() {
     function swallow(e) {
       e.stopPropagation();
       e.preventDefault();
+      disarm();
     }
-    document.addEventListener('click', swallow, { capture: true, once: true });
-    setTimeout(function () {
+    function disarm() {
       document.removeEventListener('click', swallow, { capture: true });
-    }, 500);
+      document.removeEventListener('pointerdown', disarm, { capture: true });
+    }
+    document.addEventListener('click', swallow, { capture: true });
+    document.addEventListener('pointerdown', disarm, { capture: true });
+    setTimeout(disarm, 500);
   }
 
   function createIcon(moduleConfig) {

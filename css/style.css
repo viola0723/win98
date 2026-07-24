@@ -99,7 +99,9 @@ img {
 
 #windows {
   position: fixed;
-  inset: 0 0 calc(var(--taskbar-h) + env(safe-area-inset-bottom, 0px)) 0;
+  /* 顶/左/右都让出 iPhone 不安全区：窗口最大化时标题栏按钮若陷进刘海/状态栏区域，
+     iOS 会把那里的触摸拦截给系统，最小化/最大化/关闭全部「点不动」（真机专属，无头测不出） */
+  inset: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) calc(var(--taskbar-h) + env(safe-area-inset-bottom, 0px)) env(safe-area-inset-left, 0px);
   pointer-events: none;   /* 空白处不挡桌面点击，窗口本身恢复可点 */
   z-index: 10;
 }
@@ -167,6 +169,14 @@ body.dragging {
   height: 16px;
   vertical-align: -3px;
   margin-right: 4px;
+}
+
+/* 触屏加大标题栏按钮热区（98.css 原尺寸约 20×18，手指容易点空） */
+@media (pointer: coarse) {
+  .app-window .title-bar-controls button {
+    min-width: 32px;
+    min-height: 28px;
+  }
 }
 
 /* ---------------- 任务栏 ---------------- */
