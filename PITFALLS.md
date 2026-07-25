@@ -99,7 +99,7 @@
   现象：`npx -y ffmpeg-static` 报 `could not determine executable to run`。
   根因：ffmpeg-static 是纯库包（无 bin 入口，只供 require 拿二进制路径），新版 npm 拒绝当 CLI 执行；且其 postinstall 要去 github 拉二进制，本机直连不稳。
   规则：波形提取走 `tools/waveform-extractor.html`（http 预览下 `?src=/assets/music/xxx.mp3` → fetch → OfflineAudioContext.decodeAudioData → 分桶 RMS，零依赖双机通用）；批量提取 = Playwright 脚本开该页读 `#out`（注意 src 相对页面路径解析，传站点根路径）。
-- **jsDelivr 分支地址（@main 等）对媒体流不稳，必须钉 commit hash**（2026-07-25）
-  现象：音频走 `cdn.jsdelivr.net/gh/<repo>@main/...`，curl 实测 1.8MB/s，Chromium 里却偶发立即 error。
-  根因：分支地址 301 跳转的落点后端不稳定；commit hash 地址直出 200/206 稳定，且天然永久缓存免 purge。
-  规则：jsDelivr 引用一律 `@<commit>`，素材更新后同步更新 hash（`git rev-parse --short HEAD`）。诊断「播放卡不卡」先实测：`curl -o /dev/null -w "%{speed_download}" <url>` 对比内容实时码率（256kbps = 32KB/s）。
+- **外部 CDN 镜像媒体文件前：先验它真缓存该文件类型 + 测最终数据落点 + 多时点多测**（2026-07-26）
+  现象：jsDelivr 镜像音频「上午测 1.8MB/s 上线、用户照卡」；statically.io / raw.githack.com 本网络直接不可达。
+  根因：jsDelivr /gh/ 对 mp3 不缓存，301 甩给 raw.githubusercontent.com（国内极不稳，同 URL 不同时点 1.8MB/s ↔ 335B/s）；钉 commit 只稳住了跳转层，数据层仍看 raw.githubusercontent 脸色。且 error 回退只兜「硬失败」，兜不住「慢而不死」。
+  规则：① 验 CDN 方案 = `curl -L -o /dev/null -w "%{speed_download}" <url>` 测**最终落点**，不同时点测多次，别信单次峰值；② 国内访问本站唯一稳定通道实测是 github.io 自身（~24KB/s），素材码率必须压出余量（128kbps = 16KB/s），压缩走 `tools/audio-optimizer.html`。

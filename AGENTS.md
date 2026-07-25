@@ -20,7 +20,7 @@
 
 ## 当前阶段（只记最近动态，全史见 DEVLOG.md）
 
-- 2026-07-25｜**随身听卡顿定修 = jsDelivr 镜像（钉 commit）+ 回退 + 预载 + 缓冲指示**：github.io 直连实测 23.7KB/s 供不上 256kbps 实时码率（纯网络问题）→ 音频/封面走 `MEDIA_CDN`（钉 commit hash——分支地址 301 落点不稳，已记 PITFALLS）实测 1.8MB/s，error 自动回退本地。push 新歌要同步 hash。双探针 10 断言全过
+- 2026-07-26｜**卡顿二修：CDN 证伪全灭，改「压缩素材 + 本地直供」**：jsDelivr 对 mp3 只 301 到 raw.githubusercontent（国内不稳），statically/githack 不通——唯一稳定通道 github.io ~24KB/s；新增 `tools/audio-optimizer.html`（内联 lamejs 零依赖）把《月之暗面》压成 128k/3.76MB、封面 62KB/512px，`MEDIA_CDN` 置 ''。加歌流程：源文件进 `assets/music/` → optimizer 压缩 → 波形提取 → 注册
 - 2026-07-25｜**新模块「卡带随身听」上线（A 级，双端 14 断言全过）**：每首歌 = 一盘磁带，点磁带飞行入舱 → 相框封面 + 真实波形 → 自动播放；机身斜二轴测 2.5D、主题色随磁带变色（`--accent`）。`js/apps/tapeplayer.js` 单文件模块（数据注册表 `WIN98_TAPES` 在头部，加歌三步见注释）、波形提取器 `tools/waveform-extractor.html`（OfflineAudioContext，零依赖）、tape.png 图标（24×20 字符矩阵，`make_icons.py` 与一次性 Node 脚本双实现同源——本机无 Python）。原型评审废弃：鼠标视差（没用）、机械音效（不拟真且与音乐混叠）、下载的 3 首 CC 歌（只留原创）。修触屏播放键全灭（tap 处理器漏写 `(e)` 形参，PC 用例漏网，已记 PITFALLS）。默认曲《月之暗面》（用户原创）
 - 2026-07-25｜**记忆碎片定性 = 1998 年的老物件**：`FRAG_OBJECTS` 22 件（= 理论最大获得数）洗牌不重复抽取，获得碎片 toast 报物件名；结局定型——成功 = 回信「未来的你，还好吗……会为票根和树叶发呆的少年」+ 晒出拾得清单，失败 = 「坏道无法修复，信件没有找到，请重新开始」（残缺信方案废弃）。双端 30 断言全过
 - 2026-07-25｜收尾流程堵漏：清掉上次漏杀的 8098 残留服务（npx http-server）；铁律 9 扩成独立「收尾清单」小节（杀服务必验证端口释放 / 删 `../tools` 本次产物 / 工作区只剩预期改动）；验收脚本定性**一次性**（现写现删，别找旧的，结论在 DEVLOG）；Windows 预览命令补 `-c-1` 禁缓存
@@ -96,7 +96,7 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 
 - 多电脑协作：见 `COLLAB.md`（新电脑 = clone + 配 push 凭据 + 装 Node；开工 pull、收工 push）
 - 预览：本地 8098 端口（Mac：`python3 -m http.server 8098`；Windows 机未装 Python：`npx -y http-server -p 8098 -s -c-1`，`-c-1` 禁缓存防改完刷不到新版）。**起服务前先查端口**（有 LISTENING 说明有残留，先杀再起，查法见收尾清单）
-- 加歌/波形提取：音频 + 封面丢 `assets/music/` → 起 8098 后开 `http://localhost:8098/tools/waveform-extractor.html?src=/assets/music/xxx.mp3` 抄 JSON 进 `js/apps/tapeplayer.js` 的 `WIN98_TAPES` 注册表 → push 后把该文件顶部 `MEDIA_CDN` 的 commit hash 更新为最新（`git rev-parse --short HEAD`）
+- 加歌：① 源音频 + 封面丢 `assets/music/`，**先压缩**（国内通道刚需）：开 `tools/audio-optimizer.html?src=/assets/music/xxx.mp3&cover=/assets/music/xxx.jpg`（mp3→128k、封面→512px，下载覆盖同名文件）② `tools/waveform-extractor.html?src=/assets/music/xxx.mp3` 抄 duration/peaks ③ `js/apps/tapeplayer.js` 的 `WIN98_TAPES` 加一条
 - 无头浏览器：双机均已装 Playwright Chromium，验收截图命令
   `npx -y playwright screenshot --viewport-size=1280,800(或390,844) <url> <输出.png>`
   若报浏览器缺失（CLI 版本与浏览器 build 不配套）：`npx -y playwright install chromium`
