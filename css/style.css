@@ -809,6 +809,7 @@ body.dragging {
 .app-mine-dg .px-icon.px-hp { fill: #d03030; }        /* 满心 */
 .app-mine-dg .px-icon.px-hp-empty { fill: #8a8a8a; }  /* 空心（已损失生命） */
 .app-mine-dg .px-icon.px-gold { fill: #8a6d00; }      /* 金币（HUD/商店） */
+.app-mine-dg .px-icon.px-frag { fill: #6b2d8b; }      /* 记忆碎片（HUD/结局） */
 .app-mine-dg .px-icon.px-boom { fill: #d03030; }      /* 已爆星 */
 .app-mine-dg .px-icon.px-hole { fill: #111; }         /* 出口洞 */
 .app-mine-dg .px-icon.px-radar { fill: #0a50c0; }     /* 雷达标记 */

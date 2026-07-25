@@ -48,6 +48,21 @@
   根因：`fitWindowToContent` 只在选完职业（startFloor）执行，过渡期间窗口沿用上模式尺寸。
   规则：内容一挂载就 fit；后续尺寸变化再 fit 一次。
 
+## 扫雷引擎（mine-core / 模式钩子）
+
+- **模式方在钩子里读到的必须是「已应用」的状态**（2026-07-25）
+  现象：地下城踩雷后左上剩余雷计数器不减。
+  根因：双层——`remainingFlags()` 没减 exploded（已爆雷仍占「未发现」名额）；且 core 先调 `onMineHit` 钩子、返回 false 后才置 exploded，模式方在钩子里 refresh HUD，算出的永远是爆前状态。
+  规则：① 凡「视为已确认的雷」的状态（flagged/known/exploded），`remainingFlags` 与 chord 两处口径必须同步收录；② core 钩子一律**先预置状态再回调**（onMineHit 预置 exploded/revealed，致命再收回），写新钩子时就按这个顺序设计。
+- **探测类功能的池子要排除「已发现」**（2026-07-25）
+  现象：声呐脉冲/探测仪会标记玩家已插旗的雷，白白浪费一次道具。
+  根因：`markRandomMines` / `unmarkedMines()` 的候选池只排除 known/revealed，没排除 flagged。
+  规则：「可标记」= 雷 && !known && !revealed && !flagged；已插旗即已发现，任何自动标记功能不得重复消费。
+- **验收脚本选择器撞名会读出「假 bug」**（2026-07-25）
+  现象：Playwright 断言「踩雷后 LCD 不变」失败，但手动调 `remainingFlags()` 返回值正确。
+  根因：经典与地下城面板的 LCD 同名 `[data-role="mines"]`，`querySelector` 命中先挂载的经典面板，读数永远不动。
+  规则：两模式共享容器、data-role 大量同名（mines/panel/board/face…），验收脚本一律加模式作用域（如 `.app-mine-dg [data-role="mines"]`）。
+
 ## 素材 / 图标
 
 - **98.css 按钮文字是「透明字 + text-shadow」画的**（2026-07-25）

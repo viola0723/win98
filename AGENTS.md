@@ -20,8 +20,10 @@
 
 ## 当前阶段（只记最近动态，全史见 DEVLOG.md）
 
-- 2026-07-25｜**存量 emoji 全量像素化**：JS 运行代码 emoji 清零（♠♥♦♣ 仅作数据字符保留）。各模块局部 `PX` 表 + `px()` 内联 SVG（pixelarticons MIT，缺的手绘 24×24）；扑克牌面花色数据不动、渲染走 `suitIcon()`；经典扫雷像素旗/雷/叉/四态黄脸。合流双端 11 断言全过
-- 2026-07-25｜壳守 98、芯可自由（THEME v1.4：桌面图标风格统一是最低限度，窗口内部完全自由）；文档体系重构（DEVLOG/PITFALLS 拆分）；⚠️ 98.css 按钮内 svg 不能用 currentColor（透明字+text-shadow 画字，见 PITFALLS）
+- 2026-07-25｜**记忆碎片定性 = 1998 年的老物件**：`FRAG_OBJECTS` 22 件（= 理论最大获得数）洗牌不重复抽取，获得碎片 toast 报物件名；结局定型——成功 = 回信「未来的你，还好吗……会为票根和树叶发呆的少年」+ 晒出拾得清单，失败 = 「坏道无法修复，信件没有找到，请重新开始」（残缺信方案废弃）。双端 30 断言全过
+- 2026-07-25｜收尾流程堵漏：清掉上次漏杀的 8098 残留服务（npx http-server）；铁律 9 扩成独立「收尾清单」小节（杀服务必验证端口释放 / 删 `../tools` 本次产物 / 工作区只剩预期改动）；验收脚本定性**一次性**（现写现删，别找旧的，结论在 DEVLOG）；Windows 预览命令补 `-c-1` 禁缓存
+- 2026-07-25｜地下城四连修 + 双结局文案重写：踩雷计数器不减根治（remainingFlags 计 exploded + core 钩子先预置状态再回调）；声呐/探测仪不再浪费在已插旗的雷；HUD 金币/碎片加文字标签、碎片去 0/5 只显数量；B11 讲清「无出口须全清」（toast 加可选时长）；好/坏结局信件重写。双端 24 断言全过
+- 2026-07-25｜存量 emoji 全量像素化：JS 运行代码 emoji 清零（♠♥♦♣ 仅作数据字符保留）。各模块局部 `PX` 表 + `px()` 内联 SVG（pixelarticons MIT，缺的手绘 24×24）；扑克牌面花色数据不动、渲染走 `suitIcon()`；经典扫雷像素旗/雷/叉/四态黄脸。合流双端 11 断言全过
 - 2026-07-24｜iOS/安卓真机触控三连修（`js/touchTap.js` 补发 click + isTrusted 去重、safe-area 让位、开窗吞串扰 click），Playwright 三端断言全过，**真机终验待用户确认**
 
 ## 快速上手
@@ -68,7 +70,13 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 6. 修完任何「查了半天才发现」的 bug：在 `PITFALLS.md` 对应类别加一条（现象→根因→规则）。
 7. 桌面图标一律自绘像素 PNG（`tools/make_icons.py`）；模块内图标用 **pixelarticons**（MIT）path 内联 SVG（参照 mine-dungeon.js `PX` 表 + `px()`）；emoji 不承担关键状态的唯一表达，增量禁用 emoji 图标（存量清单与理由见 `PITFALLS.md`）。
 8. 新模块注册时必须定多端适配级别（A=双端完整 / B=手机可用可简化 / C=PC 优先，定义见 PROJECT_PLAN.md §5.4），验收范围按级别执行。
-9. 阶段性收尾：提交部署前，杀掉本地临时服务（如 `python3 -m http.server 8098`）、删除临时验证脚本/截图等产物（仓库外 `../tools/` 下的东西），工作区保持干净。
+9. 阶段性收尾必过「收尾清单」（见下节，逐项打钩）：杀临时服务**并验证端口已释放**、删 `../tools/` 下本次临时产物、工作区只剩预期改动。
+
+## 收尾清单（每次阶段收尾逐项打钩，勿凭记忆）
+
+1. **杀临时服务**：本次起过的预览/调试服务全部杀掉，杀完**验证端口真的空了**——Windows：`netstat -ano | grep 8098` 无 LISTENING；Mac：`lsof -i :8098` 无输出。没空就按 PID 补杀（`taskkill //PID <pid> //F`）——**npx 会派生子进程，杀父进程/停后台任务常常不够**。（2026-07-25 教训二连：一次是上次收尾漏杀 npx http-server 把 8098 占了一整天；一次是 TaskStop 只杀了 npx 壳、子进程还占着端口。）
+2. **删临时产物**：`../tools/` 下本次的验证脚本、截图、临时 npm 工程（`package.json`/`node_modules`）全删；**保留**长期资产 `../tools/inspira-ui`、`../tools/gh_*`。
+3. **工作区干净**：`git status` 只剩本次预期改动；文档已同步（DEVLOG 顶部新条目 + AGENTS 当前阶段 + 有坑则 PITFALLS）。
 
 ## 加模块三步（详见 PROJECT_PLAN.md 第 6 节）
 
@@ -83,10 +91,11 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 ## 环境备忘
 
 - 多电脑协作：见 `COLLAB.md`（新电脑 = clone + 配 push 凭据 + 装 Node；开工 pull、收工 push）
-- 预览：本地 8098 端口（Mac：`python3 -m http.server 8098`；Windows 机未装 Python：`npx -y http-server -p 8098 -s`）
+- 预览：本地 8098 端口（Mac：`python3 -m http.server 8098`；Windows 机未装 Python：`npx -y http-server -p 8098 -s -c-1`，`-c-1` 禁缓存防改完刷不到新版）。**起服务前先查端口**（有 LISTENING 说明有残留，先杀再起，查法见收尾清单）
 - 无头浏览器：双机均已装 Playwright Chromium，验收截图命令
   `npx -y playwright screenshot --viewport-size=1280,800(或390,844) <url> <输出.png>`
   若报浏览器缺失（CLI 版本与浏览器 build 不配套）：`npx -y playwright install chromium`
+- **验收脚本是一次性的**：每次验收现写到 `../tools/`（不进 git），收尾即删——不要去找上一次的脚本，需要历史断言结论就翻 DEVLOG 对应条目；脚本里读棋盘/对局状态用引擎暴露的 `boardEl.win98Board` / `appEl.win98DgRun`，选择器记得加模式作用域（见 PITFALLS 扫雷引擎类）
 - 部署：已上线 GitHub Pages —— https://viola0723.github.io/win98/ （仓库 https://github.com/viola0723/win98 ，推送后约 1-3 分钟自动更新）
 - GitHub 凭据（双机）：Mac = PAT 存 macOS 钥匙串（repo 权限），`git push` 直接可用；gh CLI 在 `../tools/gh_2.96.0_macOS_amd64/bin/gh`（注意：因 token 只有 repo scope，gh 本体拒绝登录，如需完整 gh 功能要重新设备授权并勾选完整 scope）。Windows 机（`C:/Kimi Code/win98`）= SSH 密钥——私钥在仓库 `.git/ssh/`（不进 git、勿外传），remote 为 `ssh://git@ssh.github.com:443/viola0723/win98.git`，仓库级 `core.sshCommand` 已配好；该机 github.com 直连不稳，克隆备用镜像 `https://gh-proxy.com/https://github.com/viola0723/win98.git`
 - 图标版权：已全部替换为自绘像素图标（`tools/make_icons.py`），无版权顾虑；需要新图标就改脚本重跑

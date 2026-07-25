@@ -6,7 +6,10 @@
  * 一局流程：选职业（3 选 1）→ B1–B10 找出口下楼（每层藏 1 个宝箱：随机金币、
  *       概率掉记忆碎片）→ 每次下楼三选一强化 → 每过完 2 层（B2/4/6/8/10）进商店
  *       → B11 Boss 层（无出口必须全清、踩雷伤害 2）→ 结局判定：
- *       记忆碎片 ≥ FRAG_GOAL → 好结局（胶囊修复，读完整的信），不足 → 坏结局（残缺的信）。
+ *       记忆碎片 ≥ FRAG_GOAL → 修复成功（1998 年的回信 + 晒出本局拾得的老物件）；
+ *       不足 → 修复失败（坏道无法修复、信件没有找到，请重新开始）。
+ * 记忆碎片：每一枚都是一件 1998 年的老物件（FRAG_OBJECTS 22 件 = 理论最大获得数，
+ *       一局内洗牌抽取不重复，获得时 toast 物件名）。
  * 体系：职业技能（每层 1 次主动 + 被动）、装备（永久被动，三选一/商店获得）、
  *       消耗品（数量制，装备栏点击使用；探测仪/透视均为一次性，显示数量 = 可用次数）。
  * 防误触：ctx.setGuard 向容器登记进度判断（本层已开局 / 已深入 B2+ 且未结束），
@@ -135,28 +138,33 @@
 
   /* ---------------- 文案 ---------------- */
   var STORY_INTRO = '硬盘深处检测到 11 层坏道区。最底层封存着一枚 1998 年的时间胶囊——' +
-    '机主小时候写给未来的信。信号越来越弱，带上工具，下去把它修好吧。';
+    '机主小时候写给未来的信。数据散成了记忆碎片，沿途散落的每一件，都是 1998 年的老物件。' +
+    '信号越来越弱，带上工具，下去把它修好吧。';
 
+  /* ---------------- 记忆碎片 = 1998 年的老物件 ----------------
+   * 每获得 1 枚碎片随机拾得其中一件（一局内洗牌抽取、不重复）；
+   * 22 件 = 理论最大获得数（B1–B10 全清各 +1 共 10、每层宝箱 35% 共 11、B11 全清 +1）。 */
+  var FRAG_OBJECTS = [
+    '一张 3.5 英寸软盘', '一张 1998 年的电影票根', '一片夹在课本里的树叶',
+    '一张小浣熊水浒卡', '一卷大大泡泡糖', '一个铁皮铅笔盒',
+    '一盘手抄歌名的磁带', '一颗玻璃弹珠', '一只电子宠物蛋',
+    '一张 IC 电话卡', '一张还珠格格贴纸', '一盘小霸王游戏卡带',
+    '一张三好学生奖状', '一辆四驱车', '一罐手折的幸运星',
+    '一页同学录', '一张大头贴', '一只发条铁皮青蛙',
+    '一根演唱会荧光棒', '一张手画的贺卡', '一包跳跳糖',
+    '一张《泰坦尼克号》VCD'
+  ];
+
+  /* 好结局（碎片 ≥ FRAG_GOAL）：1998 年的小孩写给未来的你 */
   var LETTER_GOOD = [
-    '你好，未来的人：',
-    '今天是 1998 年 6 月 12 日，我把这封信存在硬盘最深的扇区里。',
-    '爸爸说这块硬盘能存下整个世界。我不信，世界那么大，硬盘这么小。可我还是想试试。',
-    '我想知道，未来的电脑会不会像人一样说话？未来的你们，还会不会在扫雷里踩到雷？',
-    '他们总说机器会旧，人会老。可我觉得，想象力不会。',
-    '如果你读到了这封信，说明它熬过了所有的坏道。那就请你，替我好好看看未来。',
-    '—— 一个 1998 年的小孩'
+    '未来的你，还好吗？',
+    '时间会让人变老，让机器变旧，但我希望，你还是当初的那个少年。',
+    '我没有什么值钱的东西能留给你，只有这些记忆的碎片——放心，它们从来没有离开过。',
+    '如果累了，就回来吧。重新当一个会为一张票根、一片树叶发呆半天的少年。',
+    '—— 1998 年的你'
   ];
 
-  /* 坏结局：同一封信，关键句在坏道里丢了 */
-  var LETTER_BAD = [
-    '你好，未来的人：',
-    '今天是 1998 年 □ 月 □□ 日，我把这封信存在硬盘最深的扇区里。',
-    '爸爸说这块硬盘能存下 □□□□。我不信，世界那么大，硬盘这么小。可我还是想试试。',
-    '我想知道，未来的电脑会不会 □□□□□□？未来的你们，还会不会在 □□ 里踩到雷？',
-    '他们总说机器会旧，人会老。可我觉得，□□□□□。',
-    '如果你读到了这封信，说明它 □□□□□□□□。那就请你，替我好好看看 □□。',
-    '—— 一个 1998 年的小孩'
-  ];
+  /* 坏结局（碎片不足）：不再出示信件——坏道无法修复，信件没有找到（见 showEnding） */
 
   var DEEPEST_KEY = 'win98.mine.dungeon.deepest';   // localStorage：历史最深抵达层数
   var ENDING_KEY = 'win98.mine.dungeon.ending';     // localStorage：好结局达成过 = 'good'
@@ -211,6 +219,8 @@
     var inputLocked = false; // 下楼流程中冻结棋盘输入
     var toastTimer = null;
     var clearTimer = null;   // 全清后自动下楼的延时
+    var PICK_TOAST_MS = 2800;  // 报老物件名的 toast 挂久一点（默认 1200ms 读不完）
+    var CLEAR_DESCEND_MS = 1800; // 全清后自动下楼的延时（≥ toast 阅读时间，别让覆盖层抢戏）
 
     /* --- DOM：HUD(第一排) + panel(棋盘) + belt(装备栏) + toast --- */
     containerEl.innerHTML =
@@ -218,8 +228,8 @@
       '  <div class="mine-dg-hud" data-role="hud">' +
       '    <span class="mine-dg-floor" data-role="floor">B1/' + MAX_FLOOR + '</span>' +
       '    <span class="mine-dg-hearts" data-role="hearts"></span>' +
-      '    <span class="mine-dg-gold" data-role="gold">' + px('coins', 'px-gold') + ' 0</span>' +
-      '    <span class="mine-dg-frags" data-role="frags" title="记忆碎片：集满 ' + FRAG_GOAL + ' 片可修复时间胶囊">◆ 0/' + FRAG_GOAL + '</span>' +
+      '    <span class="mine-dg-gold" data-role="gold">' + px('coins', 'px-gold') + ' 金币 0</span>' +
+      '    <span class="mine-dg-frags" data-role="frags" title="记忆碎片：每件都是 1998 年的老物件，集满 ' + FRAG_GOAL + ' 片可修复时间胶囊">' + px('diamond-gem', 'px-frag') + ' 碎片 0</span>' +
       '    <span class="mine-dg-deepest" data-role="deepest"></span>' +
       '  </div>' +
       '  <div class="mine-panel" data-role="panel">' +
@@ -271,9 +281,12 @@
       for (var i = 0; i < run.maxHp; i++) hearts += i < run.hp ? px('heart-fill', 'px-hp') : px('heart', 'px-hp-empty');
       heartsEl.innerHTML = hearts;
       heartsEl.title = '生命 ' + run.hp + ' / ' + run.maxHp;
-      goldEl.innerHTML = px('coins', 'px-gold') + ' ' + run.gold;
+      goldEl.innerHTML = px('coins', 'px-gold') + ' 金币 ' + run.gold;
       goldEl.title = '金币：每过 2 层可在商店消费';
-      fragsEl.textContent = '◆ ' + Math.min(run.fragments, 99) + '/' + FRAG_GOAL + (run.fragments >= FRAG_GOAL ? ' 集满' : '');
+      fragsEl.innerHTML = px('diamond-gem', 'px-frag') + ' 碎片 ' + run.fragments +
+        (run.fragments >= FRAG_GOAL ? ' · 已集满' : '');
+      fragsEl.title = '记忆碎片：每件都是 1998 年的老物件，集满 ' + FRAG_GOAL + ' 片可修复时间胶囊（当前 ' +
+        Math.min(run.fragments, FRAG_GOAL) + '/' + FRAG_GOAL + '）';
       deepestEl.textContent = '最深 B' + Math.max(loadDeepest(), run.floor);
     }
 
@@ -317,13 +330,13 @@
       updateBelt();
     }
 
-    function toast(msg) {
+    function toast(msg, ms) {
       toastEl.textContent = msg;
       toastEl.classList.remove('show');
       void toastEl.offsetWidth;   // 强制回流，让连续 toast 重新播放出现动画
       toastEl.classList.add('show');
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 1200);
+      toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, ms || 1200);
     }
 
     /* ---------------- 消耗品 / 技能 ---------------- */
@@ -333,7 +346,8 @@
       var n = 0;
       for (var i = 0; i < board.cells.length; i++) {
         var c = board.cells[i];
-        if (c.mine && !c.known && !c.revealed) n++;
+        // 已插旗的雷视为已发现，不再占「可标记」名额（与 core.markRandomMines 同口径）
+        if (c.mine && !c.known && !c.revealed && !c.flagged) n++;
       }
       return n;
     }
@@ -513,19 +527,27 @@
       openOverlay(ov);
     }
 
-    /* 结局：B11 全清后按碎片数判定；信以「时间胶囊.txt」记事本样式呈现 */
+    /* 结局：B11 全清后按碎片数判定。
+       成功 = 「时间胶囊.txt」记事本样式的回信 + 晒出本局拾得的老物件；
+       失败 = 坏道无法修复、信件没有找到（捡到几件也一并晒出，提示碎片还不够） */
     function showEnding(good) {
       run.over = true;   // 对局完结（防误触 guard 据此放行）
       if (good) storageSet(ENDING_KEY, 'good');
-      var letter = (good ? LETTER_GOOD : LETTER_BAD).join('\n');
+      var foundLine = run.fragFound.length
+        ? '<div class="mine-dg-story">' + (good ? '你带回的记忆：' : '你只捡回了：') +
+          run.fragFound.join('、') + (good ? '。' : '……它们还拼不出那封信。') + '</div>'
+        : '';
       var ov = document.createElement('div');
       ov.className = 'mine-dg-overlay';
       ov.innerHTML =
         '<div class="mine-dg-dialog mine-dg-wide">' +
-        '  <div class="mine-dg-title">' + px('potion') + (good ? ' 时间胶囊 · 修复完成' : ' 时间胶囊 · 数据残缺') + '</div>' +
-        '  <div class="mine-dg-letter"><span class="mine-dg-notepad">时间胶囊.txt</span>' + letter + '</div>' +
-        (good ? '' : '<div class="mine-dg-story">数据损坏过严重，只恢复了这些。……也许下次，能把它修得更完整一些。</div>') +
-        '  <div class="mine-dg-stats">记忆碎片 ◆' + run.fragments + ' / ' + FRAG_GOAL + '</div>' +
+        '  <div class="mine-dg-title">' + px('potion') + (good ? ' 时间胶囊 · 修复完成' : ' 时间胶囊 · 修复失败') + '</div>' +
+        (good
+          ? '  <div class="mine-dg-letter"><span class="mine-dg-notepad">时间胶囊.txt</span>' + LETTER_GOOD.join('\n') + '</div>'
+          : '  <div class="mine-dg-story">硬盘坏道已经无法修复，信件没有找到。请重新开始。</div>') +
+        foundLine +
+        '  <div class="mine-dg-stats">记忆碎片 ' + px('diamond-gem', 'px-frag') + ' ' + run.fragments +
+        (good ? ' · 已集满' : ' · 还差 ' + (FRAG_GOAL - run.fragments) + ' 片') + '</div>' +
         '  <button type="button" class="mine-dg-again">再来一局</button>' +
         '</div>';
       ov.querySelector('.mine-dg-again').addEventListener('click', function () { showClassSelect(); });
@@ -549,9 +571,12 @@
         var arrived = run.floor;
         var proceed = function () {
           startFloor();
-          toast(arrived === MAX_FLOOR
-            ? '信号很强……胶囊就在这一层。小心，坏道会反扑。'
-            : 'B' + arrived + ' · 坏道密度 ' + Math.round(floorDensity(arrived) * 100) + '%');
+          if (arrived === MAX_FLOOR) {
+            // B11 规则提示较长，toast 多挂一会（默认 1.2s 读不完）
+            toast('信号最强的一层……这层没有出口，全清所有安全格才能挖出时间胶囊。小心，坏道会反扑（踩雷 -2）。', 4200);
+          } else {
+            toast('B' + arrived + ' · 坏道密度 ' + Math.round(floorDensity(arrived) * 100) + '%');
+          }
           inputLocked = false;
         };
         if (arrived % 2 === 1) {   // 过完 B2/4/6/8/10 抵达奇数层前，先进商店
@@ -591,8 +616,14 @@
         gold: classDef.startGold || 0, fragments: 0,
         skillCharges: 1,
         gear: {}, items: {},
+        fragPool: FRAG_OBJECTS.slice(),   // 本局老物件池（下面洗牌，获得碎片时 pop 一件，不重复）
+        fragFound: [],                    // 已拾得的老物件名（结局晒出）
         shieldFloor: false, over: false
       };
+      for (var s = run.fragPool.length - 1; s > 0; s--) {   // Fisher-Yates 洗牌
+        var r = Math.floor(Math.random() * (s + 1));
+        var tmp = run.fragPool[s]; run.fragPool[s] = run.fragPool[r]; run.fragPool[r] = tmp;
+      }
       var st = classDef.startItems || {};
       for (var k in st) run.items[k] = st[k];
       inputLocked = false;
@@ -604,6 +635,15 @@
     }
 
     /* ---------------- 引擎钩子 ---------------- */
+
+    /* 碎片 +1：从本局物件池抽一件不重复的老物件，返回物件名（用于 toast/结局清单）。
+       池子 22 件 ≥ 理论最大获得数，正常流程不会抽空；抽空兜底为无名小物件。 */
+    function gainFragment() {
+      var name = run.fragPool.length ? run.fragPool.pop() : '一件无名的小物件';
+      run.fragFound.push(name);
+      run.fragments += 1;
+      return name;
+    }
 
     /* 踩雷减伤链：护甲（每层一次，整次抵挡）→ HP（Boss 层伤害 2）；
        返回 false = 存活（引擎标该格已爆继续），true = 致命（引擎揭全盘） */
@@ -632,11 +672,12 @@
       return true;
     }
 
-    /* 全清：记忆碎片 +1。常规层稍事停留自动下楼；Boss 层（B11）= 结局判定。
-       注意：契约里引擎全清时已先置 board.over + 自动插旗，本层没有可下的棋了。 */
+    /* 全清：记忆碎片 +1（= 拾得一件老物件）。常规层稍事停留自动下楼；
+       Boss 层（B11）= 结局判定。注意：契约里引擎全清时已先置 board.over + 自动插旗，
+       本层没有可下的棋了。 */
     function onAllClear(b) {
       if (run.over) return;
-      run.fragments += 1;
+      var picked = gainFragment();
       refresh();
       if (run.floor === MAX_FLOOR) {
         var token = runToken;
@@ -645,14 +686,14 @@
         }, 900);
         return;
       }
-      toast('全清奖励 ◆碎片 +1');
+      toast('全清奖励：捡到' + picked, PICK_TOAST_MS);
       var token2 = runToken;
       clearTimer = setTimeout(function () {
         if (token2 === runToken && !run.over && !overlayOpen) descend();
-      }, 900);
+      }, CLEAR_DESCEND_MS);
     }
 
-    /* 出口显形（每层只 toast 一次）/ 宝箱拾取（金币 + 概率碎片） */
+    /* 出口显形（每层只 toast 一次）/ 宝箱拾取（金币 + 概率碎片老物件） */
     function onCellRevealed(idx, b) {
       var cell = b.cells[idx];
       if (cell.exit && !exitFound) {
@@ -666,11 +707,10 @@
         var g = Math.round(base * mult);
         run.gold += g;
         var msg = '宝箱 +' + g + ' 金币';
-        if (Math.random() < 0.35) {
-          run.fragments += 1;
-          msg += ' ◆+1';
-        }
-        toast(msg);
+        var picked = null;
+        if (Math.random() < 0.35) picked = gainFragment();
+        if (picked) msg += '，还捡到' + picked;
+        toast(msg, picked ? PICK_TOAST_MS : undefined);
         refresh();
       }
     }

@@ -12,8 +12,9 @@
  * createBoard opts = { boardEl, cols, rows, mines, hooks }
  * hooks（全部可选）：
  *   canInteract() -> bool              false 时忽略一切格子输入与表情变化（覆盖层打开时用）
- *   onMineHit(idx, board) -> bool      踩雷。true=致命（core 走 lose 全盘揭示）；
- *                                      false=存活（该格标 exploded 已爆，游戏继续）
+ *   onMineHit(idx, board) -> bool      踩雷。调用时该格已预置 exploded/revealed（钩子内
+ *                                      刷新 HUD 即可按已发现计数）；true=致命（core 收回
+ *                                      预置并走 lose 全盘揭示）；false=存活（保持已爆，游戏继续）
  *   onAllClear(board)                  所有非雷格翻开（core 已先置 over 并自动给剩余雷插旗）
  *   onCellRevealed(idx, board)         每格翻开时回调（含 flood fill 连带翻开的）
  *   onRevealedClick(idx, board)->bool  点击已翻开格；返回 true=已处理，跳过 chord 快开
@@ -28,7 +29,8 @@
  * cell = { mine, count, revealed, flagged, known, exploded }
  *   known：已标记雷——禁止翻开、chord 时计为旗数、remainingFlags 计入已发现
  *           （地下城探测仪/声呐用；经典永远 false）
- *   exploded：已爆雷——revealed=true、chord 计为旗数、不计入 revealedCount（雷格本就不计）
+ *   exploded：已爆雷——revealed=true、chord 计为旗数、remainingFlags 计入已发现、
+ *           不计入 revealedCount（雷格本就不计）
  * ============================================================ */
 window.WIN98_MINE_CORE = (function () {
   'use strict';
@@ -172,11 +174,14 @@ window.WIN98_MINE_CORE = (function () {
       reset: reset,
       revealRandomSafe: revealRandomSafe,
       markRandomMines: markRandomMines,
-      // 剩余未发现的雷 = 总雷数 - 插旗 - known 标记（标记即算发现；known 格再插旗不重复计）
+      // 剩余未发现的雷 = 总雷数 - 插旗 - known 标记 - 已爆雷
+      //（标记/爆雷都算已发现；known 格再插旗不重复计；exploded 与 flagged/known 互斥）
       remainingFlags: function () {
-        var known = 0;
-        for (var i = 0; i < cells.length; i++) if (cells[i].known && !cells[i].flagged) known++;
-        return board.mines - board.flagCount - known;
+        var found = 0;
+        for (var i = 0; i < cells.length; i++) {
+          if (cells[i].exploded || (cells[i].known && !cells[i].flagged)) found++;
+        }
+        return board.mines - board.flagCount - found;
       }
     };
 
@@ -250,13 +255,17 @@ window.WIN98_MINE_CORE = (function () {
         if (hooks.onFirstClick) hooks.onFirstClick(board);
       }
       if (c.mine) {
+        // 先预置已爆再让模式方裁决：模式方会在钩子里刷新 HUD，而 remainingFlags 把
+        // exploded 算作已发现——若等返回 false 才置位，钩子里读到的永远是爆前状态
+        c.exploded = true;
+        c.revealed = true;
         var fatal = hooks.onMineHit ? hooks.onMineHit(i, board) : true;
         if (fatal) {
+          c.exploded = false;   // 致命收回预置：lose 按自己的口径揭全盘
+          c.revealed = false;
           lose(i);
         } else {
-          // 存活雷：标已爆、算翻开（雷格不计入 revealedCount），游戏继续
-          c.exploded = true;
-          c.revealed = true;
+          // 存活雷：保持已爆、算翻开（雷格不计入 revealedCount），游戏继续
           paint(i);
         }
         return;
@@ -376,11 +385,12 @@ window.WIN98_MINE_CORE = (function () {
       }
     }
 
-    /* 随机把 k 颗未标记雷标为 known=true 并 paint（地下城探测仪用） */
+    /* 随机把 k 颗「未发现」的雷标为 known=true 并 paint（地下城探测仪/声呐用）。
+       已插旗 / 已 known / 已翻开的雷都算已发现，不再重复标记（否则会白白浪费一次道具） */
     function markRandomMines(k) {
       var pool = [];
       for (var i = 0; i < cells.length; i++) {
-        if (cells[i].mine && !cells[i].known && !cells[i].revealed) pool.push(i);
+        if (cells[i].mine && !cells[i].known && !cells[i].revealed && !cells[i].flagged) pool.push(i);
       }
       for (var n = 0; n < k && pool.length; n++) {
         var idx = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
