@@ -25,6 +25,13 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       peaks: [0.17, 0.3, 0.38, 0.38, 0.43, 0.42, 0.43, 0.43, 0.43, 0.42, 0.54, 0.51, 0.8, 0.82, 0.82, 0.78, 0.64, 0.78, 0.73, 0.74, 0.77, 0.75, 0.67, 0.67, 0.73, 0.64, 0.71, 0.66, 0.65, 0.63, 0.79, 0.91, 0.95, 0.9, 0.9, 0.92, 0.88, 0.89, 0.93, 0.92, 0.83, 0.64, 0.65, 0.61, 0.62, 0.61, 0.65, 0.61, 0.59, 0.67, 0.77, 0.75, 0.75, 0.71, 0.76, 0.75, 0.78, 0.65, 0.43, 0.71, 0.79, 0.85, 0.82, 0.76, 0.49, 0.84, 0.91, 0.96, 0.9, 0.85, 0.86, 0.8, 0.86, 0.85, 0.88, 0.67, 0.54, 0.9, 0.85, 0.76, 0.82, 0.76, 0.84, 0.85, 0.82, 0.9, 0.91, 0.89, 0.86, 0.85, 0.64, 0.56, 0.68, 0.88, 0.88, 0.98, 0.85, 0.81, 0.79, 0.84, 0.81, 0.96, 1, 0.95, 0.83, 0.83, 0.87, 0.81, 0.51, 0.52, 0.43, 0.33] }
   ];
 
+  /* 媒体 CDN 前缀：github.io 直连国内吞吐实测仅 ~24KB/s（低于 256kbps 歌曲实时码率，
+     播放必然卡顿），jsDelivr 同文件实测 ~1.8MB/s；加载失败自动回退站点本地路径。
+     撤镜像：置 '' 即可。注意：**必须钉 commit hash**——@main 分支地址会 301 跳转，
+     媒体流跟随跳转不稳定（实测偶发触发 error 回退），commit 地址直出 200 且永久缓存。
+     push 了新的歌曲/封面后，把下面 hash 更新为最新 commit（git rev-parse --short HEAD）。 */
+  var MEDIA_CDN = 'https://cdn.jsdelivr.net/gh/viola0723/win98@3e3878a/';
+
   /* ================= 形状工具 ================= */
   function fmt(s) {
     s = Math.max(0, Math.floor(s));
@@ -193,7 +200,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       + '<div class="tp-hint">点击左侧磁带放入 · ⏮⏭ 短按换带 / 按住快进快退 · 空格 = 播放/暂停</div>'
       + '</div>'
       + '<div class="tp-side">'
-      + '<div class="tp-frame dim"><div class="tp-frame-inner"><img class="tp-cover" src="' + WIN98_TAPES[0].cover + '" alt="封面"></div></div>'
+      + '<div class="tp-frame dim"><div class="tp-frame-inner"><img class="tp-cover" src="' + mediaURL(WIN98_TAPES[0].cover) + '" alt="封面"></div></div>'
       + '<div class="tp-wf-wrap"><canvas class="tp-wf dim" width="416" height="72"></canvas><div class="tp-cap">未放入磁带</div></div>'
       + '</div>'
       + '</div>';
@@ -209,6 +216,45 @@ window.WIN98_APPS = window.WIN98_APPS || {};
     var slotEls = [];
     bodyEl.win98Tape = S;   /* 验收探针（PITFALLS 惯例：状态挂容器根） */
     bodyEl.win98TapeAudio = audio;
+
+    /* ---- 媒体加载：CDN 优先，失败回退本地；开窗即预载第一盘（preload='auto'） ---- */
+    function mediaURL(localPath) { return MEDIA_CDN ? MEDIA_CDN + encodeURI(localPath) : encodeURI(localPath); }
+    function setAudioSrc(localPath) {
+      if (audio.dataset.cur === localPath) return;   // 同址不重设，保住预载成果
+      audio.dataset.cur = localPath;
+      audio.addEventListener('error', function fb() {
+        audio.removeEventListener('error', fb);
+        if (!MEDIA_CDN) return;
+        audio.src = encodeURI(localPath);            // 回退 github.io 本地
+      });
+      audio.src = mediaURL(localPath);
+    }
+    function setCover(localPath) {
+      var img = $('.tp-cover');
+      img.onerror = function () { img.onerror = null; img.src = encodeURI(localPath); };
+      img.src = mediaURL(localPath);
+    }
+    /* 缓冲状态：waiting/stalled → LCD 显 LOAD，恢复后回时间码 */
+    S.buffering = false;
+    ['waiting', 'stalled'].forEach(function (ev) {
+      audio.addEventListener(ev, function () {
+        if (S.deck < 0) return;
+        S.buffering = true;
+        $('.tp-lcd-time').textContent = 'LOAD';
+      });
+    });
+    ['playing', 'canplay', 'canplaythrough'].forEach(function (ev) {
+      audio.addEventListener(ev, function () {
+        if (!S.buffering) return;
+        S.buffering = false;
+        tickUI();
+      });
+    });
+    setAudioSrc(WIN98_TAPES[0].src);   // 开窗即预载，入带时不必从零缓冲
+    (function () {
+      var img = $('.tp-cover');
+      img.onerror = function () { img.onerror = null; img.src = encodeURI(WIN98_TAPES[0].cover); };
+    })();
 
     function curTrack() { return S.deck >= 0 ? WIN98_TAPES[S.deck] : null; }
     function setAccent(color) {
@@ -337,10 +383,10 @@ window.WIN98_APPS = window.WIN98_APPS || {};
         $('.tp-dt-title').textContent = tr.title;
         $('.tp-deck-tape').setAttribute('opacity', '1');
         $('.tp-no-tape').setAttribute('visibility', 'hidden');
-        $('.tp-cover').src = tr.cover;
+        setCover(tr.cover);
         $('.tp-frame').classList.remove('dim');
         $('.tp-wf').classList.remove('dim');
-        audio.src = encodeURI(tr.src);
+        setAudioSrc(tr.src);
         audio.volume = S.vol;
         tickUI();
         S.busy = false;
@@ -359,6 +405,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
         slotEls[i].classList.remove('playing');
         S.deck = -1; S.t = 0;
         audio.removeAttribute('src');
+        delete audio.dataset.cur;
         audio.load();
         $('.tp-no-tape').removeAttribute('visibility');
         $('.tp-lcd-track').textContent = 'TRK --';
