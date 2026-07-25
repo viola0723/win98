@@ -5,6 +5,12 @@
  * type: 'link'   打开外部链接（url，新标签页）
  * width/height   窗口初始尺寸（可选；手机端一律默认最大化，忽略此项）
  * showInStartMenu 是否出现在开始菜单（可选，默认 true）
+ *
+ * 多端适配分级（每条记录用行尾注释标注，新模块注册必须先定级；
+ * 级别定义与验收要求详见 PROJECT_PLAN.md §5.4）：
+ *   A = 双端完整适配（核心交互/游戏，双端 Playwright 验收 + 触屏改动真机复测）
+ *   B = 手机可用、允许简化呈现（内容展示型，核心内容手机上不可缺失）
+ *   C = PC 优先（精确指针操作型，手机端给「建议 PC 体验」兜底，不强行适配）
  * ============================================================ */
 window.WIN98_MODULES = [
   {
@@ -12,7 +18,7 @@ window.WIN98_MODULES = [
     title: '我的电脑',
     icon: 'assets/icons/computer.png',
     type: 'window',
-    app: 'about',
+    app: 'about', /* adapt: B（内容展示） */
     width: 460,
     height: 500
   },
@@ -21,7 +27,7 @@ window.WIN98_MODULES = [
     title: '扫雷',
     icon: 'assets/icons/mine.png',
     type: 'window',
-    app: 'mine',
+    app: 'mine', /* adapt: A（核心游戏，双端完整） */
     /* 初始尺寸仅为占位：模块打开后由 js/apps/mine-core.js 的 fitWindowToContent()
        按当前模式/难度棋盘的实测尺寸自动贴合（此处值 ≈ 经典初级 9×9 + Tab 行的实测量） */
     width: 262,
@@ -32,7 +38,7 @@ window.WIN98_MODULES = [
     title: '德州扑克',
     icon: 'assets/icons/poker.png',
     type: 'window',
-    app: 'poker',
+    app: 'poker', /* adapt: A（核心游戏，双端完整） */
     width: 560,
     height: 720
   },
@@ -40,7 +46,7 @@ window.WIN98_MODULES = [
     id: 'friend-link',
     title: '友情链接',
     icon: 'assets/icons/globe.png',
-    type: 'link',
+    type: 'link', /* 外链跳转，无适配分级 */
     url: 'https://www.mihoyo.com'
   },
   /* 展览馆：特效作品的统一入口（iframe 加载展厅大厅，渲染器见 js/apps/exhibit.js）。
@@ -52,7 +58,7 @@ window.WIN98_MODULES = [
     title: '展览馆',
     icon: 'assets/icons/gallery.png',
     type: 'window',
-    app: 'exhibit',
+    app: 'exhibit', /* adapt: B（内容展示，手机端允许简化） */
     exhibit: 'exhibits/dist/index.html',
     width: 720,
     height: 560

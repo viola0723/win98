@@ -32,7 +32,7 @@
 
 - **开工**：`git pull` → 扫一眼 `AGENTS.md` 当前状态 + `git log --oneline -5`，知道另一台电脑最近干了什么。
 - **干活**：正常迭代，遵守 `AGENTS.md` 铁律。
-- **收工**：`git commit && git push`。铁律 5 要求每轮迭代同步更新 `AGENTS.md` 当前状态与 `PROJECT_PLAN.md` 第 8 节——**这些文档就是接力上下文**，哪台机器的下一个 agent 都靠它们接上思路。
+- **收工**：`git commit && git push`。铁律 5 要求每轮迭代同步更新 `DEVLOG.md`（顶部加一条）与 `AGENTS.md` 当前阶段——**这些文档就是接力上下文**，哪台机器的下一个 agent 都靠它们接上思路。
 - **不要做**：两台电脑同时压着未提交的改动改同一批文件——必然撞合并冲突，纯属给自己添麻烦。
 
 ## 不跟机器走的东西（都无关紧要）
@@ -40,7 +40,7 @@
 - 浏览器 localStorage（扫雷最佳时间、地下城最深纪录）：本机游戏数据。
 - `exhibits/node_modules/`：已 gitignore，需要时 `npm install` 重建。
 - 仓库外 `../tools/`（inspira-ui 镜像、gh CLI 等）：随时可重新下载。
-- agent 会话历史：由 `AGENTS.md` / `PROJECT_PLAN.md` / `THEME.md` 三份文档替代，在哪台机器读都一样。
+- agent 会话历史：由 `AGENTS.md`（锚点）/ `THEME.md`（方向）/ `DEVLOG.md`（全史）/ `PITFALLS.md`（踩坑）文档组合替代，在哪台机器读都一样。
 
 ## 万一冲突了
 
