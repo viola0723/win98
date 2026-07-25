@@ -20,13 +20,11 @@
 
 ## 当前阶段（只记最近动态，全史见 DEVLOG.md）
 
-- 2026-07-26｜**卡顿二修：CDN 证伪全灭，改「压缩素材 + 本地直供」**：jsDelivr 对 mp3 只 301 到 raw.githubusercontent（国内不稳），statically/githack 不通——唯一稳定通道 github.io ~24KB/s；新增 `tools/audio-optimizer.html`（内联 lamejs 零依赖）把《月之暗面》压成 128k/3.76MB、封面 62KB/512px，`MEDIA_CDN` 置 ''。加歌流程：源文件进 `assets/music/` → optimizer 压缩 → 波形提取 → 注册
+- 2026-07-26｜**新歌二连：《夜晚》《应龙》上架随身听（双端 32 断言全过）**：首次用 ffmpeg 主力通道跑完整加歌流程——mp3 128k（2.75MB/172.1s、3.8MB/237.8s）、封面长边 512px（≤21KB）、波形 = ffmpeg 解码 s16le 管道进一次性 Node 脚本复刻提取器算法（N=112 RMS），不再依赖浏览器工具；`WIN98_TAPES` 现 3 盘（夜晚 #8f7fd4 / 应龙 #6fae9f，取色自封面）。验收探针 `win98Tape.deck` / `win98TapeAudio.dataset.cur`。收尾又中 npx 坑：TaskStop 只杀壳，8098 仍被子进程占——杀完必验端口
+- 2026-07-26｜**卡顿二修：CDN 证伪全灭，改「压缩素材 + 本地直供」**：jsDelivr 对 mp3 只 301 到 raw.githubusercontent（国内不稳），statically/githack 不通——唯一稳定通道 github.io ~24KB/s；新增 `tools/audio-optimizer.html`（内联 lamejs 零依赖）把《月之暗面》压成 128k/3.76MB、封面 62KB/512px，`MEDIA_CDN` 置 ''。加歌流程：源文件进 `assets/music/` → 压缩（ffmpeg 优先 / optimizer 兜底）→ 波形提取 → 注册
 - 2026-07-25｜**新模块「卡带随身听」上线（A 级，双端 14 断言全过）**：每首歌 = 一盘磁带，点磁带飞行入舱 → 相框封面 + 真实波形 → 自动播放；机身斜二轴测 2.5D、主题色随磁带变色（`--accent`）。`js/apps/tapeplayer.js` 单文件模块（数据注册表 `WIN98_TAPES` 在头部，加歌三步见注释）、波形提取器 `tools/waveform-extractor.html`（OfflineAudioContext，零依赖）、tape.png 图标（24×20 字符矩阵，`make_icons.py` 与一次性 Node 脚本双实现同源——本机无 Python）。原型评审废弃：鼠标视差（没用）、机械音效（不拟真且与音乐混叠）、下载的 3 首 CC 歌（只留原创）。修触屏播放键全灭（tap 处理器漏写 `(e)` 形参，PC 用例漏网，已记 PITFALLS）。默认曲《月之暗面》（用户原创）
 - 2026-07-25｜**记忆碎片定性 = 1998 年的老物件**：`FRAG_OBJECTS` 22 件（= 理论最大获得数）洗牌不重复抽取，获得碎片 toast 报物件名；结局定型——成功 = 回信「未来的你，还好吗……会为票根和树叶发呆的少年」+ 晒出拾得清单，失败 = 「坏道无法修复，信件没有找到，请重新开始」（残缺信方案废弃）。双端 30 断言全过
 - 2026-07-25｜收尾流程堵漏：清掉上次漏杀的 8098 残留服务（npx http-server）；铁律 9 扩成独立「收尾清单」小节（杀服务必验证端口释放 / 删 `../tools` 本次产物 / 工作区只剩预期改动）；验收脚本定性**一次性**（现写现删，别找旧的，结论在 DEVLOG）；Windows 预览命令补 `-c-1` 禁缓存
-- 2026-07-25｜地下城四连修 + 双结局文案重写：踩雷计数器不减根治（remainingFlags 计 exploded + core 钩子先预置状态再回调）；声呐/探测仪不再浪费在已插旗的雷；HUD 金币/碎片加文字标签、碎片去 0/5 只显数量；B11 讲清「无出口须全清」（toast 加可选时长）；好/坏结局信件重写。双端 24 断言全过
-- 2026-07-25｜存量 emoji 全量像素化：JS 运行代码 emoji 清零（♠♥♦♣ 仅作数据字符保留）。各模块局部 `PX` 表 + `px()` 内联 SVG（pixelarticons MIT，缺的手绘 24×24）；扑克牌面花色数据不动、渲染走 `suitIcon()`；经典扫雷像素旗/雷/叉/四态黄脸。合流双端 11 断言全过
-- 2026-07-24｜iOS/安卓真机触控三连修（`js/touchTap.js` 补发 click + isTrusted 去重、safe-area 让位、开窗吞串扰 click），Playwright 三端断言全过，**真机终验待用户确认**
 
 ## 快速上手
 
@@ -96,7 +94,7 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 
 - 多电脑协作：见 `COLLAB.md`（新电脑 = clone + 配 push 凭据 + 装 Node；开工 pull、收工 push）
 - 预览：本地 8098 端口（Mac：`python3 -m http.server 8098`；Windows 机未装 Python：`npx -y http-server -p 8098 -s -c-1`，`-c-1` 禁缓存防改完刷不到新版）。**起服务前先查端口**（有 LISTENING 说明有残留，先杀再起，查法见收尾清单）
-- 加歌：① 源音频 + 封面丢 `assets/music/`，**先压缩**（国内通道刚需）：开 `tools/audio-optimizer.html?src=/assets/music/xxx.mp3&cover=/assets/music/xxx.jpg`（mp3→128k、封面→512px，下载覆盖同名文件）② `tools/waveform-extractor.html?src=/assets/music/xxx.mp3` 抄 duration/peaks ③ `js/apps/tapeplayer.js` 的 `WIN98_TAPES` 加一条
+- 加歌：① 源音频 + 封面丢 `assets/music/`，**先压缩**（国内通道刚需）：优先本机 ffmpeg（mp3 `-b:a 128k -ar 44100`、封面长边 512px `-q:v 4`，覆盖同名文件）；零安装兜底 = `tools/audio-optimizer.html?src=/assets/music/xxx.mp3&cover=/assets/music/xxx.jpg` ② 波形：ffmpeg 解码 s16le mono 44100 管道进 Node 脚本复刻提取器算法（N=112 RMS，参考 DEVLOG 2026-07-26 新歌二连），或浏览器 `tools/waveform-extractor.html?src=/assets/music/xxx.mp3` 抄 duration/peaks ③ `js/apps/tapeplayer.js` 的 `WIN98_TAPES` 加一条
 - 本机 ffmpeg：`../tools/ffmpeg/node_modules/ffmpeg-static/ffmpeg.exe`（6.1.1 gyan essentials，含 libmp3lame/libopus/x264/x265，解码冒烟已过；装法 `cd ../tools/ffmpeg && npm i ffmpeg-static`，长期资产勿清）。大文件/批量音视频处理优先用它，`tools/audio-optimizer.html` 仍是零安装兜底
 - 无头浏览器：双机均已装 Playwright Chromium，验收截图命令
   `npx -y playwright screenshot --viewport-size=1280,800(或390,844) <url> <输出.png>`
