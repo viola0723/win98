@@ -5,6 +5,7 @@
  *                       ctx = { win, bodyEl, setGuard(fn) }；setGuard 登记「对局进行中」
  *                       判断（可选），容器在切模式 Tab 前据此弹「放弃当前对局」确认
  *   pad3(n)             LCD 三位补零（-99~999，负数如 -09）
+ *   px(name)            像素图标内联 SVG（flag/mine/cross/face-*，引擎与经典模式共用）
  *   fitWindowToContent  按内容实测尺寸反推窗口（原 minesweeper.js fitWindow 的泛化）
  *   createBoard(opts)   创建一块雷区，返回 board（见下）
  *
@@ -39,6 +40,53 @@ window.WIN98_MINE_CORE = (function () {
     n = Math.max(-99, Math.min(999, n));
     if (n < 0) return '-' + ('0' + Math.abs(n)).slice(-2);
     return ('00' + n).slice(-3);
+  }
+
+  /* ---------------- 像素图标（内联 SVG，替代格子/笑脸里的 emoji） ----------------
+   * flag/close 取自 pixelarticons（MIT，https://github.com/halfmage/pixelarticons ，
+   * 即 svg/flag.svg、svg/close.svg 的 path）；地雷与笑脸四态库中没有，手绘 24×24
+   * 像素 path（经典 Win98 观感：地雷=黑球+刺+高光，笑脸=黄圆+眼睛+嘴）。
+   * 每条 = [ [fill, pathD], ... ] 按序绘制；fill 逐段写死——98.css 按钮文字是
+   * color:transparent + text-shadow 画的，svg 用 currentColor 会全透明（见
+   * PITFALLS.md），CSS 只管尺寸（style.css 的 .px-core 规则，与地下城 .px-icon 分开）。
+   * 经典模式的笑脸按钮也走这里（CORE.px 暴露）。 */
+  var FACE_OUTER = 'M9 2h6v1H9zM7 3h10v1H7zM6 4h12v1H6zM5 5h14v1H5zM4 6h16v1H4zM3 7h18v1H3zM3 8h18v1H3zM2 9h20v1H2zM2 10h20v1H2zM2 11h20v1H2zM2 12h20v1H2zM2 13h20v1H2zM2 14h20v1H2zM3 15h18v1H3zM3 16h18v1H3zM4 17h16v1H4zM5 18h14v1H5zM6 19h12v1H6zM7 20h10v1H7zM9 21h6v1H9z';   // 黑描边圆盘
+  var FACE_INNER = 'M8 3h8v1H8zM7 4h10v1H7zM6 5h12v1H6zM5 6h14v1H5zM4 7h16v1H4zM4 8h16v1H4zM3 9h18v1H3zM3 10h18v1H3zM3 11h18v1H3zM3 12h18v1H3zM3 13h18v1H3zM3 14h18v1H3zM4 15h16v1H4zM4 16h16v1H4zM5 17h14v1H5zM6 18h12v1H6zM7 19h10v1H7zM8 20h8v1H8z';   // 内缩 1px 的黄脸
+  var PX = {
+    'flag': [   // 像素红旗（pixelarticons flag.svg，杆黑旗红）
+      ['#000', 'M4 2h2v20H4z'],
+      ['#f00', 'M4 4h16v2H4zm12 2h2v2h-2zm-2 2h2v2h-2zm2 2h2v2h-2zM4 12h16v2H4z']
+    ],
+    'cross': [  // 插错的旗的红叉（pixelarticons close.svg）
+      ['#f00', 'M7 19H5V17H7V19ZM19 19H17V17H19V19ZM9 15V17H7V15H9ZM17 17H15V15H17V17ZM11 15H9V13H11V15ZM15 15H13V13H15V15ZM13 13H11V11H13V13ZM11 11H9V9H11V11ZM15 11H13V9H15V11ZM9 9H7V7H9V9ZM17 9H15V7H17V9ZM7 7H5V5H7V7ZM19 7H17V5H19V7Z']
+    ],
+    'mine': [   // 经典地雷：黑球 + 八向刺 + 左上高光
+      ['#000', 'M10 5h4v1h-4zM8 6h8v1H8zM7 7h10v1H7zM6 8h12v1H6zM6 9h12v1H6zM5 10h14v1H5zM5 11h14v1H5zM5 12h14v1H5zM5 13h14v1H5zM6 14h12v1H6zM6 15h12v1H6zM7 16h10v1H7zM8 17h8v1H8zM10 18h4v1h-4zM11 2h2v3h-2zM11 19h2v3h-2zM2 11h3v2H2zM19 11h3v2h-3zM4 4h2v2H4zM6 6h2v2H6zM18 4h2v2h-2zM16 6h2v2h-2zM4 18h2v2H4zM6 16h2v2H6zM18 18h2v2h-2zM16 16h2v2h-2z'],
+      ['#fff', 'M7 8h3v2H7z']
+    ],
+    'face-smile': [
+      ['#000', FACE_OUTER], ['#ff0', FACE_INNER],
+      ['#000', 'M8 8h2v3H8zM14 8h2v3h-2zM6 13h2v2H6zM16 13h2v2h-2zM8 15h2v1H8zM14 15h2v1h-2zM10 16h4v1h-4z']
+    ],
+    'face-o': [   // 按下张嘴
+      ['#000', FACE_OUTER], ['#ff0', FACE_INNER],
+      ['#000', 'M8 8h2v3H8zM14 8h2v3h-2zM11 13h2v1h-2zM10 14h4v3h-4zM11 17h2v1h-2z']
+    ],
+    'face-dead': [   // 踩雷：叉叉眼 + 张嘴
+      ['#000', FACE_OUTER], ['#ff0', FACE_INNER],
+      ['#000', 'M7 8h1v1H7zM10 8h1v1h-1zM8 9h2v1H8zM8 10h2v1H8zM7 11h1v1H7zM10 11h1v1h-1zM13 8h1v1h-1zM16 8h1v1h-1zM14 9h2v1h-2zM14 10h2v1h-2zM13 11h1v1h-1zM16 11h1v1h-1zM11 13h2v1h-2zM10 14h4v3h-4zM11 17h2v1h-2z']
+    ],
+    'face-cool': [   // 胜利：墨镜 + 微笑
+      ['#000', FACE_OUTER], ['#ff0', FACE_INNER],
+      ['#000', 'M6 8h5v1H6zM13 8h5v1h-5zM5 9h14v1H5zM6 10h5v1H6zM13 10h5v1h-5zM6 13h2v2H6zM16 13h2v2h-2zM8 15h2v1H8zM14 15h2v1h-2zM10 16h4v1h-4z']
+    ]
+  };
+  function px(name) {
+    var out = '<svg class="px-icon px-core" viewBox="0 0 24 24" aria-hidden="true">';
+    PX[name].forEach(function (p) {
+      out += '<path fill="' + p[0] + '" d="' + p[1] + '"/>';
+    });
+    return out + '</svg>';
   }
 
   /* flex 布局下宽 100% 的行（工具栏/Tab 行）自身 offsetWidth 被拉伸、不可信，
@@ -181,7 +229,7 @@ window.WIN98_MINE_CORE = (function () {
         (c.revealed ? ' revealed' : '') +
         (!c.revealed && c.flagged ? ' flagged' : '') +
         (c.revealed && c.count > 0 ? ' n' + c.count : '');
-      el.textContent = c.revealed ? (c.count > 0 ? String(c.count) : '') : (c.flagged ? '🚩' : '');
+      el.innerHTML = c.revealed ? (c.count > 0 ? String(c.count) : '') : (c.flagged ? px('flag') : '');
       // className 重设会抹掉模式方的装饰，收尾时交给钩子重画（出口/已爆/探测标记）
       if (hooks.decorateCell) hooks.decorateCell(i, c, el);
     }
@@ -271,12 +319,12 @@ window.WIN98_MINE_CORE = (function () {
         var el = boardEl.children[i];
         if (c.mine && !c.flagged) {
           el.className = 'mine-cell revealed' + (i === hitIdx ? ' mine-hit' : '');
-          el.textContent = '💣';
+          el.innerHTML = px('mine');
         } else if (!c.mine && c.flagged) {
           el.className = 'mine-cell revealed';
-          el.textContent = '❌'; // 插错的旗
+          el.innerHTML = px('cross'); // 插错的旗
         }
-        // 同样收尾装饰（地雷💣上会盖掉模式标记，是否保留由模式方决定）
+        // 同样收尾装饰（地雷图标上会盖掉模式标记，是否保留由模式方决定）
         if (hooks.decorateCell) hooks.decorateCell(i, c, el);
       });
     }
@@ -373,7 +421,7 @@ window.WIN98_MINE_CORE = (function () {
     });
 
     // 插旗（触屏长按；鼠标右键走上面的 contextmenu，不重复处理）。
-    // 顺带还原经典细节：按下格子时笑脸张嘴 😮，松开/移出恢复（右键插旗不变脸）
+    // 顺带还原经典细节：按下格子时笑脸张嘴、松开/移出恢复（右键插旗不变脸）
     boardEl.addEventListener('pointerdown', function (e) {
       var idx = cellFromEvent(e);
       if (idx < 0) return;
@@ -406,6 +454,7 @@ window.WIN98_MINE_CORE = (function () {
     MODES: {},
     pad3: pad3,
     fitWindowToContent: fitWindowToContent,
-    createBoard: createBoard
+    createBoard: createBoard,
+    px: px   // 像素图标内联 SVG（flag/mine/cross/face-*，经典模式笑脸等复用）
   };
 })();

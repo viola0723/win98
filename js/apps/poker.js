@@ -12,17 +12,55 @@ window.WIN98_APPS = window.WIN98_APPS || {};
 
   WIN98_APPS['poker'] = function (bodyEl, win) {
     bodyEl.classList.add('poker-body');
+
+    /* ---------------- 像素图标与扑克花色（内联 SVG，替代 emoji） ----------------
+     * px()：pixelarticons（MIT 协议）24×24 path，fill=currentColor 继承文字色，
+     * 图标库 https://github.com/halfmage/pixelarticons （取 svg/<名>.svg 的 path，
+     * volume-x 为 volume-2 去声波 + 自绘 X；多 path 已合并为单条 d）。
+     * suitIcon()：自绘扑克花色（简洁填充矢量，与牌面风格协调）——SUITS 仍存字符，
+     * 仅渲染处映射成 SVG；suitify() 把文本里的花色字符批量换成 SVG（日志/战绩用）。 */
+    var PX = {
+      'lightbulb': 'M9 4h6v2H9zM7 6h2v2H7zm8 0h2v2h-2zm4-2h2v2h-2zm2-2h2v2h-2zM0 10h3v2H0zm21 0h3v2h-3zM3 4h2v2H3zM1 2h2v2H1zm6 12h2v2H7zm8 0h2v2h-2zM5 8h2v6H5zm12 0h2v6h-2zm-8 8h6v2H9zm0 4h6v2H9zm0-2h2v2H9zm4 0h2v2h-2zM11 0h2v3h-2z',
+      'volume-2': 'M13 22h-2v-2H9v-2h2V6H9V4h2V2h2v20Zm-4-4H7v-2h2v2Zm10 0h-4v-2h4v2ZM7 10H5v4h2v2H3V8h4v2Zm14 6h-2V8h2v8Zm-4-2h-2v-4h2v4ZM9 8H7V6h2v2Zm10 0h-4V6h4v2Z',
+      'volume-x': 'M13 22h-2v-2H9v-2h2V6H9V4h2V2h2v20Zm-4-4H7v-2h2v2ZM7 10H5v4h2v2H3V8h4v2ZM9 8H7V6h2v2ZM15 8h2v2h-2zm2 2h2v2h-2zm2 2h2v2h-2zm2 2h2v2h-2zM21 8h2v2h-2zm-2 2h2v2h-2zm-2 2h2v2h-2zm-2 2h2v2h-2z',
+      'chart': 'M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zM7 11h2v6H7zm4-4h2v10h-2zm4 6h2v4h-2z',
+      'book-open': 'M2 3h9v2H2zM0 19h11v2H0zM13 3h9v2h-9zm0 16h11v2H13zM11 5h2v18h-2zM0 5h2v14H0zm22 0h2v14h-2zm-7 2h5v2h-5zm0 4h5v2h-5zm0 4h2v2h-2z',
+      'reload': 'M16 4h2v6h-2zm-2-2h2v2h-2zm0 2h2v8h-2zM4 8H2v5h2zM4 6h16v2H4zm4 14H6v-6h2zm2 2H8v-2h2zm0-2H8v-8h2zm10-4h2v-5h-2zM20 18H4v-2h16z',
+      'robot': 'M5 7h14v2H5zm0 12h14v2H5zM3 9h2v10H3zm16 0h2v10h-2zM1 13h2v2H1zm20 0h2v2h-2zM11 5h2v2H7zm1 9h2v4H8zm6 0h2v4h-2z',
+      'sunglasses': 'M15 10h5v2h-5zM4 10h5v2H4zm16 2h2v5h-2zM9 12h2v5H9zm4 0h2v5h-2zM2 12h2v5H2zm13 5h5v2h-5zM4 17h5v2H4zm7-5h2v2h-2zM2 6h2v6H2zm18 0h2v6h-2zM4 4h2v2H4zm14 0h2v2h-2zM6 12h3v2H6zm11 0h3v2h-3zM4 14h2v3H4zm11 0h2v3h-2zm-9 2h3v1H6zm11 0h3v1h-3zm-9-2h1v2H8zm11 0h1v2h-1z',
+      'trophy': 'M16 17H13V19H15V21H9V19H11V17H8V15H16V17ZM18 5H22V11H20V7H18V11H20V13H18V15H16V5H8V15H6V13H4V11H6V7H4V11H2V5H6V3H18V5Z',
+      'skull': 'M7 20h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zm-6-4h2v4H9zm4 0h2v4h-2zm-8-2h2v6H5zm12 0h2v6h-2zM3 14h4v2H3zM1 4h2v10H1zm20 0h2v10h-2zM3 2h18v2H3zm14 12h4v2h-4zM8 7h2v4H8zm6 0h2v4h-2z',
+      'fire': 'M9 2h2v4H9zM7 6h2v2H7zM5 8h2v2H5zm8 2h2v2h-2zm2-2h2v2h-2zm2 2h2v2h-2zm2 2h2v6h-2zM3 10h2v8H3zm8-4h2v4h-2zm6 12h2v2h-2zM7 20h10v2H7zm-2-2h2v2H5zm4-2h6v4H9zM11 14h2v3h-2z',
+      'card': 'M4 4h16v2H4zm0 14h16v2H4zM2 6h2v12H2zm18 0h2v12h-2z',
+      'coins': 'M6 2h6v2H6zM4 4h2v2H4zm8 0h2v2h-2zm-8 8h2v2H4zm8 0h2v2h-2zm-6 2h6v2H6zM2 6h2v6H2zm12 0h2v6h-2zM14 8h4v2h-4zm-4 10h2v2h-2zm8-8h2v2h-2zm-6 10h2v2h-2zm6-2h2v2h-2zM12 20h6v2h-6zm-4-6h2v4H8zm12-2h2v6h-2zM7 6h4v2H7zM9 6h2v6H9zm6 8h2v4h-2zm-1-2h3v2h-3z'
+    };
+    function px(name) {
+      return '<svg class="px-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="' + PX[name] + '"/></svg>';
+    }
+    var SUIT_D = {
+      '♠': 'M12 3C9 8 4 9.5 4 13a4 4 0 0 0 8 0 4 4 0 0 0 8 0C20 9.5 15 8 12 3ZM12 13c-.5 4-1.5 6.5-3.5 8.5h7c-2-2-3-4.5-3.5-8.5Z',
+      '♥': 'M4 8a4 4 0 0 1 8 0 4 4 0 0 1 8 0c0 5-3 8.5-8 12.5C7 16.5 4 13 4 8Z',
+      '♦': 'M12 3l7 9-7 9-7-9Z',
+      '♣': 'M12 3a4 4 0 0 1 0 8 4 4 0 0 1 0-8ZM8 9.5a4 4 0 0 1 0 8 4 4 0 0 1 0-8ZM16 9.5a4 4 0 0 1 0 8 4 4 0 0 1 0-8ZM12 14c-.5 3.5-1.5 5.5-3.5 7.5h7c-2-2-3-4-3.5-7.5Z'
+    };
+    function suitIcon(suit) {
+      return '<svg class="suit-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="' + SUIT_D[suit] + '"/></svg>';
+    }
+    function suitify(str) {
+      return String(str).replace(/[♠♥♦♣]/g, function (s) { return suitIcon(s); });
+    }
+
     bodyEl.innerHTML =
       '<div class="app-poker">' + `
 <!-- ============ 顶栏 ============ -->
 <header class="topbar">
-  <div class="brand"><span class="suits">♠♥</span> 德州扑克 · 单挑 <small>HEADS-UP HOLD'EM v2.0</small></div>
+  <div class="brand"><span class="suits">${suitIcon('♠')}${suitIcon('♥')}</span> 德州扑克 · 单挑 <small>HEADS-UP HOLD'EM v2.0</small></div>
   <div class="top-actions">
-    <button class="icon-btn" id="btn-hint" title="胜率提示开关">💡</button>
-    <button class="icon-btn" id="btn-sound" title="音效开关">🔊</button>
-    <button class="icon-btn" id="btn-history" title="战绩统计">📊</button>
-    <button class="icon-btn" id="btn-rules" title="规则说明">📖</button>
-    <button class="icon-btn" id="btn-newmatch" title="开始新比赛">🔄</button>
+    <button class="icon-btn" id="btn-hint" title="胜率提示开关">${px('lightbulb')}</button>
+    <button class="icon-btn" id="btn-sound" title="音效开关">${px('volume-2')}</button>
+    <button class="icon-btn" id="btn-history" title="战绩统计">${px('chart')}</button>
+    <button class="icon-btn" id="btn-rules" title="规则说明">${px('book-open')}</button>
+    <button class="icon-btn" id="btn-newmatch" title="开始新比赛">${px('reload')}</button>
   </div>
 </header>
 
@@ -32,9 +70,9 @@ window.WIN98_APPS = window.WIN98_APPS || {};
     <!-- AI 座位 -->
     <div class="seat ai" id="seat-ai">
       <div class="who">
-        <div class="avatar">🤖</div>
+        <div class="avatar">${px('robot')}</div>
         <div class="name">电脑 <span class="role-tag" id="ai-role"></span></div>
-        <div class="stack" id="ai-stack">🪙 <span id="ai-chips">1000</span></div>
+        <div class="stack" id="ai-stack">${px('coins')} <span id="ai-chips">1000</span></div>
       </div>
       <div class="cards" id="ai-cards"></div>
       <div class="dealer-btn" id="dealer-ai">D</div>
@@ -44,7 +82,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
 
     <!-- 中央 -->
     <div class="center-area">
-      <div class="pot-display" id="pot-display"><span class="lbl">底池</span>🪙 <span id="pot-amount">0</span></div>
+      <div class="pot-display" id="pot-display"><span class="lbl">底池</span>${px('coins')} <span id="pot-amount">0</span></div>
       <div class="cards" id="community-cards"></div>
       <div class="phase-label" id="phase-label">— 准备开始 —</div>
     </div>
@@ -52,9 +90,9 @@ window.WIN98_APPS = window.WIN98_APPS || {};
     <!-- 玩家座位 -->
     <div class="seat me" id="seat-player">
       <div class="who">
-        <div class="avatar">😎</div>
+        <div class="avatar">${px('sunglasses')}</div>
         <div class="name">你 <span class="role-tag" id="player-role"></span></div>
-        <div class="stack" id="player-stack">🪙 <span id="player-chips">1000</span></div>
+        <div class="stack" id="player-stack">${px('coins')} <span id="player-chips">1000</span></div>
       </div>
       <div class="cards" id="player-cards"></div>
       <div class="dealer-btn" id="dealer-player">D</div>
@@ -65,7 +103,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
 
   <!-- 手牌强度 -->
   <div class="strength-bar" id="strength-bar">
-    <span>🃏 当前牌型：<span class="hand-name" id="hand-name">—</span></span>
+    <span>${px('card')} 当前牌型：<span class="hand-name" id="hand-name">—</span></span>
     <div class="eq-wrap" id="eq-wrap">
       <span style="font-size:11px;color:var(--txt-dim)">胜率</span>
       <div class="eq-track"><div class="eq-fill" id="eq-fill" style="width:0%"></div></div>
@@ -108,7 +146,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
 <!-- ============ 战绩弹窗 ============ -->
 <div class="overlay" id="history-overlay">
   <div class="modal">
-    <h2 style="color:var(--gold)">📊 战绩统计</h2>
+    <h2 style="color:var(--gold)">${px('chart')} 战绩统计</h2>
     <div class="stat-grid">
       <div class="stat-cell"><div class="v" id="st-wins">0</div><div class="k">胜</div></div>
       <div class="stat-cell"><div class="v" id="st-losses">0</div><div class="k">负</div></div>
@@ -128,7 +166,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
 <!-- ============ 规则弹窗 ============ -->
 <div class="overlay" id="rules-overlay">
   <div class="modal">
-    <h2 style="color:var(--gold)">📖 玩法说明</h2>
+    <h2 style="color:var(--gold)">${px('book-open')} 玩法说明</h2>
     <div class="rules-body">
       <h3>基本规则（1v1 单挑）</h3>
       每人 1000 筹码，小盲 10 / 大盲 20。庄家（D）兼小盲，翻前先行动；翻后由大盲先行动。庄家每局轮换。一方筹码归零则比赛结束。
@@ -146,7 +184,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       <h3>电脑快捷键</h3>
       <kbd>F</kbd> 弃牌　<kbd>C</kbd> 看牌/跟注　<kbd>R</kbd> 确认加注　<kbd>A</kbd> 全下　<kbd>1~4</kbd> 快捷注额
       <h3>小提示</h3>
-      点击顶栏 💡 可开启实时胜率提示；电脑会学习你的弃牌/加注习惯并调整策略，别总用一个套路哦。
+      点击顶栏 ${px('lightbulb')} 可开启实时胜率提示；电脑会学习你的弃牌/加注习惯并调整策略，别总用一个套路哦。
     </div>
     <div class="btn-col">
       <button class="act-btn gold" id="rules-close">知道了</button>
@@ -845,7 +883,7 @@ const UI = {
     if (opts.slot) { d.className = 'card slot'; return d; }
     if (opts.hidden) { d.className = 'card back'; return d; }
     d.className = 'card' + (Cards.isRed(card) ? ' red' : '');
-    d.innerHTML = `<div class="c-top"><b>${card.rank}</b><span>${card.suit}</span></div><div class="c-pip">${card.suit}</div>`;
+    d.innerHTML = `<div class="c-top"><b>${card.rank}</b><span>${suitIcon(card.suit)}</span></div><div class="c-pip">${suitIcon(card.suit)}</div>`;
     return d;
   },
 
@@ -963,6 +1001,15 @@ const UI = {
     const e = document.createElement('div');
     if (cls) e.className = cls;
     e.textContent = msg;
+    $('log').appendChild(e);
+    $('log').scrollTop = $('log').scrollHeight;
+  },
+
+  /* 带内联 SVG（花色/图标）的日志行；html 仅由本模块内部拼接，勿传外部输入 */
+  logHtml(html, cls = '') {
+    const e = document.createElement('div');
+    if (cls) e.className = cls;
+    e.innerHTML = html;
     $('log').appendChild(e);
     $('log').scrollTop = $('log').scrollHeight;
   },
@@ -1151,8 +1198,8 @@ const Game = {
     }
     FX.deal();
     const names = { flop: '翻牌', turn: '转牌', river: '河牌' };
-    const newCards = e.s.board.slice(prevBoard).map(c => c.rank + c.suit).join(' ');
-    UI.log(`▼ ${names[r.phase]}：${newCards}`, 'l-sys');
+    const newCards = e.s.board.slice(prevBoard).map(c => c.rank + suitIcon(c.suit)).join(' ');
+    UI.logHtml(`▼ ${names[r.phase]}：${newCards}`, 'l-sys');
     UI.render(e, { newBoardIdx: prevBoard });
     Equity.update(e);
     this._later(() => this._next(), 800);
@@ -1177,22 +1224,22 @@ const Game = {
     // 结果弹窗
     const title = $('result-title'), detail = $('result-detail'), sub = $('result-sub');
     if (winner === 0) {
-      title.textContent = '🎉 你赢了！'; title.className = 'win';
+      title.innerHTML = px('trophy') + ' 你赢了！'; title.className = 'win';
       FX.win(); Confetti.fire(st.pot >= 400 ? 140 : 80);
       $('seat-player').classList.add('winner');
-      detail.textContent = `赢得底池 ${st.pot} 🪙`;
+      detail.innerHTML = `赢得底池 ${st.pot} ` + px('coins');
     } else if (winner === 1) {
-      title.textContent = '😔 这局输了'; title.className = 'lose';
+      title.textContent = '这局输了'; title.className = 'lose';
       FX.lose();
       $('seat-ai').classList.add('winner');
       detail.textContent = `电脑赢得底池 ${st.pot}`;
     } else {
-      title.textContent = '🤝 平分秋色'; title.className = 'tie';
+      title.textContent = '平分秋色'; title.className = 'tie';
       FX.check();
       detail.textContent = `底池 ${st.pot} 平分`;
     }
     sub.textContent = isFold ? '对手弃牌，无需比牌' : '';
-    UI.log(winner === 0 ? `🎉 你赢得 ${st.pot}` : winner === 1 ? `电脑赢得 ${st.pot}` : '🤝 平局', 'l-win');
+    UI.log(winner === 0 ? `你赢得 ${st.pot}` : winner === 1 ? `电脑赢得 ${st.pot}` : '平局', 'l-win');
 
     // 弹窗内展示双方手牌
     const rc = $('result-cards');
@@ -1229,19 +1276,19 @@ const Game = {
     const row = document.createElement('div');
     row.className = 'sc-row';
     row.innerHTML = `<span class="who-lbl">${label}</span><span>` +
-      cards.map(c => `<span class="mini-card ${Cards.isRed(c) ? 'red' : ''}">${c.rank}<br>${c.suit}</span>`).join('') +
+      cards.map(c => `<span class="mini-card ${Cards.isRed(c) ? 'red' : ''}">${c.rank}<br>${suitIcon(c.suit)}</span>`).join('') +
       `</span><span class="hand-tag">${handName}</span>`;
     return row;
   },
 
   _gameOver(loser) {
     const youWin = loser === 1;
-    $('result-title').textContent = youWin ? '🏆 电脑破产，你赢下整场！' : '💀 你破产了…';
+    $('result-title').innerHTML = youWin ? px('trophy') + ' 电脑破产，你赢下整场！' : px('skull') + ' 你破产了…';
     $('result-title').className = youWin ? 'win' : 'lose';
     $('result-detail').textContent = youWin ? '漂亮的胜利！点击按钮开启新一场比赛。' : '别灰心，点击按钮重新挑战。';
     $('result-sub').textContent = '';
     $('result-cards').innerHTML = '';
-    $('result-next').textContent = '🔄 开始新比赛';
+    $('result-next').innerHTML = px('reload') + ' 开始新比赛';
     $('result-overlay').classList.add('show');
     if (youWin) { FX.win(); Confetti.fire(160); } else FX.lose();
     this._renderIdleButtons();
@@ -1252,7 +1299,7 @@ const Game = {
     this.engine.matchReset();
     UI.clearWinnerGlow();
     $('result-overlay').classList.remove('show');
-    UI.log('🔄 新比赛开始，双方各 1000 筹码', 'l-sys');
+    UI.log('新比赛开始，双方各 1000 筹码', 'l-sys');
     UI.render(this.engine);
     Equity.update(this.engine);
     this._renderIdleButtons();
@@ -1263,7 +1310,7 @@ const Game = {
 
   _showThinking() {
     $('raise-panel').classList.remove('show');
-    this._btnRow().innerHTML = `<div class="thinking">🤖 电脑思考中<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>`;
+    this._btnRow().innerHTML = `<div class="thinking">${px('robot')} 电脑思考中<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>`;
   },
 
   _renderIdleButtons() {
@@ -1272,7 +1319,7 @@ const Game = {
     const row = this._btnRow();
     const broke = e.chips[0] <= 0 || e.chips[1] <= 0;
     row.innerHTML = broke
-      ? `<button class="act-btn gold" id="btn-restart">🔄 开始新比赛</button>`
+      ? `<button class="act-btn gold" id="btn-restart">${px('reload')} 开始新比赛</button>`
       : `<button class="act-btn gold" id="btn-start">开始游戏</button>`;
     $(broke ? 'btn-restart' : 'btn-start').onclick = () => {
       FX.click();
@@ -1379,12 +1426,12 @@ const Game = {
     const total = d.wins + d.losses + d.ties;
     $('st-winrate').textContent = total ? Math.round(d.wins / total * 100) + '%' : '—';
     $('st-maxpot').textContent = d.maxPot;
-    $('st-streak').textContent = d.streak > 0 ? d.streak + '🔥' : d.streak;
+    $('st-streak').innerHTML = d.streak > 0 ? d.streak + ' ' + px('fire') : d.streak;
     const hl = $('history-list');
     hl.innerHTML = Stats.history.length ? Stats.history.map(h => {
       const cls = h.winner === 0 ? 'w' : h.winner === 1 ? 'l' : 't';
       const res = h.winner === 0 ? '胜' : h.winner === 1 ? '负' : '平';
-      return `<div class="h-item"><span>${h.t}</span><span>你 ${h.ph} ｜ 电脑 ${h.ah}</span><b class="${cls}">${res} ${h.pot}</b></div>`;
+      return `<div class="h-item"><span>${h.t}</span><span>你 ${suitify(h.ph)} ｜ 电脑 ${suitify(h.ah)}</span><b class="${cls}">${res} ${h.pot}</b></div>`;
     }).join('') : '<div class="h-item"><span>暂无对局记录</span></div>';
     $('history-overlay').classList.add('show');
   },
@@ -1396,14 +1443,14 @@ const Game = {
   Confetti.init();
 
   // 顶栏按钮状态
-  $('btn-sound').textContent = FX.on ? '🔊' : '🔇';
+  $('btn-sound').innerHTML = FX.on ? px('volume-2') : px('volume-x');
   $('btn-sound').classList.toggle('off', !FX.on);
   $('btn-hint').classList.toggle('on', Equity.hintOn);
 
   $('btn-sound').onclick = () => {
     FX.on = !FX.on;
     localStorage.setItem('pk_sound', FX.on ? '1' : '0');
-    $('btn-sound').textContent = FX.on ? '🔊' : '🔇';
+    $('btn-sound').innerHTML = FX.on ? px('volume-2') : px('volume-x');
     $('btn-sound').classList.toggle('off', !FX.on);
     FX.click();
   };
@@ -1465,7 +1512,7 @@ const Game = {
   rootEl.addEventListener('pointerdown', () => FX.ensure(), { once: true });
 
   UI.log('欢迎来到德州单挑！点击"开始游戏"发牌。', 'l-sys');
-  UI.log('💡 点击右上角灯泡可开启实时胜率提示。', 'l-sys');
+  UI.logHtml(px('lightbulb') + ' 点击右上角灯泡可开启实时胜率提示。', 'l-sys');
   UI.render(Game.engine);
   Game._renderIdleButtons();
 

@@ -3,12 +3,12 @@
  *
  * 故事：硬盘深处 11 层坏道区，最底层（B11）封存着一枚 1998 年的时间胶囊——
  *       机主小时候写给未来的信。数据散成了碎片，下去把它修好。
- * 一局流程：选职业（3 选 1）→ B1–B10 找出口🕳️下楼（每层藏 1 个宝箱🎁：随机金币、
+ * 一局流程：选职业（3 选 1）→ B1–B10 找出口下楼（每层藏 1 个宝箱：随机金币、
  *       概率掉记忆碎片）→ 每次下楼三选一强化 → 每过完 2 层（B2/4/6/8/10）进商店
  *       → B11 Boss 层（无出口必须全清、踩雷伤害 2）→ 结局判定：
  *       记忆碎片 ≥ FRAG_GOAL → 好结局（胶囊修复，读完整的信），不足 → 坏结局（残缺的信）。
  * 体系：职业技能（每层 1 次主动 + 被动）、装备（永久被动，三选一/商店获得）、
- *       消耗品（数量制，装备栏点击使用；📡/🔮 均为一次性，显示数量 = 可用次数）。
+ *       消耗品（数量制，装备栏点击使用；探测仪/透视均为一次性，显示数量 = 可用次数）。
  * 防误触：ctx.setGuard 向容器登记进度判断（本层已开局 / 已深入 B2+ 且未结束），
  *       切模式 Tab 前容器会弹「放弃当前对局」确认。
  * 本文件只注册模式：WIN98_MINE_CORE.MODES.dungeon。
@@ -25,81 +25,112 @@
   var MAX_FLOOR = 11;      // 总层数，B11 为 Boss 层
   var FRAG_GOAL = 5;       // 好结局所需记忆碎片
 
+  /* ---------------- 像素图标（pixelarticons，MIT 协议） ----------------
+   * 内联 SVG（fill=currentColor 继承文字色），替代 emoji —— 跨端渲染一致、风格统一
+   *（emoji 禁令见 PITFALLS.md）。加图标 = 在 PX 加一条 path d 字符串，
+   * 图标库 https://github.com/halfmage/pixelarticons （取 svg/<名>.svg 的 path）。
+   * heart-fill/hole/boom/face-smile/face-wow 为手绘补位（库里没有的图形），
+   * 风格参照库：24×24 网格、2px 方块堆叠。 */
+  var PX = {
+    'tool-case': 'M2 11h20v2H2zm0 2h2v8H2zm2 8h16v2H4zm16-8h2v8h-2zM9 15h6v2H9zM4 8h2v3H4zm2-2h6v2H6zm6 2h2v3h-2zM8 4h2v2H8zm10 0h2v7h-2zm-8-2h8v2h-8z',
+    'plus-box': 'M4 2h16v2H4zm0 18h16v2H4zM2 4h2v16H2zm18 0h2v16h-2zM7 11h10v2H7zM11 17V7h2v10z',
+    'search': 'M22 22h-2v-2h2v2Zm-2-2h-2v-2h2v2Zm-6-2H6v-2h8v2Zm4 0h-2v-2h2v2ZM6 16H4v-2h2v2Zm10 0h-2v-2h2v2ZM4 14H2V6h2v8Zm14 0h-2V6h2v8ZM6 6H4V4h2v2Zm10 0h-2V6h2v2Zm-2-2H6V2h8v2Z',
+    'signal': 'M19 3h2v18h-2zm-4 4h2v14h-2zm-4 4h2v10h-2zm-4 4h2v6H7zm-4 4h2v2H3z',
+    'coins': 'M6 2h6v2H6zM4 4h2v2H4zm8 0h2v2h-2zm-8 8h2v2H4zm8 0h2v2h-2zm-6 2h6v2H6zM2 6h2v6H2zm12 0h2v6h-2zM14 8h4v2h-4zm-4 10h2v2h-2zm8-8h2v2h-2zm-6 10h2v2h-2zm6-2h2v2h-2zM12 20h6v2h-6zm-4-6h2v4H8zm12-2h2v6h-2zM7 6h4v2H7zM9 6h2v6H9zm6 8h2v4h-2zm-1-2h3v2h-3z',
+    'diamond-gem': 'M7 1h10v2H7zM5 3h2v2H5zm12 0h2v2h-2zm2 2h2v2h-2zm0 8h2v2h-2zm-2 2h2v2h-2zm-2 2h2v2h-2zm-2 2h2v2h-2zm-2 2h2v2h-2zm-2-2h2v2H9zm-2-2h2v2H7zm-2-2h2v2H5zm-2-2h2v2H3zm0-8h2v2H3zM1 7h2v6H1zm20 0h2v6h-2zM3 9h18v2H3zm6-6h2v3H9zM7 6h2v3H7zm8 0h2v3h-2zm-8 5h2v2H7zm2 2h2v3H9zm2 3h2v3h-2zm2-3h2v3h-2zm2-2h2v2h-2zm-2-8h2v3h-2z',
+    'eye': 'M16 20H8v-2h8v2Zm-8-2H4v-2h4v2Zm12 0h-4v-2h4v2ZM4 16H2v-2h2v2Zm10-6h-2v2h2v-2h2v4h-2v2h-4v-2H8v-4h2V8h4v2Zm8 6h-2v-2h2v2ZM2 14H0v-4h2v4Zm22 0h-2v-4h2v4ZM4 10H2V8h2v2Zm18 0h-2V8h2v2ZM8 8H4V6h4v2Zm12 0h-4V6h4v2Zm-4-2H8V4h8v2Z',
+    'potion': 'M8 6h8v2H8zm0-4h8v2H8zm0 6h2v2H8zm6 0h2v2h-2zM6 20h12v2H6zm-2-8h2v8H4zm14 0h2v8h-2zM6 10h2v2H6zm10 0h2v2h-2zM6 4h2v2H6zm10 0h2v2h-2z',
+    'shield': 'M4 2h16v2H4zM2 4h2v10H2zm18 0h2v10h-2zM4 14h2v2H4zm2 2h2v2H6zm4 4h4v2h-4zm10-6h-2v2h2zm-2 2h-2v2h2zm-2 2h-2v2h2zm-6 0H8v2h2z',
+    'heart': 'M13 22h-2v-2h2v2Zm-2-2H9v-2h2v2Zm4 0h-2v-2h2v2Zm-6-2H7v-2h2v2Zm8 0h-2v-2h2v2ZM7 16H5v-2h2v2Zm12 0h-2v-2h2v2ZM5 14H3v-2h2v2Zm16 0h-2v-2h2v2ZM3 12H1V6h2v6Zm20 0h-2V6h2v6ZM13 8h-2V6h2v2ZM5 6H3V4h2v2Zm6 0H9V4h2v2Zm4 0h-2V4h2v2Zm6 0h-2V4h2v2ZM9 4H5V2h4v2Zm10 0h-4V2h4v2Z',
+    'hand': 'M21 7h2v5h-2zm-4-2h2v7h-2zm-4-2h2v8h-2zM9 3h2v8H9zM5 5h2v8H5zm14 0h2v2h-2zm-4-2h2v2h-2zm-4-2h2v2h-2zM7 3h2v2H7zm-4 8h2v2H3zm-2 2h2v2H1zm0 2h2v2H1zm2 2h2v2H3zm2 2h2v2H5zm2 2h2v2H7zm12-2h2v2h-2zm2-7h2v7h-2zM5 13h2v2H5zm2 2h2v2H7z',
+    'membercard': 'M20 19H15V23H13V21H11V23H9V19H4V17H20V19ZM4 17H2V7H4V17ZM22 17H20V7H22V17ZM14 15H6V13H14V15ZM18 11H6V9H18V11ZM20 7H4V5H20V7Z',
+    'battery-full': 'M4 5h14v2H4zm0 12h14v2H4zM2 7h2v10H2zm16-2h2v14h-2zm2 4h2v6h-2zM6 9h2v6H6zm4 0h2v6H6zm4 0h2v6h-2z',
+    'heart-fill': 'M5 2h4v2H5zm10 0h4v2h-4zM3 4h8v2H3zm10 0h8v2h-8zM1 6h10v2H1zm12 0h10v2H11zM1 8h22v4H1zM3 12h18v2H3zM5 14h14v2H5zM7 16h10v2H7zM9 18h6v2H9zm2 2h2v2h-2z',
+    'skull': 'M7 20h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zm-6-4h2v4H9zm4 0h2v4h-2zm-8-2h2v6H5zm12 0h2v6h-2zM3 14h4v2H3zM1 4h2v10H1zm20 0h2v10h-2zM3 2h18v2H3zm14 12h4v2h-4zM8 7h2v4H8zm6 0h2v4h-2z',
+    'hole': 'M7 7h10v2H7zM5 9h14v2H5zM3 11h18v2H3zM5 13h14v2H5zM7 15h10v2H7z',
+    'boom': 'M11 2h2v6h-2zM11 16h2v6h-2zM2 11h6v2H2zM16 11h6v2h-6zM5 5h2v2H5zm12 0h2v2h-2zM7 7h2v2H7zm8 0h2v2h-2zM9 9h6v6H9zM7 15h2v2H7zm8 0h2v2h-2zM5 17h2v2H5zm12 0h2v2h-2z',
+    'face-smile': 'M8 2h8v2H8zM5 4h3v2H5zm11 0h3v2h-3zM3 6h2v2H3zm16 0h2v2h-2zM2 8h2v8H2zm18 0h2v8h-2zM3 16h2v2H3zm16 0h2v2h-2zM5 18h3v2H5zm11 0h3v2h-3zM8 20h8v2H8zM7 8h2v3H7zm8 0h2v3h-2zM6 14h2v2H6zm10 0h2v2h-2zM8 16h8v2H8z',
+    'face-wow': 'M8 2h8v2H8zM5 4h3v2H5zm11 0h3v2h-3zM3 6h2v2H3zm16 0h2v2h-2zM2 8h2v8H2zm18 0h2v8h-2zM3 16h2v2H3zm16 0h2v2h-2zM5 18h3v2H5zm11 0h3v2h-3zM8 20h8v2H8zM7 8h2v3H7zm8 0h2v3h-2zM10 13h4v4h-4z'
+  };
+  function px(name, cls) {
+    return '<svg class="px-icon' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="' + PX[name] + '"/></svg>';
+  }
+
   /* ---------------- 职业（数据驱动，加职业 = 这里加一条） ----------------
    * hp          生命上限（被动）；
    * startItems  开局自带消耗品；startGold 开局金币；chestBonus 宝箱金币加成；
-   * skill       主动技能：每层 1 次（装备🔋备用电池可 +1），use(api) 返回 toast 文案。
+   * skill       主动技能：每层 1 次（装备「备用电池」可 +1），use(api) 返回 toast 文案。
    * api = { run, board, unmarkedMines }，每次调用现取，数据表可安全放顶层。 */
   var CLASSES = [
-    { id: 'tech', icon: '🧰', name: '维修技师', hp: 4,
+    { id: 'tech', icon: px('tool-case'), name: '维修技师', hp: 4,
       passive: '生命上限 4',
-      skill: { icon: '🔧', name: '紧急修复', desc: '回复 1 点生命',
+      skill: { icon: px('plus-box'), name: '紧急修复', desc: '回复 1 点生命',
         use: function (api) {
           api.run.hp = Math.min(api.run.maxHp, api.run.hp + 1);
-          return '🔧 紧急修复 +1 ❤️';
+          return '紧急修复 +1 生命';
         } } },
-    { id: 'scout', icon: '🔍', name: '探测员', hp: 3,
-      passive: '开局自带 📡×2、🔮×1',
+    { id: 'scout', icon: px('search'), name: '探测员', hp: 3,
+      passive: '开局自带 探测仪×2、透视×1',
       startItems: { radar: 2, xray: 1 },
-      skill: { icon: '📡', name: '声呐脉冲', desc: '标记 1 颗随机雷',
+      skill: { icon: px('signal'), name: '声呐脉冲', desc: '标记 1 颗随机雷',
         use: function (api) {
           api.board.markRandomMines(1);
-          return '📡 声呐标记了 1 颗雷';
+          return '声呐标记了 1 颗雷';
         } } },
-    { id: 'scav', icon: '💰', name: '拾荒者', hp: 3,
+    { id: 'scav', icon: px('coins'), name: '拾荒者', hp: 3,
       passive: '宝箱金币 +50%，开局 +15 金',
       startGold: 15, chestBonus: 0.5,
-      skill: { icon: '⛏️', name: '淘金热', desc: '随机获得 3–8 金币',
+      skill: { icon: px('diamond-gem'), name: '淘金热', desc: '随机获得 3–8 金币',
         use: function (api) {
           var g = 3 + Math.floor(Math.random() * 6);
           api.run.gold += g;
-          return '⛏️ 淘金 +' + g + ' 💰';
+          return '淘金 +' + g + ' 金币';
         } } }
   ];
 
   /* ---------------- 装备（永久被动） ----------------
    * stack:false 拥有后从三选一/商店池中剔除；apply 负责 run.gear 计数与副作用。 */
   var GEAR = [
-    { id: 'shield', icon: '🛡️', name: '防爆护甲', desc: '每层抵挡第 1 次踩雷', stack: false,
+    { id: 'shield', icon: px('shield'), name: '防爆护甲', desc: '每层抵挡第 1 次踩雷', stack: false,
       apply: function (run) { run.gear.shield = 1; } },
-    { id: 'vital', icon: '💗', name: '强心剂', desc: '生命上限 +1，并回复 1 点', stack: true,
+    { id: 'vital', icon: px('heart'), name: '强心剂', desc: '生命上限 +1，并回复 1 点', stack: true,
       apply: function (run) {
         run.maxHp += 1;
         run.hp = Math.min(run.maxHp, run.hp + 1);
         run.gear.vital = (run.gear.vital || 0) + 1;
       } },
-    { id: 'gloves', icon: '🧤', name: '拾荒手套', desc: '宝箱金币 +25%', stack: true,
+    { id: 'gloves', icon: px('hand'), name: '拾荒手套', desc: '宝箱金币 +25%', stack: true,
       apply: function (run) { run.gear.gloves = (run.gear.gloves || 0) + 1; } },
-    { id: 'member', icon: '🏷️', name: '会员卡', desc: '商店价格 -20%', stack: false,
+    { id: 'member', icon: px('membercard'), name: '会员卡', desc: '商店价格 -20%', stack: false,
       apply: function (run) { run.gear.member = 1; } },
-    { id: 'battery', icon: '🔋', name: '备用电池', desc: '职业技能每层多用 1 次', stack: true,
+    { id: 'battery', icon: px('battery-full'), name: '备用电池', desc: '职业技能每层多用 1 次', stack: true,
       apply: function (run) { run.gear.battery = (run.gear.battery || 0) + 1; } }
   ];
 
   /* ---------------- 消耗品（数量制，装备栏点击使用；首击布雷后才可用） ----------------
    * canUse(api) 返回 false 时禁用并提示 cantMsg；use(api) 返回 toast 文案。 */
   var ITEMS = {
-    radar: { icon: '📡', name: '探测仪', desc: '标记 1 颗随机未标记雷', price: 8,
+    radar: { icon: px('signal'), name: '探测仪', desc: '标记 1 颗随机未标记雷', price: 8,
       canUse: function (api) { return api.unmarkedMines() > 0; },
       cantMsg: '这一层没有可标记的雷了',
-      use: function (api) { api.board.markRandomMines(1); return '📡 探测仪标记了 1 颗雷'; } },
-    xray: { icon: '🔮', name: '透视', desc: '随机翻开 3 个安全格', price: 10,
-      use: function (api) { api.board.revealRandomSafe(3); return '🔮 透视翻开了 3 个安全格'; } },
-    med: { icon: '💊', name: '急救包', desc: '回复 2 点生命', price: 12,
+      use: function (api) { api.board.markRandomMines(1); return '探测仪标记了 1 颗雷'; } },
+    xray: { icon: px('eye'), name: '透视', desc: '随机翻开 3 个安全格', price: 10,
+      use: function (api) { api.board.revealRandomSafe(3); return '透视翻开了 3 个安全格'; } },
+    med: { icon: px('potion'), name: '急救包', desc: '回复 2 点生命', price: 12,
       canUse: function (api) { return api.run.hp < api.run.maxHp; },
       cantMsg: '生命已满',
       use: function (api) {
         api.run.hp = Math.min(api.run.maxHp, api.run.hp + 2);
-        return '💊 +2 ❤️';
+        return '急救包 +2 生命';
       } }
   };
   var ITEM_IDS = ['radar', 'xray', 'med'];
 
   /* 三选一混池里的消耗品包（装备之外的填充位） */
   var PACKS = [
-    { kind: 'pack', icon: '📡', name: '探测仪 ×2', desc: '消耗品：标记 1 颗随机雷', pack: { radar: 2 } },
-    { kind: 'pack', icon: '🔮', name: '透视 ×1', desc: '消耗品：翻开 3 个随机安全格', pack: { xray: 1 } },
-    { kind: 'pack', icon: '💊', name: '急救包 ×1', desc: '消耗品：回复 2 点生命', pack: { med: 1 } }
+    { kind: 'pack', icon: px('signal'), name: '探测仪 ×2', desc: '消耗品：标记 1 颗随机雷', pack: { radar: 2 } },
+    { kind: 'pack', icon: px('eye'), name: '透视 ×1', desc: '消耗品：翻开 3 个随机安全格', pack: { xray: 1 } },
+    { kind: 'pack', icon: px('potion'), name: '急救包 ×1', desc: '消耗品：回复 2 点生命', pack: { med: 1 } }
   ];
 
   /* ---------------- 文案 ---------------- */
@@ -187,14 +218,14 @@
       '  <div class="mine-dg-hud" data-role="hud">' +
       '    <span class="mine-dg-floor" data-role="floor">B1/' + MAX_FLOOR + '</span>' +
       '    <span class="mine-dg-hearts" data-role="hearts"></span>' +
-      '    <span class="mine-dg-gold" data-role="gold">💰 0</span>' +
+      '    <span class="mine-dg-gold" data-role="gold">' + px('coins', 'px-gold') + ' 0</span>' +
       '    <span class="mine-dg-frags" data-role="frags" title="记忆碎片：集满 ' + FRAG_GOAL + ' 片可修复时间胶囊">◆ 0/' + FRAG_GOAL + '</span>' +
       '    <span class="mine-dg-deepest" data-role="deepest"></span>' +
       '  </div>' +
       '  <div class="mine-panel" data-role="panel">' +
       '    <div class="mine-header sunken-panel">' +
       '      <span class="mine-lcd" data-role="mines">010</span>' +
-      '      <button type="button" class="mine-face" data-role="face" aria-label="重新开始">🙂</button>' +
+      '      <button type="button" class="mine-face" data-role="face" aria-label="重新开始">' + px('face-smile') + '</button>' +
       '      <span class="mine-lcd" data-role="floorlcd">B01</span>' +
       '    </div>' +
       '    <div class="mine-board sunken-panel" data-role="board" aria-label="雷区"></div>' +
@@ -237,19 +268,19 @@
       floorEl.textContent = 'B' + run.floor + '/' + MAX_FLOOR;
       floorLcdEl.textContent = 'B' + pad2(run.floor);
       var hearts = '';
-      for (var i = 0; i < run.maxHp; i++) hearts += i < run.hp ? '❤️' : '🖤';
-      heartsEl.textContent = hearts;
+      for (var i = 0; i < run.maxHp; i++) hearts += i < run.hp ? px('heart-fill', 'px-hp') : px('heart', 'px-hp-empty');
+      heartsEl.innerHTML = hearts;
       heartsEl.title = '生命 ' + run.hp + ' / ' + run.maxHp;
-      goldEl.textContent = '💰 ' + run.gold;
+      goldEl.innerHTML = px('coins', 'px-gold') + ' ' + run.gold;
       goldEl.title = '金币：每过 2 层可在商店消费';
-      fragsEl.textContent = '◆ ' + Math.min(run.fragments, 99) + '/' + FRAG_GOAL + (run.fragments >= FRAG_GOAL ? ' ✓' : '');
+      fragsEl.textContent = '◆ ' + Math.min(run.fragments, 99) + '/' + FRAG_GOAL + (run.fragments >= FRAG_GOAL ? ' 集满' : '');
       deepestEl.textContent = '最深 B' + Math.max(loadDeepest(), run.floor);
     }
 
     /* 装备栏 = 职业技能按钮 + 消耗品（点击使用）+ 已拥有装备图标 */
     function updateBelt() {
       var sk = classDef.skill;
-      skillBtn.textContent = sk.icon + ' ' + sk.name + ' ×' + run.skillCharges;
+      skillBtn.innerHTML = sk.icon + ' ' + sk.name + ' ×' + run.skillCharges;
       skillBtn.title = sk.name + '：' + sk.desc;
       skillBtn.disabled = run.skillCharges <= 0 || !board.started || run.over;
 
@@ -261,7 +292,7 @@
         b.type = 'button';
         b.className = 'mine-dg-item';
         b.dataset.item = id;
-        b.textContent = it.icon + '×' + n;
+        b.innerHTML = it.icon + '×' + n;
         b.title = it.name + '：' + it.desc;
         b.disabled = n <= 0 || !board.started || run.over;
         itemsEl.appendChild(b);
@@ -275,7 +306,7 @@
         s.className = 'mine-dg-perk' + (g.id === 'shield' && !run.shieldFloor ? ' off' : '');
         s.title = g.name + '：' + g.desc +
           (g.id === 'shield' ? (run.shieldFloor ? '（本层已充能）' : '（本层已消耗）') : '');
-        s.textContent = g.icon + (n > 1 ? '×' + n : '');
+        s.innerHTML = g.icon + (n > 1 ? '×' + n : '');
         gearEl.appendChild(s);
       });
     }
@@ -351,7 +382,7 @@
         '<div class="mine-dg-dialog mine-dg-wide">' +
         '  <div class="mine-dg-title">扫雷 · 寻找时间胶囊</div>' +
         '  <div class="mine-dg-story">' + STORY_INTRO + '</div>' +
-        (seenGood ? '<div class="mine-dg-badge">💊 时间胶囊已解封</div>' : '') +
+        (seenGood ? '<div class="mine-dg-badge">' + px('potion') + ' 时间胶囊已解封</div>' : '') +
         '  <div class="mine-dg-cards" data-role="classes"></div>' +
         (run && !run.over ? '<button type="button" data-role="resume">继续当前探索</button>' : '') +
         '</div>';
@@ -362,7 +393,7 @@
         btn.className = 'mine-dg-card';
         btn.dataset.cls = c.id;
         var hearts = '';
-        for (var i = 0; i < c.hp; i++) hearts += '❤️';
+        for (var i = 0; i < c.hp; i++) hearts += px('heart-fill', 'px-hp');
         btn.innerHTML =
           '<span class="mine-dg-card-icon">' + c.icon + '</span>' +
           '<span class="mine-dg-card-name">' + c.name + '　' + hearts + '</span>' +
@@ -423,7 +454,7 @@
       ov.className = 'mine-dg-overlay';
       ov.innerHTML =
         '<div class="mine-dg-dialog">' +
-        '  <div class="mine-dg-title">🛒 深层商店</div>' +
+        '  <div class="mine-dg-title">深层商店</div>' +
         '  <div class="mine-dg-stats" data-role="shop-gold"></div>' +
         '  <div class="mine-dg-cards" data-role="shop-cards"></div>' +
         '  <button type="button" data-role="leave">离开商店</button>' +
@@ -433,7 +464,7 @@
 
       function priceOf(p) { return Math.max(1, Math.round(p * discount)); }
       function renderShop() {
-        shopGoldEl.textContent = '金币 💰 ' + run.gold + (discount < 1 ? '（会员 -20%）' : '');
+        shopGoldEl.innerHTML = '金币 ' + px('coins', 'px-gold') + ' ' + run.gold + (discount < 1 ? '（会员 -20%）' : '');
         cardsEl.innerHTML = '';
         stock.forEach(function (s) {
           var meta = s.kind === 'item' ? ITEMS[s.id] : s.ref;
@@ -443,7 +474,7 @@
           b.className = 'mine-dg-card';
           b.innerHTML =
             '<span class="mine-dg-card-icon">' + meta.icon + '</span>' +
-            '<span class="mine-dg-card-name">' + meta.name + ' · 💰' + price + '</span>' +
+            '<span class="mine-dg-card-name">' + meta.name + ' · ' + px('coins', 'px-gold') + price + '</span>' +
             '<span class="mine-dg-card-desc">' + (s.sold ? '已购入' : meta.desc) + '</span>';
           b.disabled = s.sold || run.gold < price;
           if (!s.sold) {
@@ -491,7 +522,7 @@
       ov.className = 'mine-dg-overlay';
       ov.innerHTML =
         '<div class="mine-dg-dialog mine-dg-wide">' +
-        '  <div class="mine-dg-title">' + (good ? '💊 时间胶囊 · 修复完成' : '💊 时间胶囊 · 数据残缺') + '</div>' +
+        '  <div class="mine-dg-title">' + px('potion') + (good ? ' 时间胶囊 · 修复完成' : ' 时间胶囊 · 数据残缺') + '</div>' +
         '  <div class="mine-dg-letter"><span class="mine-dg-notepad">时间胶囊.txt</span>' + letter + '</div>' +
         (good ? '' : '<div class="mine-dg-story">数据损坏过严重，只恢复了这些。……也许下次，能把它修得更完整一些。</div>') +
         '  <div class="mine-dg-stats">记忆碎片 ◆' + run.fragments + ' / ' + FRAG_GOAL + '</div>' +
@@ -566,7 +597,7 @@
       for (var k in st) run.items[k] = st[k];
       inputLocked = false;
       closeOverlays();
-      faceEl.textContent = '🙂';
+      faceEl.innerHTML = px('face-smile');
       appEl.win98DgRun = run;   // 供自动化验收读取对局状态（只读）
       startFloor();
       toast('B1 · 坏道密度 ' + Math.round(floorDensity(1) * 100) + '%');
@@ -575,24 +606,24 @@
     /* ---------------- 引擎钩子 ---------------- */
 
     /* 踩雷减伤链：护甲（每层一次，整次抵挡）→ HP（Boss 层伤害 2）；
-       返回 false = 存活（引擎标该格已爆💥继续），true = 致命（引擎揭全盘） */
+       返回 false = 存活（引擎标该格已爆继续），true = 致命（引擎揭全盘） */
     function onMineHit(idx, b) {
       if (run.shieldFloor) {
         run.shieldFloor = false;
         refresh();
-        toast('🛡️ 护甲抵挡了这次踩雷');
+        toast('护甲抵挡了这次踩雷');
         return false;
       }
       var dmg = run.floor === MAX_FLOOR ? 2 : 1;
       run.hp -= dmg;
       refresh();
       if (run.hp > 0) {
-        toast(dmg > 1 ? '坏道反扑！-2 ❤️（剩 ' + run.hp + ' 点）' : '踩中坏扇区！剩 ' + run.hp + ' 点生命');
+        toast(dmg > 1 ? '坏道反扑！-2 生命（剩 ' + run.hp + ' 点）' : '踩中坏扇区！剩 ' + run.hp + ' 点生命');
         return false;
       }
       // HP 归零：致命。引擎随即揭全盘；延迟再弹结束层，让玩家先看清盘面
       run.over = true;
-      faceEl.textContent = '💀';
+      faceEl.innerHTML = px('skull');
       saveDeepest(run.floor);   // 死亡时存一次纪录
       var token = runToken;
       setTimeout(function () {
@@ -626,7 +657,7 @@
       var cell = b.cells[idx];
       if (cell.exit && !exitFound) {
         exitFound = true;
-        toast('发现出口 🕳️ 点它下到 B' + (run.floor + 1));
+        toast('发现出口，点它下到 B' + (run.floor + 1));
       }
       if (cell.chest && !cell.looted) {
         cell.looted = true;
@@ -634,7 +665,7 @@
         var mult = 1 + (classDef.chestBonus || 0) + 0.25 * (run.gear.gloves || 0);
         var g = Math.round(base * mult);
         run.gold += g;
-        var msg = '🎁 宝箱 +' + g + ' 💰';
+        var msg = '宝箱 +' + g + ' 金币';
         if (Math.random() < 0.35) {
           run.fragments += 1;
           msg += ' ◆+1';
@@ -668,25 +699,25 @@
       refresh();
     }
 
-    /* paint 收尾追加装饰：出口🕳️ / 已爆💥 / 已标记📡（宝箱不开不现形） */
+    /* paint 收尾追加装饰：出口洞 / 已爆星 / 已标记雷达（宝箱不开不现形） */
     function decorateCell(idx, cell, el) {
       if (cell.revealed) {
         if (cell.exploded) {
-          el.textContent = '💥';
+          el.innerHTML = px('boom', 'px-boom');
         } else if (cell.exit) {
-          el.textContent = '🕳️';
+          el.innerHTML = px('hole', 'px-hole');
           el.classList.add('mine-dg-exit');
           el.title = '出口：下到 B' + ((run ? run.floor : 1) + 1);
         }
       } else if (cell.known && !cell.flagged) {
-        el.textContent = '📡';
+        el.innerHTML = px('signal', 'px-radar');
         el.title = '已标记的坏扇区';
       }
     }
 
     function onPressMood(mood) {
       if (!run || run.over) return;
-      faceEl.textContent = mood === 'o' ? '😮' : '🙂';
+      faceEl.innerHTML = mood === 'o' ? px('face-wow') : px('face-smile');
     }
 
     /* ---------------- 棋盘（引擎驱动；先按 B1 建底，职业选定后 startFloor 按层重置） ---------------- */

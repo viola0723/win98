@@ -507,7 +507,27 @@ body.dragging {
   font-size: 17px;
   line-height: 1;
   color: #222;
-  text-shadow: none;         /* 重置 98.css 的文字阴影 hack，否则笑脸 emoji 只剩一团黑影 */
+  text-shadow: none;         /* 重置 98.css 的文字阴影 hack，否则笑脸只剩一团黑影 */
+}
+
+/* 格子与笑脸里的像素图标（引擎 CORE.px 内联 SVG；fill 已逐 path 写死——
+   98.css 按钮文字是 color:transparent + text-shadow 画的，currentColor 会全透明，
+   此处只管尺寸与对齐；.px-core 专供引擎/经典模式，与地下城 .px-icon 规则互不干扰） */
+.app-mine .mine-cell svg.px-core {
+  width: 18px;
+  height: 18px;
+}
+
+/* 笑脸钮改 flex 居中放像素脸（原 emoji 靠 line-height 居中） */
+.app-mine .mine-face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-mine .mine-face svg.px-core {
+  width: 24px;
+  height: 24px;
 }
 
 .mine-board {
@@ -766,6 +786,52 @@ body.dragging {
   line-height: 1;
 }
 
+/* 像素图标（pixelarticons 内联 SVG，fill=currentColor 继承文字色）：
+   装备栏/技能按钮里随文字大小，选择卡片里放大对齐原 emoji 观感。
+   注意：98.css 按钮文字是 color:transparent + text-shadow 画出来的，currentColor 是透明——
+   按钮内的 svg 必须显式给 fill（disabled 时同步置灰） */
+.app-mine-dg svg.px-icon {
+  width: 17px;
+  height: 17px;
+  vertical-align: -3px;
+  flex: none;
+}
+.app-mine-dg button svg.px-icon { fill: #222; }
+.app-mine-dg button:disabled svg.px-icon { fill: grey; }
+.app-mine-dg .mine-dg-card-icon svg.px-icon {
+  width: 24px;
+  height: 24px;
+  vertical-align: 0;
+}
+
+/* 语义色图标：按钮内 currentColor 是透明（见上方注释），这些一律显式给死颜色。
+   类名由 mine-dungeon.js 的 px(name, cls) 第二参数产出 */
+.app-mine-dg .px-icon.px-hp { fill: #d03030; }        /* 满心 */
+.app-mine-dg .px-icon.px-hp-empty { fill: #8a8a8a; }  /* 空心（已损失生命） */
+.app-mine-dg .px-icon.px-gold { fill: #8a6d00; }      /* 金币（HUD/商店） */
+.app-mine-dg .px-icon.px-boom { fill: #d03030; }      /* 已爆星 */
+.app-mine-dg .px-icon.px-hole { fill: #111; }         /* 出口洞 */
+.app-mine-dg .px-icon.px-radar { fill: #0a50c0; }     /* 雷达标记 */
+
+/* HUD 心心略小一号，与 14px 文字行高对齐 */
+.app-mine-dg .mine-dg-hearts svg.px-icon {
+  width: 15px;
+  height: 15px;
+  vertical-align: -2px;
+}
+
+/* 格子（30px）/脸按钮里的图标尺寸 */
+.app-mine-dg .mine-cell svg.px-icon {
+  width: 19px;
+  height: 19px;
+  vertical-align: -3px;
+}
+.app-mine-dg .mine-face svg.px-icon {
+  width: 20px;
+  height: 20px;
+  vertical-align: -3px;
+}
+
 /* toast 的定位锚：压在棋盘面板下缘，不再盖住棋盘下方的装备栏 */
 .app-mine-dg .mine-panel {
   position: relative;
@@ -773,7 +839,7 @@ body.dragging {
 
 /* 棋盘装饰（配合 decorateCell 钩子） */
 
-/* 已显形的出口🕳️：呼吸闪 + 手型，提示「点我下楼」 */
+/* 已显形的出口：呼吸闪 + 手型，提示「点我下楼」 */
 .app-mine-dg .mine-cell.mine-dg-exit,
 .app-mine-dg .mine-cell.mine-dg-exit:active {
   cursor: pointer;
@@ -1489,6 +1555,33 @@ body.dragging {
   .app-poker .brand { min-width: 0; overflow: hidden; }
   .app-poker .top-actions { gap: 4px; flex-shrink: 0; }
   .app-poker .icon-btn { width: 32px; height: 32px; }
+}
+
+/* ---------------- 像素图标与矢量花色（poker.js 内联 SVG，替代 emoji） ----------------
+   非 98.css 按钮体系，currentColor 可用：图标随所在文字变色（金色按钮→深色图标等） */
+.app-poker svg.px-icon { width: 15px; height: 15px; vertical-align: -2px; flex: none; }
+.app-poker .icon-btn svg.px-icon { width: 18px; height: 18px; vertical-align: 0; }
+.app-poker .seat .avatar svg.px-icon { width: 27px; height: 27px; vertical-align: 0; }
+.app-poker .modal h2 svg.px-icon { width: 20px; height: 20px; vertical-align: -3px; }
+.app-poker #result-title svg.px-icon { width: 22px; height: 22px; vertical-align: -3px; }
+.app-poker .log svg.px-icon, .app-poker .rules-body svg.px-icon { width: 12px; height: 12px; vertical-align: -2px; }
+.app-poker .stack svg.px-icon, .app-poker .pot-display svg.px-icon, .app-poker .modal .detail svg.px-icon,
+.app-poker .stat-cell .v svg.px-icon { width: 14px; height: 14px; vertical-align: -2px; }
+.app-poker .strength-bar svg.px-icon { width: 14px; height: 14px; vertical-align: -2px; }
+.app-poker .thinking svg.px-icon { width: 16px; height: 16px; }
+/* 牌面花色：c-top 角标与中央大 pip 随 --card-w 缩放，fill 继承 .card/.red 的红黑 */
+.app-poker svg.suit-icon { vertical-align: -2px; flex: none; }
+.app-poker .brand .suits { display: inline-flex; gap: 3px; }
+.app-poker .brand .suits svg.suit-icon { width: 15px; height: 15px; vertical-align: 0; }
+.app-poker .card .c-top svg.suit-icon { width: calc(var(--card-w) * 0.26); height: calc(var(--card-w) * 0.26); vertical-align: 0; }
+.app-poker .card .c-pip svg.suit-icon { width: calc(var(--card-w) * 0.48); height: calc(var(--card-w) * 0.48); }
+.app-poker .log svg.suit-icon, .app-poker .history-list svg.suit-icon { width: 11px; height: 11px; vertical-align: -1px; }
+.app-poker .modal .sc-row .mini-card svg.suit-icon { width: 13px; height: 13px; vertical-align: 0; }
+@media (max-width: 768px) {
+  .app-poker .seat .avatar svg.px-icon { width: 21px; height: 21px; }
+}
+@media (max-height: 520px) and (max-width: 960px) {
+  .app-poker .seat .avatar svg.px-icon { width: 17px; height: 17px; }
 }
 
 /* ---------------- 展柜（exhibits/ iframe 特效展品页） ---------------- */

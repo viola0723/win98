@@ -97,7 +97,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       '<div class="mine-panel">' +
       '  <div class="mine-header sunken-panel">' +
       '    <span class="mine-lcd" data-role="mines">000</span>' +
-      '    <button type="button" class="mine-face" data-role="face" aria-label="重新开始">🙂</button>' +
+      '    <button type="button" class="mine-face" data-role="face" aria-label="重新开始">' + CORE.px('face-smile') + '</button>' +
       '    <span class="mine-lcd" data-role="time">000</span>' +
       '  </div>' +
       '  <div class="mine-board sunken-panel" data-role="board" aria-label="雷区"></div>' +
@@ -111,6 +111,12 @@ window.WIN98_APPS = window.WIN98_APPS || {};
     var minesEl = containerEl.querySelector('[data-role="mines"]');
     var timeEl = containerEl.querySelector('[data-role="time"]');
     var bestEl = containerEl.querySelector('[data-role="best"]');
+
+    /* 笑脸四态：手绘像素脸（CORE.px 见 mine-core.js；innerHTML 注入 svg，
+       fill 已写死，绕开 98.css 按钮透明字 hack） */
+    function setFace(name) {
+      faceEl.innerHTML = CORE.px('face-' + name);
+    }
 
     /* ---------------- 计数器 / 计时器 ---------------- */
 
@@ -172,13 +178,13 @@ window.WIN98_APPS = window.WIN98_APPS || {};
         canInteract: function () { return !dialogOpen; },
         onMineHit: function () {
           stopTimer();
-          faceEl.textContent = '😵';
+          setFace('dead');
           return true;   // 经典模式踩雷即死，core 走 lose 全盘揭示
         },
         onAllClear: function () {
-          // core 已置 over 并自动给剩余雷插旗，这里只做经典侧收尾：停表、😎、存最佳
+          // core 已置 over 并自动给剩余雷插旗，这里只做经典侧收尾：停表、墨镜脸、存最佳
           stopTimer();
-          faceEl.textContent = '😎';
+          setFace('cool');
           updateCounters();
           if (levelKey !== 'custom') {
             var elapsed = Math.max(1, seconds);   // 首击即胜的极端情况按 1 秒记
@@ -190,7 +196,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
         onFlagsChanged: function () { updateCounters(); },
         onFirstClick: function () { startTimer(); },
         onPressMood: function (mood) {
-          faceEl.textContent = mood === 'o' ? '😮' : '🙂';
+          setFace(mood === 'o' ? 'o' : 'smile');
         }
       }
     });
@@ -301,7 +307,7 @@ window.WIN98_APPS = window.WIN98_APPS || {};
       var lv = currentConfig();
       seconds = 0;
       stopTimer();
-      faceEl.textContent = '🙂';
+      setFace('smile');
       toolbarEl.querySelectorAll('button').forEach(function (b) {
         b.classList.toggle('active', b.dataset.level === key);
       });

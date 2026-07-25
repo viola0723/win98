@@ -2,7 +2,7 @@
  * 触屏轻点激活（touchTap）—— iOS Safari 真机「click 不派发」的兜底
  *
  * 背景：真机 iOS 上窗口打开后，Pointer Events（pointerdown/up）能正常到达
- *   窗口内元素（按下变脸 😮、长按插旗都正常），但系统合成的 click 不派发——
+ *   窗口内元素（按下变脸、长按插旗都正常），但系统合成的 click 不派发——
  *   标题栏三键、难度按钮、Tab、格子轻点全部「有反应但没效果」。
  *   疑似 WebKit 的点击命中测试与 DOM 事件不一致（与 #windows 曾设
  *   pointer-events:none 一类祖传怪癖同源）；无头 WebKit 无法复现，真机专属。
