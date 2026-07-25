@@ -79,7 +79,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 ## 收尾清单（每次阶段收尾逐项打钩，勿凭记忆）
 
 1. **杀临时服务**：本次起过的预览/调试服务全部杀掉，杀完**验证端口真的空了**——Windows：`netstat -ano | grep 8098` 无 LISTENING；Mac：`lsof -i :8098` 无输出。没空就按 PID 补杀（`taskkill //PID <pid> //F`）——**npx 会派生子进程，杀父进程/停后台任务常常不够**。（2026-07-25 教训二连：一次是上次收尾漏杀 npx http-server 把 8098 占了一整天；一次是 TaskStop 只杀了 npx 壳、子进程还占着端口。）
-2. **删临时产物**：`../tools/` 下本次的验证脚本、截图、临时 npm 工程（`package.json`/`node_modules`）全删；**保留**长期资产 `../tools/inspira-ui`、`../tools/gh_*`。
+2. **删临时产物**：`../tools/` 下本次的验证脚本、截图、临时 npm 工程（`package.json`/`node_modules`）全删；**保留**长期资产 `../tools/inspira-ui`、`../tools/gh_*`、`../tools/ffmpeg`。
 3. **工作区干净**：`git status` 只剩本次预期改动；文档已同步（DEVLOG 顶部新条目 + AGENTS 当前阶段 + 有坑则 PITFALLS）。
 
 ## 加模块三步（详见 PROJECT_PLAN.md 第 6 节）
@@ -97,6 +97,7 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 - 多电脑协作：见 `COLLAB.md`（新电脑 = clone + 配 push 凭据 + 装 Node；开工 pull、收工 push）
 - 预览：本地 8098 端口（Mac：`python3 -m http.server 8098`；Windows 机未装 Python：`npx -y http-server -p 8098 -s -c-1`，`-c-1` 禁缓存防改完刷不到新版）。**起服务前先查端口**（有 LISTENING 说明有残留，先杀再起，查法见收尾清单）
 - 加歌：① 源音频 + 封面丢 `assets/music/`，**先压缩**（国内通道刚需）：开 `tools/audio-optimizer.html?src=/assets/music/xxx.mp3&cover=/assets/music/xxx.jpg`（mp3→128k、封面→512px，下载覆盖同名文件）② `tools/waveform-extractor.html?src=/assets/music/xxx.mp3` 抄 duration/peaks ③ `js/apps/tapeplayer.js` 的 `WIN98_TAPES` 加一条
+- 本机 ffmpeg：`../tools/ffmpeg/node_modules/ffmpeg-static/ffmpeg.exe`（6.1.1 gyan essentials，含 libmp3lame/libopus/x264/x265，解码冒烟已过；装法 `cd ../tools/ffmpeg && npm i ffmpeg-static`，长期资产勿清）。大文件/批量音视频处理优先用它，`tools/audio-optimizer.html` 仍是零安装兜底
 - 无头浏览器：双机均已装 Playwright Chromium，验收截图命令
   `npx -y playwright screenshot --viewport-size=1280,800(或390,844) <url> <输出.png>`
   若报浏览器缺失（CLI 版本与浏览器 build 不配套）：`npx -y playwright install chromium`
