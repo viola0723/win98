@@ -20,6 +20,7 @@
 
 ## 当前阶段（只记最近动态，全史见 DEVLOG.md）
 
+- 2026-07-25｜**新模块「卡带随身听」上线（A 级，双端 14 断言全过）**：每首歌 = 一盘磁带，点磁带飞行入舱 → 相框封面 + 真实波形 → 自动播放；机身斜二轴测 2.5D、主题色随磁带变色（`--accent`）。`js/apps/tapeplayer.js` 单文件模块（数据注册表 `WIN98_TAPES` 在头部，加歌三步见注释）、波形提取器 `tools/waveform-extractor.html`（OfflineAudioContext，零依赖）、tape.png 图标（24×20 字符矩阵，`make_icons.py` 与一次性 Node 脚本双实现同源——本机无 Python）。原型评审废弃：鼠标视差（没用）、机械音效（不拟真且与音乐混叠）、下载的 3 首 CC 歌（只留原创）。修触屏播放键全灭（tap 处理器漏写 `(e)` 形参，PC 用例漏网，已记 PITFALLS）。默认曲《月之暗面》（用户原创）
 - 2026-07-25｜**记忆碎片定性 = 1998 年的老物件**：`FRAG_OBJECTS` 22 件（= 理论最大获得数）洗牌不重复抽取，获得碎片 toast 报物件名；结局定型——成功 = 回信「未来的你，还好吗……会为票根和树叶发呆的少年」+ 晒出拾得清单，失败 = 「坏道无法修复，信件没有找到，请重新开始」（残缺信方案废弃）。双端 30 断言全过
 - 2026-07-25｜收尾流程堵漏：清掉上次漏杀的 8098 残留服务（npx http-server）；铁律 9 扩成独立「收尾清单」小节（杀服务必验证端口释放 / 删 `../tools` 本次产物 / 工作区只剩预期改动）；验收脚本定性**一次性**（现写现删，别找旧的，结论在 DEVLOG）；Windows 预览命令补 `-c-1` 禁缓存
 - 2026-07-25｜地下城四连修 + 双结局文案重写：踩雷计数器不减根治（remainingFlags 计 exploded + core 钩子先预置状态再回调）；声呐/探测仪不再浪费在已插旗的雷；HUD 金币/碎片加文字标签、碎片去 0/5 只显数量；B11 讲清「无出口须全清」（toast 加可选时长）；好/坏结局信件重写。双端 24 断言全过
@@ -47,6 +48,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `js/apps/mine-dungeon.js` | 扫雷·寻找时间胶囊（肉鸽）：三职业、装备/消耗品分家、宝箱+商店、11 层主线双结局；数据驱动 CLASSES/GEAR/ITEMS/PACKS；**挂载即 fitWindowToContent** |
 | `js/apps/poker.js` | 德州扑克模块（移植自独立版单文件游戏；样式在 style.css 末尾以 `.app-poker` 为作用域） |
 | `js/apps/exhibit.js` | 展览馆渲染器：iframe 加载 `cfg.exhibit` 指定的展厅/展品页（exhibits/dist/...） |
+| `js/apps/tapeplayer.js` | 卡带随身听（A 级）：数据注册表 `WIN98_TAPES` 在头部（加歌三步见注释）；飞行入带 / 斜二轴测 2.5D 机身 / 相框封面 / 真实波形 seek / 按住快进快退；SVG 按钮非 button 不吃 touchTap，自带 pointerup tap 判定；状态挂 `bodyEl.win98Tape`（+ `win98TapeAudio`） |
 | `js/screensaver.js` | 屏幕保护：闲置 60s 全屏播放展品，任意输入退出；`WIN98_SAVER.show()` 供开始菜单预览 |
 | `js/windowManager.js` | 窗口生命周期，对外 `WindowManager.open(module)`；动态切换 `#windows` pointer-events（勿静态写死） |
 | `js/touchTap.js` | 触屏轻点激活兜底（iOS 真机 click 不派发）：pointerup 校验后 `el.click()` 补发 + isTrusted 去重；鼠标路径不动 |
@@ -56,9 +58,10 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `css/98.css` + 字体 | 第三方库（**勿改**）；自定义样式一律进 `css/style.css` |
 | `assets/icons/` | 自绘像素图标 PNG（生成器产出，**勿手改**） |
 | `tools/make_icons.py` | 像素图标生成器（需 Pillow），加图标：写 `draw_xxx` → 注册 `ICONS` → 重跑 |
+| `tools/waveform-extractor.html` | 波形提取器（卡带配套，零依赖）：http 预览下开 `?src=/assets/music/xxx.mp3` 出 duration/peaks JSON |
 | `exhibits/` | 展柜工程：现代特效展品（唯一允许构建工具链的目录，Vite+Vue+Tailwind；`dist` 提交进 git、勿 ignore；选题库 inspira-ui.com）。`src/App.vue` 是壳：无参 = 展览馆大厅，`?ex=xxx` 动态加载 `src/exhibits/xxx.vue`，`?chrome=0` 隐藏返回按钮；展品清单 `src/exhibits/manifest.js`（纯数据）；组件源本地镜像 `../tools/inspira-ui` |
 
-脚本加载顺序（index.html）：config → windowManager → touchTap → apps → apps/mine-core → apps/minesweeper → apps/mine-dungeon → apps/poker → apps/exhibit → desktop → taskbar → screensaver → main。普通 script 标签（非 module），保证 `file://` 可跑（注意：展品 iframe 是 ES module，`file://` 下加载不了，需 http 预览或线上访问）。
+脚本加载顺序（index.html）：config → windowManager → touchTap → apps → apps/mine-core → apps/minesweeper → apps/mine-dungeon → apps/poker → apps/exhibit → apps/tapeplayer → desktop → taskbar → screensaver → main。普通 script 标签（非 module），保证 `file://` 可跑（注意：展品 iframe 是 ES module，`file://` 下加载不了，需 http 预览或线上访问）。
 
 ## 铁律
 
@@ -92,6 +95,7 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 
 - 多电脑协作：见 `COLLAB.md`（新电脑 = clone + 配 push 凭据 + 装 Node；开工 pull、收工 push）
 - 预览：本地 8098 端口（Mac：`python3 -m http.server 8098`；Windows 机未装 Python：`npx -y http-server -p 8098 -s -c-1`，`-c-1` 禁缓存防改完刷不到新版）。**起服务前先查端口**（有 LISTENING 说明有残留，先杀再起，查法见收尾清单）
+- 加歌/波形提取：音频 + 封面丢 `assets/music/` → 起 8098 后开 `http://localhost:8098/tools/waveform-extractor.html?src=/assets/music/xxx.mp3` 抄 JSON 进 `js/apps/tapeplayer.js` 的 `WIN98_TAPES` 注册表
 - 无头浏览器：双机均已装 Playwright Chromium，验收截图命令
   `npx -y playwright screenshot --viewport-size=1280,800(或390,844) <url> <输出.png>`
   若报浏览器缺失（CLI 版本与浏览器 build 不配套）：`npx -y playwright install chromium`

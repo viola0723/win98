@@ -246,6 +246,46 @@ def draw_saver(d):
     d.line([10, 25, 21, 25], fill=WHITE)
 
 
+def draw_tape(d):
+    """卡带（卡带随身听）：深色带壳 + 金色标签 + 白色卷轴（与模块内磁带同款配色）。
+    用 24×20 字符矩阵逐点绘制（同 draw_poker 的 pip 思路）；浅色描边光晕保证青色桌面可辨。"""
+    PAL = {
+        'L': '#e8e8e8',   # 光晕 / 卷轴
+        'S': '#26262e',   # 带壳
+        'D': '#101016',   # 带窗
+        'G': '#d8c27a',   # 金色标签（《月之暗面》主题色）
+        'B': '#3a2418',   # 磁带
+        'X': '#3d3d46',   # 底部梯形缺口
+    }
+    ROWS = [
+        '...LLLLLLLLLLLLLLLLLLLLLLLLLL...',
+        '...LSSSSSSSSSSSSSSSSSSSSSSSSL...',
+        '...LSSSSSSSSSSSSSSSSSSSSSSSSL...',
+        '...LSSGGGGGGGGGGGGGGGGGGGGSSL...',
+        '...LSSGGGGGGGGGGGGGGGGGGGGSSL...',
+        '...LSSGGGGGGGGGGGGGGGGGGGGSSL...',
+        '...LSSGGGGGGGGGGGGGGGGGGGGSSL...',
+        '...LSSGGGGGGGGGGGGGGGGGGGGSSL...',
+        '...LSSSSSSSSSSSSSSSSSSSSSSSSL...',
+        '...LSSDDDDDDDDDDDDDDDDDDDDSSL...',
+        '...LSSDDDDWWWDDDDDDWWWDDDDSSL...',
+        '...LSSDDDWWWWWDDDDWWWWWDDDSSL...',
+        '...LSSDDDWWDWWDDDDWWDWWDDDSSL...',
+        '...LSSDDDWWWWWDDDDWWWWWDDDSSL...',
+        '...LSSDDDDWWWDDDDDDWWWDDDDSSL...',
+        '...LSSDDDDDBBBBBBBBBBDDDDDSSL...',
+        '...LSSSSSSSSSSSSSSSSSSSSSSSSL...',
+        '...LSSSSSSSSSSXXXXSSSSSSSSSSL...',
+        '...LSSSSSSSSSXXXXXXSSSSSSSSSL...',
+        '...LSSSSSSSSXXXXXXXXSSSSSSSSL...',
+        '...LLLLLLLLLLLLLLLLLLLLLLLLLL...',
+    ]
+    for j, row in enumerate(ROWS):
+        for i, ch in enumerate(row):
+            if ch != '.':
+                d.point([(i, 6 + j)], fill=PAL[ch])
+
+
 ICONS = [
     ('computer', draw_computer),
     ('notepad', draw_notepad),
@@ -260,6 +300,7 @@ ICONS = [
     ('exhibit', draw_exhibit),
     ('gallery', draw_gallery),
     ('saver', draw_saver),
+    ('tape', draw_tape),
 ]
 
 

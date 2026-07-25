@@ -1589,3 +1589,85 @@ body.dragging {
 /* 同 poker-body 的做法：去掉窗口体内边距，让展品 iframe 铺满窗口体 */
 .app-window .window-body.exhibit-body { margin: 0; padding: 0; overflow: hidden; }
 .exhibit-frame { display: block; width: 100%; height: 100%; border: 0; }
+
+/* ============================================================
+   卡带随身听（js/apps/tapeplayer.js）—— 深色现代风，壳守 98 芯自由
+   选择器全部挂在 .app-tape（= 窗口体）下；--accent 由模块按磁带主题色设置
+   ============================================================ */
+.app-tape {
+  --accent: #d8c27a;
+  background: #16161c;
+  font-family: "Pixelated MS Sans Serif", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+}
+.app-tape .tp-zones { display: flex; gap: 18px; padding: 18px; align-items: flex-start; }
+
+/* --- 左：磁带架（书脊行） --- */
+.app-tape .tp-shelf { width: 196px; flex: none; display: flex; flex-direction: column; gap: 6px; }
+.app-tape .tp-shelf-h { font-size: 10px; color: #6a6a76; letter-spacing: 2px; padding: 0 2px 4px; }
+.app-tape .tp-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 8px;
+  background: none; border: 1px solid transparent; border-radius: 4px; cursor: pointer;
+  text-align: left; transition: transform .15s, background .15s; box-sizing: border-box; }
+.app-tape .tp-row:hover { background: rgba(255,255,255,.06); transform: translateX(4px); }
+.app-tape .tp-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.app-tape .tp-mini { width: 56px; flex: none; }
+.app-tape .tp-mini svg { width: 100%; height: auto; display: block; }
+.app-tape .tp-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.app-tape .tp-t { font-size: 11px; color: #e8e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app-tape .tp-a { font-size: 9px; color: #8a8a96; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app-tape .tp-row.in-deck { border-color: #3a3a46; box-shadow: inset 3px 0 0 var(--accent); }
+.app-tape .tp-row.in-deck .tp-mini svg { opacity: .25; }
+.app-tape .tp-eq { display: none; align-items: flex-end; gap: 2px; height: 10px; }
+.app-tape .tp-row.playing .tp-eq { display: flex; }
+.app-tape .tp-eq i { width: 3px; background: var(--accent); animation: tp-eq 0.9s ease-in-out infinite; }
+.app-tape .tp-eq i:nth-child(1) { height: 60%; }
+.app-tape .tp-eq i:nth-child(2) { height: 100%; animation-delay: .3s; }
+.app-tape .tp-eq i:nth-child(3) { height: 40%; animation-delay: .6s; }
+@keyframes tp-eq { 50% { transform: scaleY(.35); } }
+
+/* --- 中：卡带机（斜二轴测 2.5D 机身，SVG 内部类名由 tapeplayer.js 生成） --- */
+.app-tape .tp-stage { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.app-tape .tp-player-wrap { position: relative; width: 100%; max-width: 500px; }
+.app-tape .tp-glow { position: absolute; inset: 15% 10%; background: var(--accent); opacity: .16;
+  filter: blur(48px); pointer-events: none; transition: background .4s; }
+.app-tape svg.tp-player { position: relative; width: 100%; height: auto; display: block;
+  filter: drop-shadow(0 18px 20px rgba(0,0,0,.5)); }
+.app-tape .tp-hint { font-size: 11px; color: #6a6a76; text-align: center; line-height: 1.7; }
+.app-tape .acc { fill: var(--accent); }
+.app-tape .tp-btn { cursor: pointer; }
+.app-tape .tp-btn-body { transition: transform .05s; }
+.app-tape .tp-btn.pressed .tp-btn-body { transform: translateY(2px); }
+.app-tape .tp-deck-tape { transition: opacity .18s; }
+.app-tape .tp-deck-tape.playing .reel-spin { animation: tp-spin 2.8s linear infinite; transform-box: fill-box; transform-origin: center; }
+.app-tape .tp-deck-tape.seeking .reel-spin { animation-duration: .5s; }
+@keyframes tp-spin { to { transform: rotate(360deg); } }
+.app-tape .tp-vol-hit, .app-tape .tp-vol-knob { cursor: pointer; }
+
+/* --- 右：相框封面 + 波形 --- */
+.app-tape .tp-side { width: 208px; flex: none; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.app-tape .tp-frame { background: #f2efe6; padding: 12px; box-shadow: 0 5px 0 rgba(0,0,0,.35), inset 0 0 0 1px #d8d4c6;
+  transition: opacity .3s, filter .3s; }
+.app-tape .tp-frame-inner { width: 184px; height: 184px; background: #101016; box-shadow: inset 0 0 0 1px #2a2a32; overflow: hidden; }
+.app-tape .tp-frame-inner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.app-tape .tp-wf-wrap { width: 208px; }
+.app-tape canvas.tp-wf { width: 100%; height: 36px; display: block; background: #101016; box-shadow: inset 0 0 0 1px #2a2a32;
+  cursor: pointer; transition: opacity .3s, filter .3s; touch-action: none; }
+.app-tape .tp-cap { font-size: 11px; color: #b8b8c4; text-align: center; min-height: 14px; margin-top: 4px; }
+.app-tape .dim { opacity: .3; filter: grayscale(.9); }
+
+/* --- 飞行中的磁带（挂 body，fixed 定位） --- */
+.tp-flyer { position: fixed; z-index: 99; pointer-events: none; margin: 0;
+  transition: left .6s cubic-bezier(.35,.7,.25,1), top .6s cubic-bezier(.35,.7,.25,1),
+              width .6s cubic-bezier(.35,.7,.25,1), height .6s cubic-bezier(.35,.7,.25,1),
+              transform .6s cubic-bezier(.35,.7,.25,1), opacity .3s; }
+.tp-flyer svg { width: 100%; height: 100%; display: block; }
+
+/* --- 手机竖排 --- */
+@media (max-width: 640px) {
+  .app-tape .tp-zones { flex-direction: column; align-items: center; padding: 12px; gap: 14px; }
+  .app-tape .tp-stage { order: 1; width: 100%; }
+  .app-tape .tp-side { order: 2; width: 100%; }
+  .app-tape .tp-frame-inner { width: min(280px, 78vw); height: min(280px, 78vw); }
+  .app-tape .tp-wf-wrap { width: min(304px, 84vw); }
+  .app-tape .tp-shelf { order: 3; width: 100%; }
+  .app-tape .tp-row:hover { transform: none; }
+}

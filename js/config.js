@@ -62,5 +62,15 @@ window.WIN98_MODULES = [
     exhibit: 'exhibits/dist/index.html',
     width: 720,
     height: 560
+  },
+  /* 卡带随身听：数据注册表 WIN98_TAPES 与加歌流程见 js/apps/tapeplayer.js 头部注释 */
+  {
+    id: 'tape',
+    title: '卡带随身听',
+    icon: 'assets/icons/tape.png',
+    type: 'window',
+    app: 'tape', /* adapt: A（核心交互，双端完整） */
+    width: 970,
+    height: 480
   }
 ];

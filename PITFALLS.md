@@ -36,6 +36,10 @@
   规则：用时间戳判定（`lastFlagTime` + 700ms 窗口），不用布尔。
 - **其他已立过的移动端规矩**：触屏一律 Pointer Events（铁律 4）；手机上双击节奏不可靠——触屏打开图标不设时限（点选后再点一次即开）；body 级 `touch-action: manipulation` 防 iOS 双击缩放（iOS 10+ 忽略 user-scalable=no）；`color-scheme: light` 防 iOS 深色模式反色控件；长按交互配 `-webkit-touch-callout:none`。
 - **Playwright WebKit 的合成 tap 在全屏覆盖层上不派发事件**（harness 局限，真机正常）——屏保退出这类用例要手动 dispatch pointerdown 验证，别误判成产品 bug。
+- **非 `<button>` 自定义控件（SVG `<g>` 等）吃不到 touchTap；激活处理器别漏写 `(e)` 形参**（2026-07-25）
+  现象：卡带随身听触屏点播放/停止/退带全灭，PC 鼠标却正常。
+  根因：两层——① `js/touchTap.js` 只给 `button` / 开始菜单 `li` / 关机遮罩补发 click，SVG `<g>` 控件不在其列，必须自己在 pointerup 校验时长/位移后激活；② 自实现 tap 判定的事件处理器漏写 `(e)` 形参还引用了 `e.clientX`，抛 ReferenceError，激活逻辑整个死掉。
+  规则：新控件先看构成（button 白捡 touchTap；非 button 自己写 pointerup tap 判定 ≤600ms/≤12px）；事件处理器形参写全再引用；**PC 探针没点过的路径 = 没测过**（本次 play 键在 PC 用例里恰好从未被点，bug 漏网到触屏用例才暴露——双端用例要覆盖同一组交互）。
 
 ## 窗口系统
 
@@ -87,3 +91,11 @@
   规则：覆盖层要能收事件，iframe 必须 `pointer-events:none` 穿透（勿删）；屏保 `show()` 每次重设 `iframe.src`，规避隐藏 iframe 复显的 GPU 合成层怪癖（无头环境复现不了此类问题）。
 - **展品 iframe 是 ES module，`file://` 下加载不了**——主站本体坚持 `file://` 可跑（普通 script 标签），但验收展品必须起 http 预览或线上访问。
 - 真机专属问题（GPU 合成、safe-area、click 派发）无头浏览器测不出来：无头过了≠真机过了，发布触屏相关改动后必须真机复测。
+- **调试「事件发了没反应」先挂 `pageerror` 监听**（2026-07-25）
+  现象：Playwright 里元素事件明明触发了，逻辑却没执行，反复猜根因。
+  根因：事件处理器内抛异常时 Playwright 默认不输出，表现与「事件没派发」一模一样。
+  规则：`page.on('pageerror', ...)` 是第一件乐器，再逐层 spy（capture/bubble 侦听、方法替换）。
+- **npx 跑不了 ffmpeg-static；提取波形/时长用浏览器 OfflineAudioContext**（2026-07-25）
+  现象：`npx -y ffmpeg-static` 报 `could not determine executable to run`。
+  根因：ffmpeg-static 是纯库包（无 bin 入口，只供 require 拿二进制路径），新版 npm 拒绝当 CLI 执行；且其 postinstall 要去 github 拉二进制，本机直连不稳。
+  规则：波形提取走 `tools/waveform-extractor.html`（http 预览下 `?src=/assets/music/xxx.mp3` → fetch → OfflineAudioContext.decodeAudioData → 分桶 RMS，零依赖双机通用）；批量提取 = Playwright 脚本开该页读 `#out`（注意 src 相对页面路径解析，传站点根路径）。

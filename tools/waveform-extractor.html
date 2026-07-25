@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>波形提取器 · 卡带随身听工具</title>
+  <style>
+    body { font-family: monospace; background: #16161c; color: #b8b8c4; padding: 24px; }
+    h1 { font-size: 16px; color: #e8e8f0; }
+    #out { white-space: pre-wrap; word-break: break-all; background: #101016; padding: 12px;
+           border: 1px solid #2a2a32; font-size: 12px; max-height: 50vh; overflow: auto; }
+    .tip { color: #6a6a76; font-size: 12px; line-height: 1.8; }
+    button { margin: 8px 8px 8px 0; padding: 6px 14px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>波形提取器（WIN98_TAPES 注册表配套工具）</h1>
+  <p class="tip">
+    用法一（推荐）：把音频放进 assets/music/，访问 <code>tools/waveform-extractor.html?src=assets/music/xxx.mp3</code>（可带 &amp;n=峰值数，默认 112）<br>
+    用法二：点「选择文件」手动挑一个音频。<br>
+    把下方 JSON 里的 duration / peaks 抄进注册表对应条目即可。需经 http 服务访问（file:// 下浏览器禁止读本地文件）。
+  </p>
+  <input type="file" id="file" accept="audio/*">
+  <button id="copy">复制 JSON</button>
+  <div id="out">处理中…</div>
+
+<script>
+(function () {
+  var out = document.getElementById('out');
+  var N = +(new URLSearchParams(location.search).get('n') || 112);
+
+  function analyze(buf, name) {
+    var ctx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 1, 44100);
+    ctx.decodeAudioData(buf, function (audio) {
+      var data = audio.getChannelData(0);
+      var per = Math.floor(data.length / N);
+      var peaks = [], max = 0, i, j;
+      for (i = 0; i < N; i++) {
+        var start = i * per, end = i === N - 1 ? data.length : start + per, sum = 0, cnt = 0;
+        for (j = start; j < end; j += 4) { sum += data[j] * data[j]; cnt++; }   // 抽 1/4 样本，够准且快
+        var rms = Math.sqrt(sum / cnt);
+        peaks.push(rms);
+        if (rms > max) max = rms;
+      }
+      var arr = peaks.map(function (v) {
+        var n = max > 0 ? v / max : 0;
+        n = 0.12 + 0.88 * Math.pow(n, 0.7);
+        return Math.round(n * 100) / 100;
+      });
+      var json = JSON.stringify({ file: name, duration: Math.round(audio.duration * 10) / 10, peaks: arr });
+      out.textContent = json;
+      document.title = 'DONE';
+    }, function (e) {
+      out.textContent = '解码失败: ' + e;
+      document.title = 'FAIL';
+    });
+  }
+
+  var src = new URLSearchParams(location.search).get('src');
+  if (src) {
+    out.textContent = '加载 ' + src + ' …';
+    fetch(src).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.arrayBuffer();
+    }).then(function (b) { analyze(b, src.split('/').pop()); })
+      .catch(function (e) { out.textContent = '加载失败: ' + e.message; document.title = 'FAIL'; });
+  }
+
+  document.getElementById('file').addEventListener('change', function (e) {
+    var f = e.target.files[0];
+    if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () { analyze(rd.result, f.name); };
+    rd.readAsArrayBuffer(f);
+  });
+
+  document.getElementById('copy').addEventListener('click', function () {
+    navigator.clipboard.writeText(out.textContent).then(function () {
+      document.getElementById('copy').textContent = '已复制';
+    });
+  });
+})();
+</script>
+</body>
+</html>
