@@ -6,6 +6,8 @@
 
 ## 2026
 
+- **2026-07-27｜屏保触发时间 60s → 5 分钟**：`js/screensaver.js` `IDLE_MS` 改为 `5 * 60 * 1000`（用户要求，60s 触发太频繁）；文件头注释与 AGENTS 架构表同步；巡检间隔/宽限期/展品 URL 不动。
+
 - **2026-07-26｜新歌二连：随身听上架《夜晚》《应龙》（Playwright 双端 32 断言全过）**：加歌流程首次用 **ffmpeg 主力通道**（`../tools/ffmpeg/node_modules/ffmpeg-static/ffmpeg.exe`，AGENTS 环境备忘既定）：mp3 `-b:a 128k -ar 44100`（夜晚 5.5MB→2.75MB/172.1s、应龙 7.6MB→3.8MB/237.8s），封面 `scale=512:-1`(按长边)`-q:v 4`（≤21KB）；**波形也走 ffmpeg**——解码 s16le mono 44100 管道进一次性 Node 脚本，复刻 `waveform-extractor.html` 算法（N=112 分桶 RMS、max 归一、`0.12+0.88·n^0.7`），不再依赖浏览器工具。`WIN98_TAPES` 注册两条（夜晚 #8f7fd4 夜紫 / 应龙 #6fae9f 雾青，取色自封面），MEDIA_CDN 保持 '' 无需动。验收探针：`bodyEl.win98Tape.deck` / `win98TapeAudio.dataset.cur` + `--accent`。双端（1280×800 / 390×844）断言：架头 `TAPES · 3`、三盘齐全、时长 2:52/3:57、点带入舱 deck/accent/audio src 正确、四资源 200。收尾复演经典坑：TaskStop 只杀掉 npx 壳，8098 仍被 npx 子进程（PID 39640）占着，按收尾清单 netstat 验证后补 taskkill——**npx 服务杀完必须验端口，铁律又中一次**。
 - **2026-07-26｜inspira-ui 镜像在 Windows 机就位**：`git clone --depth 1 https://gh-proxy.com/https://github.com/unovue/inspira-ui.git ../tools/inspira-ui`（11MB，github 直连不稳走 gh-proxy 一次过），组件源路径 `app/components/inspira/ui/<组件名>/` 与 Mac 一致，双机挑展品组件能力对齐；gh-proxy 同时明确为本机拉取 github 公开资源的**通用备用通道**（COLLAB 在役机器表已注）。
 - **2026-07-26｜本机 ffmpeg 就位**：`cd ../tools/ffmpeg && npm i ffmpeg-static`（postinstall 从 GitHub releases 拉 ~77MB 二进制，本次网络放行）→ **ffmpeg 6.1.1**（gyan essentials 静态版，含 libmp3lame/libopus/x264/x265），版本 + 解码冒烟均过。定位：本机音视频处理主力（转码/压缩/批量/探测），二进制 `../tools/ffmpeg/node_modules/ffmpeg-static/ffmpeg.exe`（长期资产，已列入收尾清单保留项与 COLLAB 按需安装表）；浏览器工具（audio-optimizer / waveform-extractor）仍是双机零安装兜底。注意仓库本体不放 ffmpeg（零构建纯静态 + 二进制体积）。

@@ -48,7 +48,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `js/apps/poker.js` | 德州扑克模块（移植自独立版单文件游戏；样式在 style.css 末尾以 `.app-poker` 为作用域） |
 | `js/apps/exhibit.js` | 展览馆渲染器：iframe 加载 `cfg.exhibit` 指定的展厅/展品页（exhibits/dist/...） |
 | `js/apps/tapeplayer.js` | 卡带随身听（A 级）：数据注册表 `WIN98_TAPES` 在头部（加歌三步见注释）；飞行入带 / 斜二轴测 2.5D 机身 / 相框封面 / 真实波形 seek / 按住快进快退；SVG 按钮非 button 不吃 touchTap，自带 pointerup tap 判定；状态挂 `bodyEl.win98Tape`（+ `win98TapeAudio`） |
-| `js/screensaver.js` | 屏幕保护：闲置 60s 全屏播放展品，任意输入退出；`WIN98_SAVER.show()` 供开始菜单预览 |
+| `js/screensaver.js` | 屏幕保护：闲置 5 分钟全屏播放展品，任意输入退出；`WIN98_SAVER.show()` 供开始菜单预览 |
 | `js/windowManager.js` | 窗口生命周期，对外 `WindowManager.open(module)`；动态切换 `#windows` pointer-events（勿静态写死） |
 | `js/touchTap.js` | 触屏轻点激活兜底（iOS 真机 click 不派发）：pointerup 校验后 `el.click()` 补发 + isTrusted 去重；鼠标路径不动 |
 | `js/desktop.js` | 图标渲染与打开（`WIN98_DESKTOP.openModule`，link→新标签页 / window→开窗）；触屏开窗吞串扰 click |
