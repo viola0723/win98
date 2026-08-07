@@ -20,11 +20,8 @@
 
 ## 当前阶段（只记最近动态，全史见 DEVLOG.md）
 
-- 2026-07-26｜**新歌二连：《夜晚》《应龙》上架随身听（双端 32 断言全过）**：首次用 ffmpeg 主力通道跑完整加歌流程——mp3 128k（2.75MB/172.1s、3.8MB/237.8s）、封面长边 512px（≤21KB）、波形 = ffmpeg 解码 s16le 管道进一次性 Node 脚本复刻提取器算法（N=112 RMS），不再依赖浏览器工具；`WIN98_TAPES` 现 3 盘（夜晚 #8f7fd4 / 应龙 #6fae9f，取色自封面）。验收探针 `win98Tape.deck` / `win98TapeAudio.dataset.cur`。收尾又中 npx 坑：TaskStop 只杀壳，8098 仍被子进程占——杀完必验端口
-- 2026-07-26｜**卡顿二修：CDN 证伪全灭，改「压缩素材 + 本地直供」**：jsDelivr 对 mp3 只 301 到 raw.githubusercontent（国内不稳），statically/githack 不通——唯一稳定通道 github.io ~24KB/s；新增 `tools/audio-optimizer.html`（内联 lamejs 零依赖）把《月之暗面》压成 128k/3.76MB、封面 62KB/512px，`MEDIA_CDN` 置 ''。加歌流程：源文件进 `assets/music/` → 压缩（ffmpeg 优先 / optimizer 兜底）→ 波形提取 → 注册
-- 2026-07-25｜**新模块「卡带随身听」上线（A 级，双端 14 断言全过）**：每首歌 = 一盘磁带，点磁带飞行入舱 → 相框封面 + 真实波形 → 自动播放；机身斜二轴测 2.5D、主题色随磁带变色（`--accent`）。`js/apps/tapeplayer.js` 单文件模块（数据注册表 `WIN98_TAPES` 在头部，加歌三步见注释）、波形提取器 `tools/waveform-extractor.html`（OfflineAudioContext，零依赖）、tape.png 图标（24×20 字符矩阵，`make_icons.py` 与一次性 Node 脚本双实现同源——本机无 Python）。原型评审废弃：鼠标视差（没用）、机械音效（不拟真且与音乐混叠）、下载的 3 首 CC 歌（只留原创）。修触屏播放键全灭（tap 处理器漏写 `(e)` 形参，PC 用例漏网，已记 PITFALLS）。默认曲《月之暗面》（用户原创）
-- 2026-07-25｜**记忆碎片定性 = 1998 年的老物件**：`FRAG_OBJECTS` 22 件（= 理论最大获得数）洗牌不重复抽取，获得碎片 toast 报物件名；结局定型——成功 = 回信「未来的你，还好吗……会为票根和树叶发呆的少年」+ 晒出拾得清单，失败 = 「坏道无法修复，信件没有找到，请重新开始」（残缺信方案废弃）。双端 30 断言全过
-- 2026-07-25｜收尾流程堵漏：清掉上次漏杀的 8098 残留服务（npx http-server）；铁律 9 扩成独立「收尾清单」小节（杀服务必验证端口释放 / 删 `../tools` 本次产物 / 工作区只剩预期改动）；验收脚本定性**一次性**（现写现删，别找旧的，结论在 DEVLOG）；Windows 预览命令补 `-c-1` 禁缓存
+- 2026-08-07｜**展品 002「蓝色弹珠」+ 003「亿万星尘」：three.js 进展馆（双端 18 断言全过）**：展柜首个 WebGL 线。`three@0.185.1` + 共用舞台 `src/lib/threeStage.js`（DPR 上限/ACES/OrbitControls/dispose）；地球 = 昼夜混合 shader + fresnel 大气辉光背面球 + 云层差速球（贴图 three-globe/SSS，ffmpeg 压到 ~700KB）；银河 = Galaxy Generator 参数化算法（4 臂 + 核心 bulge + 内暖外冷渐变）+ 软圆点 shader + PC 端半分辨率 UnrealBloom（移动关、粒子 200k→50k）。审美靠截图人工把关调参两轮（银河压 bloom 防 core 过曝；地球换 `earth-day.jpg` 亮昼图才出湛蓝）。npm 镜像优先级：腾讯 > 阿里 > 默认（npmmirror 会 502/503 抽风）
+- 2026-08-07｜**新歌二连：《Moonlit Tide》《Rainy Morning》上架随身听（双端 30 断言全过）**：源文件来自 `V/` 私人空间（256k 原档），歌名首次沿用英文。ffmpeg 通道压缩（mp3 128k：2.6MB/166.5s、2.5MB/159.7s；封面 512px 24KB/42KB）+ 波形提取（ffmpeg 解码 s16le 管道进一次性 Node 脚本，N=112 RMS），`WIN98_TAPES` 注册两条（#dfa63e 月金 / #8fa08a 雨晨灰绿，取色自封面），现 5 盘磁带。验收：playwright-core + 复用本机 Chromium（注意二进制在 `chrome-win64/` 子目录）；`WIN98_DESKTOP.openModule` 收模块配置对象不是 id 字符串
 
 ## 快速上手
 

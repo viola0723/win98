@@ -2,7 +2,7 @@
 
 > 用途：加展品从这里点将，不用每次翻 131 个 demo。描述与难度为**预评估**，以 [inspira-ui.com](https://inspira-ui.com) 的实际 demo 和源码为准（同步于 2026-07，组件会增多，用时再核）。
 > 难度：易＝纯 CSS/JS，原生重写或展柜都快；中＝Canvas/SVG 逻辑较多，建议展柜；难＝WebGL/Three/OGL，必须走展柜。
-> 已上架：展品 001「流星雨」(meteors ✅)；欢迎窗星空+乱序标题（warp-background / hyper-text 思路原生重写 ✅）。
+> 已上架：展品 001「流星雨」(meteors ✅)、002「蓝色弹珠」(earth ✅ three.js)、003「亿万星尘」(galaxy ✅ three.js)；欢迎窗星空+乱序标题（warp-background / hyper-text 思路原生重写 ✅）。
 
 ## 下一批推荐（优先级前五）
 
