@@ -261,9 +261,22 @@ body.dragging {
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  gap: 8px;
   padding: 0 10px;
   box-shadow: inset -1px -1px #fff, inset 1px 1px #808080;
   margin: 1px;
+}
+
+/* 备案号：任务栏托盘小字，贴近 98 系统默认观感 */
+#beian-link {
+  font-size: 11px;
+  color: #222;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+#beian-link:hover {
+  text-decoration: underline;
 }
 
 #clock {

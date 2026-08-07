@@ -6,6 +6,8 @@
 
 ## 2026
 
+- **2026-08-07｜ICP 备案号上任务栏托盘（腾讯云备案已通过）**：备案号 `粤ICP备2026111478号` 落定，公安备案仍在审批（审批下来后需再加公安备案号 + 查询页链接）。实现：`index.html` 任务栏托盘（`#taskbar-tray`）时钟左侧加 `<a id="beian-link">` 指向 `https://beian.miit.gov.cn/`（`target="_blank" rel="noopener noreferrer"`）；`style.css` 托盘加 `gap: 8px`，链接样式 11px/#222/默认无下划线 hover 补下划线。取舍：全站无传统页脚，任务栏托盘 = 唯一常驻底部区域，备案号放这里既满足「首页底部可见」又不侵占桌面主体；移动端不隐藏（合规优先，任务按钮区自有横向滚动兜底）。未动 exhibits 子站（Vue 构建产物，且备案检查以首页为准）。本机 Playwright 不在（验收脚本一次性铁律产物），仅做静态验证：8098 本地预览 curl 确认链接与样式 200 渲染，起服务前查端口、杀服务后验端口（8098 已释放）。视觉终验待部署后用户确认。
+
 - **2026-07-27｜屏保触发时间 60s → 5 分钟**：`js/screensaver.js` `IDLE_MS` 改为 `5 * 60 * 1000`（用户要求，60s 触发太频繁）；文件头注释与 AGENTS 架构表同步；巡检间隔/宽限期/展品 URL 不动。
 
 - **2026-07-26｜新歌二连：随身听上架《夜晚》《应龙》（Playwright 双端 32 断言全过）**：加歌流程首次用 **ffmpeg 主力通道**（`../tools/ffmpeg/node_modules/ffmpeg-static/ffmpeg.exe`，AGENTS 环境备忘既定）：mp3 `-b:a 128k -ar 44100`（夜晚 5.5MB→2.75MB/172.1s、应龙 7.6MB→3.8MB/237.8s），封面 `scale=512:-1`(按长边)`-q:v 4`（≤21KB）；**波形也走 ffmpeg**——解码 s16le mono 44100 管道进一次性 Node 脚本，复刻 `waveform-extractor.html` 算法（N=112 分桶 RMS、max 归一、`0.12+0.88·n^0.7`），不再依赖浏览器工具。`WIN98_TAPES` 注册两条（夜晚 #8f7fd4 夜紫 / 应龙 #6fae9f 雾青，取色自封面），MEDIA_CDN 保持 '' 无需动。验收探针：`bodyEl.win98Tape.deck` / `win98TapeAudio.dataset.cur` + `--accent`。双端（1280×800 / 390×844）断言：架头 `TAPES · 3`、三盘齐全、时长 2:52/3:57、点带入舱 deck/accent/audio src 正确、四资源 200。收尾复演经典坑：TaskStop 只杀掉 npx 壳，8098 仍被 npx 子进程（PID 39640）占着，按收尾清单 netstat 验证后补 taskkill——**npx 服务杀完必须验端口，铁律又中一次**。
