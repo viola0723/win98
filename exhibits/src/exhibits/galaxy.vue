@@ -18,40 +18,58 @@ const stageEl = ref(null)
 let stage = null
 let composer = null
 
-// ---- 银河生成参数（在 Galaxy Generator 基础上调过：4 臂、核心加密、颜色内暖外冷）----
+// ---- 银河生成参数（在 Galaxy Generator 基础上按真实星系形态调过）----
+// 形态依据：真实旋涡星系常见「内 2 主旋臂 + 外部不规则臂段」（约占 83%，四条
+// 等距对称臂贯穿内外的仅 ~2%），且约 2/3 带棒状核心（银河系即是棒旋）。
+// 故改为 2 主旋臂 + 棒 + 核球，弥散度调高模拟絮状臂段；色温保持内暖外冷
+// （核球老年恒星偏黄白、旋臂年轻恒星偏蓝）。
 const P = {
-  branches: 4,
+  branches: 2,
   radius: 5,
-  spin: 1.15,
-  randomness: 0.38,
-  randomnessPower: 3.2,
-  insideColor: new THREE.Color('#ff9e5e'),
-  outsideColor: new THREE.Color('#4a72d4'),
-  coreColor: new THREE.Color('#ffe3b8'),
+  spin: 1.0,
+  randomness: 0.5,
+  randomnessPower: 3.0,
+  insideColor: new THREE.Color('#ffb27d'),
+  outsideColor: new THREE.Color('#6b8fe6'),
+  coreColor: new THREE.Color('#ffe9c4'),
 }
 
 function generateGalaxy(count) {
   const positions = new Float32Array(count * 3)
   const colors = new Float32Array(count * 3)
   const scales = new Float32Array(count)
-  const coreCount = Math.floor(count * 0.12) // 核心 bulge：一团压扁的暖白星球
+  const coreCount = Math.floor(count * 0.1) // 核球：一团压扁的暖白星球
+  const barCount = Math.floor(count * 0.08) // 棒状核心：核球两端延伸出的椭球棒
 
   for (let i = 0; i < count; i++) {
     const i3 = i * 3
     let x, y, z, r
     if (i < coreCount) {
-      // 核心：三轴高斯近似球，半径小、略压扁
-      r = Math.abs((Math.random() + Math.random() + Math.random() - 1.5) / 1.5) * P.radius * 0.22
+      // 核球：三轴高斯近似球，半径小、略压扁
+      r = Math.abs((Math.random() + Math.random() + Math.random() - 1.5) / 1.5) * P.radius * 0.2
       const theta = Math.random() * Math.PI * 2
       const phi = Math.acos(2 * Math.random() - 1)
       x = r * Math.sin(phi) * Math.cos(theta)
       z = r * Math.sin(phi) * Math.sin(theta)
       y = r * Math.cos(phi) * 0.55
-      const c = P.coreColor.clone().lerp(P.insideColor, r / (P.radius * 0.22))
+      const c = P.coreColor.clone().lerp(P.insideColor, r / (P.radius * 0.2))
       colors[i3] = c.r
       colors[i3 + 1] = c.g
       colors[i3 + 2] = c.b
-      scales[i] = 0.6 + Math.random() * 0.9
+      scales[i] = 0.5 + Math.random() * 0.7
+    } else if (i < coreCount + barCount) {
+      // 棒：沿 x 轴拉长的椭球，中间粗两端细（与两条主旋臂的起点 0/π 对齐）
+      const s = (Math.random() * 2 - 1) * P.radius * 0.38 // 沿棒轴位置
+      const taper = 1 - Math.abs(s) / (P.radius * 0.38) // 端部收细
+      const spread = 0.06 + 0.1 * taper
+      x = s
+      y = (Math.random() * 2 - 1) * P.radius * spread * 0.7
+      z = (Math.random() * 2 - 1) * P.radius * spread
+      const c = P.coreColor.clone().lerp(P.insideColor, Math.abs(s) / (P.radius * 0.38))
+      colors[i3] = c.r
+      colors[i3 + 1] = c.g
+      colors[i3 + 2] = c.b
+      scales[i] = 0.5 + Math.random() * 0.9
     } else {
       // 旋臂：Math.pow 让密度向核心收；幂次扰动偏 0、偶发大偏离（星尘弥散感）
       r = Math.pow(Math.random(), 2.0) * P.radius
@@ -62,7 +80,7 @@ function generateGalaxy(count) {
       const rz = Math.pow(Math.random(), P.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * P.randomness * r
       x = Math.cos(angle) * r + rx
       z = Math.sin(angle) * r + rz
-      y = ry * 0.5 // 银盘压扁
+      y = ry * 0.32 // 银盘压扁（真实星系盘很薄）
       const c = P.insideColor.clone().lerp(P.outsideColor, Math.pow(r / P.radius, 0.8))
       colors[i3] = c.r
       colors[i3 + 1] = c.g
@@ -121,7 +139,7 @@ onMounted(() => {
   stage = createStage(stageEl.value, {
     fov: 45,
     cameraPos: [4.2, 3.0, 4.2],
-    orbit: { minDistance: 2.5, maxDistance: 15, autoRotate: true, autoRotateSpeed: 0.25 },
+    orbit: { minDistance: 2.5, maxDistance: 15, autoRotate: true, autoRotateSpeed: 0.1 },
     toneExposure: 1.0,
   })
   const { scene, camera, renderer } = stage
@@ -130,9 +148,10 @@ onMounted(() => {
   const points = generateGalaxy(mobile ? 50000 : 200000)
   scene.add(points)
 
-  // 整个银河缓缓自转（星点本身不动，转的是盘子）
+  // 整个银河缓缓自转（星点本身不动，转的是盘子）。
+  // 真实星系一圈要数亿年，观感上「几乎静止」才对——约 7 分钟一圈。
   stage.onTick((delta) => {
-    points.rotation.y += delta * 0.05
+    points.rotation.y += delta * ((2 * Math.PI) / 420)
   })
 
   // Bloom：PC 开（半分辨率省 GPU），移动端关——additive 软点本身就有辉光
@@ -141,7 +160,7 @@ onMounted(() => {
     composer = new EffectComposer(renderer)
     composer.addPass(new RenderPass(scene, camera))
     composer.addPass(
-      new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), 0.38, 0.35, 0.2),
+      new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), 0.32, 0.35, 0.25),
     )
     composer.addPass(new OutputPass())
     stage.setRender(() => composer.render())

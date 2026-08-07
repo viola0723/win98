@@ -18,7 +18,7 @@ onMounted(() => {
   stage = createStage(stageEl.value, {
     fov: 38,
     cameraPos: [0, 0.7, 3.2],
-    orbit: { minDistance: 1.7, maxDistance: 6, autoRotate: true, autoRotateSpeed: 0.35 },
+    orbit: { minDistance: 1.7, maxDistance: 6, autoRotate: true, autoRotateSpeed: 0.2 },
     toneExposure: 1.2,
   })
   const { scene } = stage
@@ -167,10 +167,13 @@ onMounted(() => {
   const glow = new THREE.Mesh(new THREE.SphereGeometry(1.06, 96, 96), glowMat)
   scene.add(glow)
 
-  // 自转：地球 90s 一圈，云层略快（差速出层次感）
+  // 自转：按真实比例放慢——一天 24h 压成 300s 一圈。
+  // 云层与地表基本共转（大气随转），天气漂移仅 +5%；旧值 ×1.35 会让云在
+  // 陆地上肉眼可见地滑动，是「画面不协调」的主要来源。太阳方向固定 = 公转
+  // 按真实比例一圈需 300s×365 ≈ 30 小时，观感上不可察觉，故不做公转与月球。
   stage.onTick((delta) => {
-    earth.rotation.y += delta * ((2 * Math.PI) / 90)
-    clouds.rotation.y += delta * ((2 * Math.PI) / 90) * 1.35
+    earth.rotation.y += delta * ((2 * Math.PI) / 300)
+    clouds.rotation.y += delta * ((2 * Math.PI) / 300) * 1.05
   })
 })
 
