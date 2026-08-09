@@ -51,8 +51,10 @@ window.WIN98_MODULES = [
   },
   /* 展览馆：特效作品的统一入口（iframe 加载展厅大厅，渲染器见 js/apps/exhibit.js）。
      新展品不再动这里，全部进馆：① 组件源从本地镜像 ../tools/inspira-ui 拷进 exhibits/src/components/inspira/
-     ② exhibits/src/exhibits/ 加 xxx.vue 舞台组件 + manifest.js 加一条记录 → npm run build
-     ③ 大厅自动列出（?ex=xxx 直达单个展品；?chrome=0 嵌入模式 = 隐藏返回按钮 + 展品按 bare prop 精简渲染，供屏保） */
+     ② exhibits/src/exhibits/ 加 xxx.vue 舞台组件 + manifest.js 加一条记录（含 cover 封面：AI 生成
+        多画风候选挑一张 → ffmpeg 1024px -q:v 3 压缩 → public/covers/xxx.jpg，4:3 无字纯画）→ npm run build
+     ③ 大厅自动列出（封面画自动进画框轮播、享受单灯追画+黑镜倒影；?ex=xxx 直达单个展品；
+        ?chrome=0 嵌入模式 = 隐藏返回按钮 + 展品按 bare prop 精简渲染，供屏保） */
   {
     id: 'gallery',
     title: '展览馆',

@@ -20,9 +20,7 @@
 
 ## 当前阶段（只记最近动态，全史见 DEVLOG.md）
 
-- 2026-08-08｜**新歌二连：《孟婆》《七情六欲》上架随身听（双端 46 断言全过）**：源文件来自 `V/`（256k 原档）；封面即梦 Seedream 水墨极简新出图（孟婆 5.0Pro 彼岸花 / 七情六欲 4.0 背影，用户双候选选定）。ffmpeg 压缩（128k：4.2MB/260.3s、3.8MB/238.1s；封面 512px ≤25KB）+ Node 波形（N=112 RMS），`WIN98_TAPES` 两条（#db170b 彼岸花红 / #64625c 墨灰；取色首次脚本采样：饱和×明度最大像素 / 亮度区间墨像素均值），现 7 盘磁带
-- 2026-08-07｜**展品 002「蓝色弹珠」+ 003「亿万星尘」：three.js 进展馆（双端 18 断言全过）**：展柜首个 WebGL 线。`three@0.185.1` + 共用舞台 `src/lib/threeStage.js`（DPR 上限/ACES/OrbitControls/dispose）；地球 = 昼夜混合 shader + fresnel 大气辉光背面球 + 云层差速球（贴图 three-globe/SSS，ffmpeg 压到 ~700KB）；银河 = Galaxy Generator 参数化算法（4 臂 + 核心 bulge + 内暖外冷渐变）+ 软圆点 shader + PC 端半分辨率 UnrealBloom（移动关、粒子 200k→50k）。审美靠截图人工把关调参两轮（银河压 bloom 防 core 过曝；地球换 `earth-day.jpg` 亮昼图才出湛蓝）。npm 镜像优先级：腾讯 > 阿里 > 默认（npmmirror 会 502/503 抽风）
-- 2026-08-07｜**展品 002/003 拟真化调优（节奏与形态按真实宇宙校准）**：002 地球自转 90s→300s/圈、云层差速 ×1.35→×1.05（真实大气与地表共转，旧值云滑过陆地是「不协调」主因）、镜头 0.35→0.2；不加真实光源/月球（自定义 shader 不吃场景光，公转/月球按真实比例在展品尺度不可察觉）。003 银河按真实形态重做：4 对称臂（真实仅 ~2%）→ 2 主旋臂+棒状核心+核球（银河系即棒旋；徐烨团队 2023），randomness 0.5/power 3.0 絮状臂、盘压扁 ×0.32、核球 10%+棒 8%（过曝回调 bloom 0.32/0.25）、旋转 0.05 rad/s→7min/圈、镜头 0.1。双端截图两轮人工把关，详见 DEVLOG。
+- 2026-08-09｜**展品 004「大哥大」：img2threejs 首件 AI 重建展品，8 pass 质量门全过（双端 24 断言全过）**：`../tools/img2threejs`（v1.4.3）+ Kimi 适配层 `~/.agents/skills/img2threejs/SKILL.md`（便携 Python `../tools/python-embed`，`._pth` 要写 stage 目录）；参考图 dreamina 生成（4.0/5.0Pro 混合出候选用户挑）。流程：spec 手工深化（`../tools/i2t-runs/dynatac/deepen_spec.py` 幂等）→ 8 pass「生成骨架 → `refine_ts.py` 精修 → `?review=` 评审页截图 → Tier1 诊断 → 对比图人评 → 记录同步」。坑四枚（PITFALLS 已记）：root scale 必须 [1,1,1]（尺寸烘焙进几何，否则子件继承缩放飞出）；OrbitControls 每帧 lookAt 会抹掉取景（target 同步包围盒中心，roll 只能滚模型）；Tier1 IoU 是全图逐像素比对（取景比例/位置必须贴参考图，有扫参法）；Tier1 色彩门对 <1% 饱和点缀色系统性误报（kmeans k=5 + ACES 偏暗，按透明原则记录继续）。产物：工厂 `exhibits/src/models/`、展品壳 `brickphone.vue`（转台 90s）、封面油画静物（dreamina 四候选选定）。落选素材与流水线档案留 `../tools/i2t-runs/dynatac/`
 
 ## 快速上手
 
@@ -56,7 +54,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `assets/icons/` | 自绘像素图标 PNG（生成器产出，**勿手改**） |
 | `tools/make_icons.py` | 像素图标生成器（需 Pillow），加图标：写 `draw_xxx` → 注册 `ICONS` → 重跑 |
 | `tools/waveform-extractor.html` | 波形提取器（卡带配套，零依赖）：http 预览下开 `?src=/assets/music/xxx.mp3` 出 duration/peaks JSON |
-| `exhibits/` | 展柜工程：现代特效展品（唯一允许构建工具链的目录，Vite+Vue+Tailwind；`dist` 提交进 git、勿 ignore；选题库 inspira-ui.com）。`src/App.vue` 是壳：无参 = 展览馆大厅，`?ex=xxx` 动态加载 `src/exhibits/xxx.vue`，`?chrome=0` 隐藏返回按钮；展品清单 `src/exhibits/manifest.js`（纯数据）；组件源本地镜像 `../tools/inspira-ui` |
+| `exhibits/` | 展柜工程：现代特效展品（唯一允许构建工具链的目录，Vite+Vue+Tailwind；`dist` 提交进 git、勿 ignore；选题库 inspira-ui.com）。`src/App.vue` 是壳：无参 = 展览馆大厅（无字画框轮播：CSS 虚空 + 单灯追画 + 黑镜倒影，封面在 `public/covers/` 由 manifest 的 `cover` 指定），`?ex=xxx` 动态加载 `src/exhibits/xxx.vue`，`?chrome=0` 隐藏返回按钮，`?review=<模型名>` = img2threejs 评审隐藏路由（加载 `src/models/*.ts` 工厂，参数 bg/az/el/margin/cy/roll/ax/flat/lights，确定性截图用）；展品清单 `src/exhibits/manifest.js`（纯数据）；`src/models/` = img2threejs 生成的模型工厂（three/addons 风格 import）；组件源本地镜像 `../tools/inspira-ui` |
 
 脚本加载顺序（index.html）：config → windowManager → touchTap → apps → apps/mine-core → apps/minesweeper → apps/mine-dungeon → apps/poker → apps/exhibit → apps/tapeplayer → desktop → taskbar → screensaver → main。普通 script 标签（非 module），保证 `file://` 可跑（注意：展品 iframe 是 ES module，`file://` 下加载不了，需 http 预览或线上访问）。
 
@@ -102,3 +100,4 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 - GitHub 凭据（双机）：Mac = PAT 存 macOS 钥匙串（repo 权限），`git push` 直接可用；gh CLI 在 `../tools/gh_2.96.0_macOS_amd64/bin/gh`（注意：因 token 只有 repo scope，gh 本体拒绝登录，如需完整 gh 功能要重新设备授权并勾选完整 scope）。Windows 机（`C:/Kimi Code/win98`）= SSH 密钥——私钥在仓库 `.git/ssh/`（不进 git、勿外传），remote 为 `ssh://git@ssh.github.com:443/viola0723/win98.git`，仓库级 `core.sshCommand` 已配好；该机 github.com 直连不稳，克隆备用镜像 `https://gh-proxy.com/https://github.com/viola0723/win98.git`
 - 图标版权：已全部替换为自绘像素图标（`tools/make_icons.py`），无版权顾虑；需要新图标就改脚本重跑
 - inspira-ui 镜像：`../tools/inspira-ui`（浅克隆，长期保留，勿当临时产物清理；更新用 `git -C ../tools/inspira-ui pull`）
+- img2threejs 流水线：`../tools/img2threejs`（v1.4.3 钉版，长期保留）+ 便携 Python `../tools/python-embed`（stdlib 专用，embeddable zip；`python312._pth` 已配 forge 各 stage 目录，**勿改勿删**）+ Kimi 适配 skill `~/.agents/skills/img2threejs/SKILL.md`（完整命令序列与评审页参数）。单图 → three.js 展品全流程：dreamina 出参考图候选用户挑 → spec 深化 → 8 pass 评审闭环 → `src/models/` 工厂 + 展品壳 + 封面。运行档案 `../tools/i2t-runs/<物体名>/`（含 spec/reviewHistory/对比图/落选素材）

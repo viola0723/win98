@@ -36,6 +36,10 @@
   规则：用时间戳判定（`lastFlagTime` + 700ms 窗口），不用布尔。
 - **其他已立过的移动端规矩**：触屏一律 Pointer Events（铁律 4）；手机上双击节奏不可靠——触屏打开图标不设时限（点选后再点一次即开）；body 级 `touch-action: manipulation` 防 iOS 双击缩放（iOS 10+ 忽略 user-scalable=no）；`color-scheme: light` 防 iOS 深色模式反色控件；长按交互配 `-webkit-touch-callout:none`。
 - **Playwright WebKit 的合成 tap 在全屏覆盖层上不派发事件**（harness 局限，真机正常）——屏保退出这类用例要手动 dispatch pointerdown 验证，别误判成产品 bug。
+- **容器 setPointerCapture 后 pointerup 的 target 恒为容器自身**（2026-08-09）
+  现象：展览馆大厅点「画框」完全无响应，但拖拽、箭头按钮都正常；PC 鼠标与触屏同样中招。
+  根因：墙容器在 pointerdown 时 `setPointerCapture(pointerId)`，后续 move/up 全部被重定向到容器，pointerup 的 `e.target` 恒为容器本身，`e.target.closest('[data-idx]')` 永远拿不到实际点中的画框。
+  规则：拖拽容器上做 tap 判定时，用 `document.elementFromPoint(clientX, clientY)` 解析命中目标，别信 pointerup 的 target。
 - **非 `<button>` 自定义控件（SVG `<g>` 等）吃不到 touchTap；激活处理器别漏写 `(e)` 形参**（2026-07-25）
   现象：卡带随身听触屏点播放/停止/退带全灭，PC 鼠标却正常。
   根因：两层——① `js/touchTap.js` 只给 `button` / 开始菜单 `li` / 关机遮罩补发 click，SVG `<g>` 控件不在其列，必须自己在 pointerup 校验时长/位移后激活；② 自实现 tap 判定的事件处理器漏写 `(e)` 形参还引用了 `e.clientX`，抛 ReferenceError，激活逻辑整个死掉。
@@ -103,3 +107,23 @@
   现象：jsDelivr 镜像音频「上午测 1.8MB/s 上线、用户照卡」；statically.io / raw.githack.com 本网络直接不可达。
   根因：jsDelivr /gh/ 对 mp3 不缓存，301 甩给 raw.githubusercontent.com（国内极不稳，同 URL 不同时点 1.8MB/s ↔ 335B/s）；钉 commit 只稳住了跳转层，数据层仍看 raw.githubusercontent 脸色。且 error 回退只兜「硬失败」，兜不住「慢而不死」。
   规则：① 验 CDN 方案 = `curl -L -o /dev/null -w "%{speed_download}" <url>` 测**最终落点**，不同时点测多次，别信单次峰值；② 国内访问本站唯一稳定通道实测是 github.io 自身（~24KB/s），素材码率必须压出余量（128kbps = 16KB/s），压缩走 `tools/audio-optimizer.html`。
+- **clip-path 会把同元素的 blur 裁成硬边**（2026-08-09）
+  现象：CSS 光锥 div 同时写 `clip-path`（梯形）和 `filter: blur()`，边缘依然锋利，渐变透明区末端还有一条硬截止线。
+  根因：渲染管线顺序 filter → clip-path → mask——模糊先算、裁剪后算，模糊晕出的部分被 clip 一刀切掉。
+  规则：做「柔和的异形发光体」必须拆两层——外层容器 `filter: blur()`，内层元素 `clip-path` + 渐变。
+- **img2threejs 生成器把子件挂进带缩放的父节点：root scale 必须 [1,1,1]**（2026-08-09）
+  现象：大哥大天线渲染时飞到机身上方一倍多高、还被拉长 2.7 倍。
+  根因：生成器 `(nodes["root"] ?? root).add(child)`——parent=null 的子件挂到 id 为 "root" 的组件节点下，继承其 scale；root scale=[1,2.7,0.78] 时子件的坐标与几何同步畸变。
+  规则：root 组件 scale 保持 [1,1,1]，机身尺寸直接烘焙进几何参数（refine 层 `RoundedBoxGeometry(1.18,2.65,0.78)`）；所有子件坐标即模型空间坐标。
+- **OrbitControls 每帧 update() 会用 lookAt(target) 重置相机朝向**（2026-08-09）
+  现象：评审页 `frameXxxCamera` 取景后物体总比预期高半截；`camera.rotateZ` 的 roll 完全无效。
+  根因：舞台帧循环每帧 `orbit.update()` 会把相机重新对准 `orbit.target`（默认原点），一切一次性 lookAt/rotateZ 都被逐帧抹掉。
+  规则：取景后必须 `orbit.target.copy(包围盒中心)`；roll 效果只能通过滚转模型实现（取景前应用）。
+- **Tier1 色彩门对小面积饱和点缀色系统性误报；但报错也可能揪出真 bug**（2026-08-09）
+  现象：material-pass 起 per-part deltaE 63 持续超标（红黄绿三个功能键），调 k/提亮材质均无效。
+  根因：kmeans k=5 对 <1% 面积的颜色不成簇（上游文档明示 coarse signal）+ ACES 下饱和 albedo 渲染偏暗 20-40；且本例三个键的 recipe 误写成同一红色（真 bug，先修）。
+  规则：遇色彩门先核 recipe 本身对不对；确认是点缀色统计盲区后按透明原则记录（像素级证据+对比图人评）继续，不刷分不改 gate。
+- **便携 Python（embeddable zip）的 `._pth` 隔离会吃 PYTHONPATH 与脚本目录**（2026-08-09）
+  现象：`python.exe forge/stage3_build/generate_threejs_factory.py` 报 `ModuleNotFoundError: orchestrate_passes`（同目录模块）。
+  根因：embeddable 发行版的 `python312._pth` 精确控制 sys.path，忽略 PYTHONPATH，也不把脚本所在目录加入。
+  规则：把 forge 各 stage 目录（stage1_intake/stage2_spec/stage3_build/stage4_review/_shared）以绝对路径写进 `python312._pth`。
