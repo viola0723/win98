@@ -9,7 +9,7 @@
 | `AGENTS.md` | 迭代锚点（本文件） | 每次开工必读 |
 | `PROJECT_PLAN.md` | 项目宪法：愿景、架构约定、加模块步骤、路线图 | 加模块/动架构前 |
 | `THEME.md` | 主题宪章：方向、内容容器规划、作品档案规范 | 开工/阶段收尾各一遍，方向变就迭代版本 |
-| `DEVLOG.md` | 迭代日志（只增不删，新→旧） | 写接力上下文、查历史时；平时不读 |
+| `DEVLOG.md` | 迭代日志（只增不删，新→旧） | 写接力上下文、查历史时；平时不读，查历史用 Grep 关键词定位、命中再读该行 |
 | `PITFALLS.md` | 踩坑录：现象→根因→规则 | 改触屏/窗口/图标相关代码前翻对应类别 |
 | `COLLAB.md` | 多电脑协作（换机 setup、pull/push 节奏、在役机器互认） | 换机/凭据/网络问题时 |
 | `README.md` | 对外门面 | 基本不用动 |
@@ -20,7 +20,7 @@
 
 ## 当前阶段（只记最近动态，全史见 DEVLOG.md）
 
-- 2026-08-09｜**展品 005「云桥」：新展品类型「会动的画」首件（图生视频 + ffmpeg 减速补帧）+ AIGC 能力指针入档**：工艺定案——GIF 证伪（同内容比 mp4 大一个数量级），走 `<video muted autoplay loop playsinline>` 无声循环；**循环工艺分级（用户拍板，以后照此执行）**：无方向运动（光影/摇曳/微视差）→ 正反打 ping-pong 无缝；有方向运动（人物/水流/雨雪）→ 不反转，减速拉长 + 接受硬接缝。本作链：即梦 `image2video`（钉人物姿态要写死正向词"伫立原地/双脚不动/位置不变"，mini 档服从度不够、用 `seedance2.0_vip`）→ ffmpeg `setpts=PTS/0.6` + `minterpolate` 运动补偿补帧回真 24fps（5s/10MB → 8.3s/800KB，CRF27）→ 展品页 `cloudbridge.vue` 海报帧先进、`@playing` 淡入"画活了"（大厅同款画框 CSS）。素材三件套 `public/covers/cloudbridge{,.mp4,-poster.jpg}`，母带档案留 `temp/cloudbridge/`（不进 git）。AIGC 手册仓 = 仓库外 `C:/Kimi Code/aigc-guides`（dreamina/mmx CLI，指针见环境备忘）；全链细节与参数见 DEVLOG 2026-08-09 同日条目
+- 2026-08-09｜**展品 005「云桥」：「会动的画」新类型首件 + AIGC 指针入档**：GIF 证伪 → 无声循环 mp4（`muted autoplay loop playsinline`）；循环工艺分级——无方向运动 → 正反打无缝，有方向运动（人物/水流）→ 减速拉长接受硬接缝。链：即梦 image2video（vip 档 + 正向姿态词钉人物）→ ffmpeg 0.6x + minterpolate 补帧回 24fps（8.3s/800KB）→ 海报帧淡入"画活了"；补丁：大厅 `?focus=` 返回停在刚看的展品。全链细节见 DEVLOG 同日两条；AIGC 手册仓 `C:/Kimi Code/aigc-guides`
 
 ## 快速上手
 
@@ -65,14 +65,14 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 3. 桌面壳层（图标/窗口框架/任务栏/开始菜单）必须保持 Win98 观感；窗口内部风格自由（可用 98.css 组件，也可完全自定义——壳守 98、芯可自由，见 THEME.md）。
 4. 触屏用 Pointer Events；手机上窗口默认最大化（`WindowManager.isMobile()`）。
 5. 每次迭代改完：更新 `config.js` 注释、`DEVLOG.md` 顶部加一条、本文件「当前阶段」重写为最新动态（旧的不留，全史在 DEVLOG）。
-6. 修完任何「查了半天才发现」的 bug：在 `PITFALLS.md` 对应类别加一条（现象→根因→规则）。
+6. 经验当天晋级，DEVLOG 只留故事：修完「查了半天才发现」的代码 bug → `PITFALLS.md` 对应类别加一条（现象→根因→规则）；环境/操作类经验（镜像、端口、凭据、工具链脾气）→ 本文件「环境备忘」加一条。**只写进 DEVLOG = 没记**（DEVLOG 平时不读）。
 7. 桌面图标一律自绘像素 PNG（`tools/make_icons.py`）；模块内图标用 **pixelarticons**（MIT）path 内联 SVG（参照 mine-dungeon.js `PX` 表 + `px()`）；emoji 不承担关键状态的唯一表达，增量禁用 emoji 图标（存量清单与理由见 `PITFALLS.md`）。
 8. 新模块注册时必须定多端适配级别（A=双端完整 / B=手机可用可简化 / C=PC 优先，定义见 PROJECT_PLAN.md §5.4），验收范围按级别执行。
 9. 阶段性收尾必过「收尾清单」（见下节，逐项打钩）：杀临时服务**并验证端口已释放**、删 `../tools/` 下本次临时产物、工作区只剩预期改动。
 
 ## 收尾清单（每次阶段收尾逐项打钩，勿凭记忆）
 
-1. **杀临时服务**：本次起过的预览/调试服务全部杀掉，杀完**验证端口真的空了**——Windows：`netstat -ano | grep 8098` 无 LISTENING；Mac：`lsof -i :8098` 无输出。没空就按 PID 补杀（`taskkill //PID <pid> //F`）——**npx 会派生子进程，杀父进程/停后台任务常常不够**。（2026-07-25 教训二连：一次是上次收尾漏杀 npx http-server 把 8098 占了一整天；一次是 TaskStop 只杀了 npx 壳、子进程还占着端口。）
+1. **杀临时服务**：本次起过的预览/调试服务全部杀掉，杀完**验证端口真的空了**——Windows：`netstat -ano | grep 8098` 无 LISTENING；Mac：`lsof -i :8098` 无输出。没空就按 PID 补杀（`taskkill //PID <pid> //F`）——**npx 会派生子进程，杀父进程/停后台任务常常不够**。
 2. **删临时产物**：`../tools/` 下本次的验证脚本、截图、临时 npm 工程（`package.json`/`node_modules`）全删；**保留**长期资产 `../tools/inspira-ui`、`../tools/gh_*`、`../tools/ffmpeg`。
 3. **工作区干净**：`git status` 只剩本次预期改动；文档已同步（DEVLOG 顶部新条目 + AGENTS 当前阶段 + 有坑则 PITFALLS）。
 
@@ -92,6 +92,7 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 - 预览：本地 8098 端口（Mac：`python3 -m http.server 8098`；Windows 机未装 Python：`npx -y http-server -p 8098 -s -c-1`，`-c-1` 禁缓存防改完刷不到新版）。**起服务前先查端口**（有 LISTENING 说明有残留，先杀再起，查法见收尾清单）
 - 加歌：① 源音频 + 封面丢 `assets/music/`，**先压缩**（国内通道刚需）：优先本机 ffmpeg（mp3 `-b:a 128k -ar 44100`、封面长边 512px `-q:v 4`，覆盖同名文件）；零安装兜底 = `tools/audio-optimizer.html?src=/assets/music/xxx.mp3&cover=/assets/music/xxx.jpg` ② 波形：ffmpeg 解码 s16le mono 44100 管道进 Node 脚本复刻提取器算法（N=112 RMS，参考 DEVLOG 2026-07-26 新歌二连），或浏览器 `tools/waveform-extractor.html?src=/assets/music/xxx.mp3` 抄 duration/peaks ③ `js/apps/tapeplayer.js` 的 `WIN98_TAPES` 加一条
 - 本机 ffmpeg：`../tools/ffmpeg/node_modules/ffmpeg-static/ffmpeg.exe`（6.1.1 gyan essentials，含 libmp3lame/libopus/x264/x265，解码冒烟已过；装法 `cd ../tools/ffmpeg && npm i ffmpeg-static`，长期资产勿清）。大文件/批量音视频处理优先用它，`tools/audio-optimizer.html` 仍是零安装兜底
+- npm 镜像：默认 registry 本机极慢（实测卡 11 分钟），npm install 一律加镜像——腾讯 `https://mirrors.cloud.tencent.com/npm/` > 阿里 `https://registry.npmmirror.com`（2026-08-07 实测优先级）
 - 无头浏览器：双机均已装 Playwright Chromium，验收截图命令
   `npx -y playwright screenshot --viewport-size=1280,800(或390,844) <url> <输出.png>`
   若报浏览器缺失（CLI 版本与浏览器 build 不配套）：`npx -y playwright install chromium`
@@ -101,5 +102,5 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 - GitHub 凭据（双机）：Mac = PAT 存 macOS 钥匙串（repo 权限），`git push` 直接可用；gh CLI 在 `../tools/gh_2.96.0_macOS_amd64/bin/gh`（注意：因 token 只有 repo scope，gh 本体拒绝登录，如需完整 gh 功能要重新设备授权并勾选完整 scope）。Windows 机（`C:/Kimi Code/win98`）= SSH 密钥——私钥在仓库 `.git/ssh/`（不进 git、勿外传），remote 为 `ssh://git@ssh.github.com:443/viola0723/win98.git`，仓库级 `core.sshCommand` 已配好；该机 github.com 直连不稳，克隆备用镜像 `https://gh-proxy.com/https://github.com/viola0723/win98.git`
 - 图标版权：已全部替换为自绘像素图标（`tools/make_icons.py`），无版权顾虑；需要新图标就改脚本重跑
 - inspira-ui 镜像：`../tools/inspira-ui`（浅克隆，长期保留，勿当临时产物清理；更新用 `git -C ../tools/inspira-ui pull`）
-- img2threejs 流水线：`../tools/img2threejs`（v1.4.3 钉版，长期保留）+ 便携 Python `../tools/python-embed`（stdlib 专用，embeddable zip；`python312._pth` 已配 forge 各 stage 目录，**勿改勿删**）+ Kimi 适配 skill `~/.agents/skills/img2threejs/SKILL.md`（完整命令序列与评审页参数）。单图 → three.js 展品全流程：dreamina 出参考图候选用户挑 → spec 深化 → 8 pass 评审闭环 → `src/models/` 工厂 + 展品壳 + 封面。运行档案 `../tools/i2t-runs/<物体名>/`（含 spec/reviewHistory/对比图/落选素材）
+- img2threejs 流水线：`../tools/img2threejs`（v1.4.3 钉版，长期保留）+ 便携 Python `../tools/python-embed`（`python312._pth` 已配 forge 各 stage 目录，**勿改勿删**）+ 适配 skill `~/.agents/skills/img2threejs/SKILL.md`（完整命令序列与评审页参数）。流程：dreamina 参考图候选 → spec 深化 → 8 pass 评审闭环 → `src/models/` 工厂 + 展品壳 + 封面；运行档案 `../tools/i2t-runs/<物体名>/`
 - AIGC 生成（生图/生视频/生音乐）：**完整手册在仓库外 `C:/Kimi Code/aigc-guides`**（独立 git 仓，模型选型/命令/提示词模板以它为准，用前先读其 README）。CLI 两枚：`dreamina`（即梦主力，图+视频，`~/bin/dreamina.exe`，已 OAuth 登录）、`mmx`（MiniMax 备份 + 音乐主力 music-3.0，见用户级 skill mmx-cli）。典型用途：展品封面/参考图（Seedream 4.0→4.5→5.0Pro 逐级升档）、图生视频动画（Seedance 2.0mini 日常 / 2.0_vip 交付级，"会动的封面"工艺）、卡带音乐。注意：**必须显式传 `--model_version`**（CLI 默认档比日常策略贵）；生成消耗积分，提交真实任务前先与用户确认；产物默认落工作区根 `gen/`（不进 git）

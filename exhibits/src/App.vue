@@ -8,7 +8,7 @@
 //   · 每幅画 = CSS 复古相框 + 封面画（manifest 的 cover 字段），画下悬浮实时倒影（翻转克隆+渐隐）
 //   · 灯光只打给当前选中的画（顶部光锥 + 框周溢光 + 地面光池），跟选中态走，两侧画隐入暗处
 //   · 交互：拖拽/左右滑切换，点两侧画 = 选中，点中间画 = 进入展品；PC 支持 ← → Enter 键
-import { defineAsyncComponent, onMounted, onUnmounted, ref } from 'vue'
+import { defineAsyncComponent, onMounted, onUnmounted, ref, watch } from 'vue'
 import { EXHIBITS } from './exhibits/manifest'
 import Review from './Review.vue'
 
@@ -26,7 +26,16 @@ const items = EXHIBITS.filter((e) => modules[`./exhibits/${e.id}.vue`])
 const asset = (p) => `${import.meta.env.BASE_URL}${p}`
 
 /* ---------- 画框轮播 ---------- */
-const current = ref(0)
+// ?focus=<展品id>：大厅初始/返回时停在哪幅画（展品页返回链接与浏览器历史都会带上）
+const focusIdx = items.findIndex((e) => e.id === params.get('focus'))
+const current = ref(focusIdx >= 0 ? focusIdx : 0)
+// 切画时把当前画写回 URL（replaceState 不产生历史），浏览器返回键也能回到刚看的那幅
+watch(current, (i) => {
+  if (Exhibit || !items[i]) return
+  const url = new URL(window.location.href)
+  url.searchParams.set('focus', items[i].id)
+  window.history.replaceState(null, '', url)
+})
 const dragX = ref(0) // 拖拽中的实时位移（px），松开归零
 const isDown = ref(false)
 let startX = 0
@@ -123,7 +132,7 @@ onUnmounted(() => {
     <component :is="Exhibit" :bare="bare" />
     <a
       v-if="!bare"
-      href="./index.html"
+      :href="'./index.html?focus=' + exName"
       aria-label="返回大厅"
       class="fixed top-3 left-3 z-50 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/35 text-slate-300 backdrop-blur-sm transition hover:border-white/25 hover:text-white"
     >
