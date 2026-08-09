@@ -34,4 +34,11 @@ export const EXHIBITS = [
     desc: '1983 年的移动自由，一块能打电话的砖头。',
     cover: 'covers/brickphone.jpg',
   },
+  {
+    id: 'cloudbridge',
+    no: '005',
+    title: '云桥',
+    desc: '云上长桥通天宫，看云的人在桥上站成了一幅画。',
+    cover: 'covers/cloudbridge.jpg',
+  },
 ]

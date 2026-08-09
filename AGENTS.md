@@ -20,7 +20,7 @@
 
 ## 当前阶段（只记最近动态，全史见 DEVLOG.md）
 
-- 2026-08-09｜**展品 004「大哥大」：img2threejs 首件 AI 重建展品，8 pass 质量门全过（双端 24 断言全过）**：`../tools/img2threejs`（v1.4.3）+ Kimi 适配层 `~/.agents/skills/img2threejs/SKILL.md`（便携 Python `../tools/python-embed`，`._pth` 要写 stage 目录）；参考图 dreamina 生成（4.0/5.0Pro 混合出候选用户挑）。流程：spec 手工深化（`../tools/i2t-runs/dynatac/deepen_spec.py` 幂等）→ 8 pass「生成骨架 → `refine_ts.py` 精修 → `?review=` 评审页截图 → Tier1 诊断 → 对比图人评 → 记录同步」。坑四枚（PITFALLS 已记）：root scale 必须 [1,1,1]（尺寸烘焙进几何，否则子件继承缩放飞出）；OrbitControls 每帧 lookAt 会抹掉取景（target 同步包围盒中心，roll 只能滚模型）；Tier1 IoU 是全图逐像素比对（取景比例/位置必须贴参考图，有扫参法）；Tier1 色彩门对 <1% 饱和点缀色系统性误报（kmeans k=5 + ACES 偏暗，按透明原则记录继续）。产物：工厂 `exhibits/src/models/`、展品壳 `brickphone.vue`（转台 90s）、封面油画静物（dreamina 四候选选定）。落选素材与流水线档案留 `../tools/i2t-runs/dynatac/`
+- 2026-08-09｜**展品 005「云桥」：新展品类型「会动的画」首件（图生视频 + ffmpeg 减速补帧）+ AIGC 能力指针入档**：工艺定案——GIF 证伪（同内容比 mp4 大一个数量级），走 `<video muted autoplay loop playsinline>` 无声循环；**循环工艺分级（用户拍板，以后照此执行）**：无方向运动（光影/摇曳/微视差）→ 正反打 ping-pong 无缝；有方向运动（人物/水流/雨雪）→ 不反转，减速拉长 + 接受硬接缝。本作链：即梦 `image2video`（钉人物姿态要写死正向词"伫立原地/双脚不动/位置不变"，mini 档服从度不够、用 `seedance2.0_vip`）→ ffmpeg `setpts=PTS/0.6` + `minterpolate` 运动补偿补帧回真 24fps（5s/10MB → 8.3s/800KB，CRF27）→ 展品页 `cloudbridge.vue` 海报帧先进、`@playing` 淡入"画活了"（大厅同款画框 CSS）。素材三件套 `public/covers/cloudbridge{,.mp4,-poster.jpg}`，母带档案留 `temp/cloudbridge/`（不进 git）。AIGC 手册仓 = 仓库外 `C:/Kimi Code/aigc-guides`（dreamina/mmx CLI，指针见环境备忘）；全链细节与参数见 DEVLOG 2026-08-09 同日条目
 
 ## 快速上手
 
@@ -102,3 +102,4 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 - 图标版权：已全部替换为自绘像素图标（`tools/make_icons.py`），无版权顾虑；需要新图标就改脚本重跑
 - inspira-ui 镜像：`../tools/inspira-ui`（浅克隆，长期保留，勿当临时产物清理；更新用 `git -C ../tools/inspira-ui pull`）
 - img2threejs 流水线：`../tools/img2threejs`（v1.4.3 钉版，长期保留）+ 便携 Python `../tools/python-embed`（stdlib 专用，embeddable zip；`python312._pth` 已配 forge 各 stage 目录，**勿改勿删**）+ Kimi 适配 skill `~/.agents/skills/img2threejs/SKILL.md`（完整命令序列与评审页参数）。单图 → three.js 展品全流程：dreamina 出参考图候选用户挑 → spec 深化 → 8 pass 评审闭环 → `src/models/` 工厂 + 展品壳 + 封面。运行档案 `../tools/i2t-runs/<物体名>/`（含 spec/reviewHistory/对比图/落选素材）
+- AIGC 生成（生图/生视频/生音乐）：**完整手册在仓库外 `C:/Kimi Code/aigc-guides`**（独立 git 仓，模型选型/命令/提示词模板以它为准，用前先读其 README）。CLI 两枚：`dreamina`（即梦主力，图+视频，`~/bin/dreamina.exe`，已 OAuth 登录）、`mmx`（MiniMax 备份 + 音乐主力 music-3.0，见用户级 skill mmx-cli）。典型用途：展品封面/参考图（Seedream 4.0→4.5→5.0Pro 逐级升档）、图生视频动画（Seedance 2.0mini 日常 / 2.0_vip 交付级，"会动的封面"工艺）、卡带音乐。注意：**必须显式传 `--model_version`**（CLI 默认档比日常策略贵）；生成消耗积分，提交真实任务前先与用户确认；产物默认落工作区根 `gen/`（不进 git）
