@@ -97,6 +97,7 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
   若报浏览器缺失（CLI 版本与浏览器 build 不配套）：`npx -y playwright install chromium`
 - **验收脚本是一次性的**：每次验收现写到 `../tools/`（不进 git），收尾即删——不要去找上一次的脚本，需要历史断言结论就翻 DEVLOG 对应条目；脚本里读棋盘/对局状态用引擎暴露的 `boardEl.win98Board` / `appEl.win98DgRun`，选择器记得加模式作用域（见 PITFALLS 扫雷引擎类）
 - 部署：已上线 GitHub Pages —— https://viola0723.github.io/win98/ （仓库 https://github.com/viola0723/win98 ，推送后约 1-3 分钟自动更新）
+- 部署（腾讯云站）：https://viola0723.com —— 腾讯轻量云 nginx 静态站（`/var/www/win98`，root clone 本仓库），**不自动同步**；用户说「同步腾讯云 / 发版」时执行 `ssh -F ~/.ssh/config tx-cloud 'sudo git -C /var/www/win98 pull'`，完事 curl 验证 200。连接方式/证书/服务器环境详见仓库外 `C:/Kimi Code/服务器-tx-cloud.md`（本机 Kimi Code 根目录下，不进 git）
 - GitHub 凭据（双机）：Mac = PAT 存 macOS 钥匙串（repo 权限），`git push` 直接可用；gh CLI 在 `../tools/gh_2.96.0_macOS_amd64/bin/gh`（注意：因 token 只有 repo scope，gh 本体拒绝登录，如需完整 gh 功能要重新设备授权并勾选完整 scope）。Windows 机（`C:/Kimi Code/win98`）= SSH 密钥——私钥在仓库 `.git/ssh/`（不进 git、勿外传），remote 为 `ssh://git@ssh.github.com:443/viola0723/win98.git`，仓库级 `core.sshCommand` 已配好；该机 github.com 直连不稳，克隆备用镜像 `https://gh-proxy.com/https://github.com/viola0723/win98.git`
 - 图标版权：已全部替换为自绘像素图标（`tools/make_icons.py`），无版权顾虑；需要新图标就改脚本重跑
 - inspira-ui 镜像：`../tools/inspira-ui`（浅克隆，长期保留，勿当临时产物清理；更新用 `git -C ../tools/inspira-ui pull`）
