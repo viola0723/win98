@@ -16,6 +16,11 @@ window.WIN98_APPS = window.WIN98_APPS || {};
     iframe.className = 'exhibit-frame';
     iframe.src = cfg.exhibit;
     iframe.title = cfg.title || 'exhibit';
+    /* 个别展品页需要的 iframe 权限（config.js 里按需声明）：
+       cfg.allow = 'camera'        iframe 内调摄像头（getUserMedia 必须显式授权）
+       cfg.allowFullscreen = true  iframe 内 requestFullscreen 必须此属性 */
+    if (cfg.allow) iframe.allow = cfg.allow;
+    if (cfg.allowFullscreen) iframe.allowFullscreen = true;
     bodyEl.appendChild(iframe);
   };
 })();

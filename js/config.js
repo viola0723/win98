@@ -74,5 +74,20 @@ window.WIN98_MODULES = [
     app: 'tape', /* adapt: A（核心交互，双端完整） */
     width: 970,
     height: 480
+  },
+  /* 隔空文件桥：QR-AirBridge 移植（物理隔空传文件——本机屏幕轮播二维码，手机摄像头扫码重组，
+     全程不经网络）。整页移植自仓库外 qr-airbridge 项目（单文件 qr-airbridge/index.html，库全内嵌），
+     复用 exhibit 渲染器 iframe 加载；摄像头（手机接收端）与全屏发射需 iframe 显式授权 */
+  {
+    id: 'airbridge',
+    title: '隔空文件桥',
+    icon: 'assets/icons/airbridge.png',
+    type: 'window',
+    app: 'exhibit', /* adapt: A（双端核心：PC 发送 / 手机摄像头接收） */
+    exhibit: 'qr-airbridge/index.html',
+    allow: 'camera',
+    allowFullscreen: true,
+    width: 560,
+    height: 680
   }
 ];

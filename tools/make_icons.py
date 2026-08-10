@@ -251,6 +251,7 @@ def draw_tape(d):
     用 24×20 字符矩阵逐点绘制（同 draw_poker 的 pip 思路）；浅色描边光晕保证青色桌面可辨。"""
     PAL = {
         'L': '#e8e8e8',   # 光晕 / 卷轴
+        'W': '#e8e8e8',   # 卷轴（与 L 同色；漏登记会让脚本在 tape 行崩掉）
         'S': '#26262e',   # 带壳
         'D': '#101016',   # 带窗
         'G': '#d8c27a',   # 金色标签（《月之暗面》主题色）
@@ -286,6 +287,47 @@ def draw_tape(d):
                 d.point([(i, 6 + j)], fill=PAL[ch])
 
 
+def draw_airbridge(d):
+    """隔空文件桥（QR-AirBridge）：左侧 21×21 标准版式二维码（白底静区卡片），
+    右侧竖屏手机正在扫码——屏幕发码、摄像头收码的隔空传输意象。"""
+    # 二维码卡片（白底 = 静区，描边保证青色桌面可辨），内腔恰好 21×21
+    d.rectangle([1, 4, 23, 26], fill=WHITE, outline=INK)
+    QR = [
+        'KKKKKKKWK.KW.WKKKKKKK',
+        'KWWWWWKW.KK.WWKWWWWWK',
+        'KWKKKWKWK..KWWKWKKKWK',
+        'KWKKKWKW.WK.KWKWKKKWK',
+        'KWKKKWKWKK..KWKWKKKWK',
+        'KWWWWWKW.K.WKWKWWWWWK',
+        'KKKKKKKWKWKWKWKKKKKKK',
+        'WWWWWWWWK.WK.WWWWWWWW',
+        'K.WKK.KWKK.W.KK.W.KKK',
+        '.KKW.KWW.WKK.K.WKK.W.',
+        'KW.KK.KWK.KWW.KK.WKK.',
+        '.WK.KWWW.KK.WKK.K.W.K',
+        'KK..KKKWWK.K..KK.WKKK',
+        '.KW..KWWK.WKK.W..K..W',
+        'KKKKKKKWKK.W.KKWKW.K.',
+        'KWWWWWKW.WKK.W..KK.KW',
+        'KWKKKWKWK..KK.WKK..K.',
+        'KWKKKWKW.KW.KW..KKWKW',
+        'KWKKKWKWKK..KK.WK..K.',
+        'KWWWWWKW.K.WKK.KW.KKW',
+        'KKKKKKKWKWK..KK.WK..K',
+    ]
+    for j, row in enumerate(QR):
+        for i, ch in enumerate(row):
+            if ch == 'K':
+                d.point([(2 + i, 5 + j)], fill=INK)
+    # 右侧竖屏手机（灰壳 + 青屏），屏幕中央一枚微缩码示意"正在扫"
+    d.rectangle([25, 7, 31, 27], fill=GRAY, outline=INK)
+    d.point([(28, 8)], fill=INK)                        # 听筒
+    d.rectangle([26, 10, 30, 23], fill=TEAL)            # 屏幕
+    d.rectangle([27, 14, 29, 16], fill=WHITE)           # 屏上微缩码
+    d.point([(27, 14), (29, 14), (27, 16)], fill=INK)   # 微缩码定位角
+    d.point([(28, 25)], fill=INK)                       # Home 键
+
+
 ICONS = [
     ('computer', draw_computer),
     ('notepad', draw_notepad),
@@ -301,6 +343,7 @@ ICONS = [
     ('gallery', draw_gallery),
     ('saver', draw_saver),
     ('tape', draw_tape),
+    ('airbridge', draw_airbridge),
 ]
 
 

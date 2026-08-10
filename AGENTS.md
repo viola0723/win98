@@ -20,7 +20,7 @@
 
 ## 当前阶段（只记最近动态，全史见 DEVLOG.md）
 
-- 2026-08-09｜**展品 005「云桥」：「会动的画」新类型首件 + AIGC 指针入档**：GIF 证伪 → 无声循环 mp4（`muted autoplay loop playsinline`）；循环工艺分级——无方向运动 → 正反打无缝，有方向运动（人物/水流）→ 减速拉长接受硬接缝。链：即梦 image2video（vip 档 + 正向姿态词钉人物）→ ffmpeg 0.6x + minterpolate 补帧回 24fps（8.3s/800KB）→ 海报帧淡入"画活了"；补丁：大厅 `?focus=` 返回停在刚看的展品。全链细节见 DEVLOG 同日两条；AIGC 手册仓 `C:/Kimi Code/aigc-guides`
+- 2026-08-10｜**新模块「隔空文件桥」**：qr-airbridge 整页移植（`qr-airbridge/index.html` 2.0MB 单文件零改动入仓，物理隔空传文件：PC 屏幕发码 → 手机扫码，不经网络），复用 exhibit 渲染器 + 新增 iframe 按需权限字段（config 里 `allow: 'camera'` / `allowFullscreen: true`）；图标 = 21×21 二维码+扫码手机；顺带修 `draw_tape` PAL 漏 'W' 的存量 KeyError。全链细节见 DEVLOG 同日
 
 ## 快速上手
 
@@ -42,7 +42,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `js/apps/minesweeper.js` | 扫雷容器 `WIN98_APPS['mine']`（Tab 切模式，缺失模式自动隐藏 Tab）+ 经典模式（三档+自定义难度） |
 | `js/apps/mine-dungeon.js` | 扫雷·寻找时间胶囊（肉鸽）：三职业、装备/消耗品分家、宝箱+商店、11 层主线双结局；数据驱动 CLASSES/GEAR/ITEMS/PACKS；**挂载即 fitWindowToContent** |
 | `js/apps/poker.js` | 德州扑克模块（移植自独立版单文件游戏；样式在 style.css 末尾以 `.app-poker` 为作用域） |
-| `js/apps/exhibit.js` | 展览馆渲染器：iframe 加载 `cfg.exhibit` 指定的展厅/展品页（exhibits/dist/...） |
+| `js/apps/exhibit.js` | iframe 通用渲染器：加载 `cfg.exhibit` 指定的页面（展览馆大厅、隔空文件桥等）；按需权限字段 `cfg.allow`（如 'camera'）/ `cfg.allowFullscreen` |
 | `js/apps/tapeplayer.js` | 卡带随身听（A 级）：数据注册表 `WIN98_TAPES` 在头部（加歌三步见注释）；飞行入带 / 斜二轴测 2.5D 机身 / 相框封面 / 真实波形 seek / 按住快进快退；SVG 按钮非 button 不吃 touchTap，自带 pointerup tap 判定；状态挂 `bodyEl.win98Tape`（+ `win98TapeAudio`） |
 | `js/screensaver.js` | 屏幕保护：闲置 5 分钟全屏播放展品，任意输入退出；`WIN98_SAVER.show()` 供开始菜单预览 |
 | `js/windowManager.js` | 窗口生命周期，对外 `WindowManager.open(module)`；动态切换 `#windows` pointer-events（勿静态写死） |
@@ -89,7 +89,7 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 ## 环境备忘
 
 - 多电脑协作：见 `COLLAB.md`（新电脑 = clone + 配 push 凭据 + 装 Node；开工 pull、收工 push）
-- 预览：本地 8098 端口（Mac：`python3 -m http.server 8098`；Windows 机未装 Python：`npx -y http-server -p 8098 -s -c-1`，`-c-1` 禁缓存防改完刷不到新版）。**起服务前先查端口**（有 LISTENING 说明有残留，先杀再起，查法见收尾清单）
+- 预览：本地 8098 端口（双机统一 `python3 -m http.server 8098`；Windows 备选 `npx -y http-server -p 8098 -s -c-1`，`-c-1` 禁缓存防改完刷不到新版，注意 npx 壳杀不净要验端口）。**起服务前先查端口**（有 LISTENING 说明有残留，先杀再起，查法见收尾清单）
 - 加歌：① 源音频 + 封面丢 `assets/music/`，**先压缩**（国内通道刚需）：优先本机 ffmpeg（mp3 `-b:a 128k -ar 44100`、封面长边 512px `-q:v 4`，覆盖同名文件）；零安装兜底 = `tools/audio-optimizer.html?src=/assets/music/xxx.mp3&cover=/assets/music/xxx.jpg` ② 波形：ffmpeg 解码 s16le mono 44100 管道进 Node 脚本复刻提取器算法（N=112 RMS，参考 DEVLOG 2026-07-26 新歌二连），或浏览器 `tools/waveform-extractor.html?src=/assets/music/xxx.mp3` 抄 duration/peaks ③ `js/apps/tapeplayer.js` 的 `WIN98_TAPES` 加一条
 - 本机 ffmpeg：`../tools/ffmpeg/node_modules/ffmpeg-static/ffmpeg.exe`（6.1.1 gyan essentials，含 libmp3lame/libopus/x264/x265，解码冒烟已过；装法 `cd ../tools/ffmpeg && npm i ffmpeg-static`，长期资产勿清）。大文件/批量音视频处理优先用它，`tools/audio-optimizer.html` 仍是零安装兜底
 - npm 镜像：默认 registry 本机极慢（实测卡 11 分钟），npm install 一律加镜像——腾讯 `https://mirrors.cloud.tencent.com/npm/` > 阿里 `https://registry.npmmirror.com`（2026-08-07 实测优先级）
@@ -101,6 +101,7 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 - 部署（腾讯云站）：https://viola0723.com —— 腾讯轻量云 nginx 静态站（`/var/www/win98`，root clone 本仓库），**不自动同步**；用户说「同步腾讯云 / 发版」时执行 `ssh -F ~/.ssh/config tx-cloud 'sudo git -C /var/www/win98 pull'`，完事 curl 验证 200。连接方式/证书/服务器环境详见仓库外 `C:/Kimi Code/服务器-tx-cloud.md`（本机 Kimi Code 根目录下，不进 git）
 - GitHub 凭据（双机）：Mac = PAT 存 macOS 钥匙串（repo 权限），`git push` 直接可用；gh CLI 在 `../tools/gh_2.96.0_macOS_amd64/bin/gh`（注意：因 token 只有 repo scope，gh 本体拒绝登录，如需完整 gh 功能要重新设备授权并勾选完整 scope）。Windows 机（`C:/Kimi Code/win98`）= SSH 密钥——私钥在仓库 `.git/ssh/`（不进 git、勿外传），remote 为 `ssh://git@ssh.github.com:443/viola0723/win98.git`，仓库级 `core.sshCommand` 已配好；该机 github.com 直连不稳，克隆备用镜像 `https://gh-proxy.com/https://github.com/viola0723/win98.git`
 - 图标版权：已全部替换为自绘像素图标（`tools/make_icons.py`），无版权顾虑；需要新图标就改脚本重跑
+- Windows 机已装系统 Python 3.12.9 + Pillow 12.3.0（2026-08-10，用户级安装已 PrependPath，`pip install --user` 走腾讯镜像）——`python tools/make_icons.py` / `python3 -m http.server 8098` 直跑；`../tools/python-embed` 仍是 img2threejs 专用便携环境，**勿动勿混用**
 - inspira-ui 镜像：`../tools/inspira-ui`（浅克隆，长期保留，勿当临时产物清理；更新用 `git -C ../tools/inspira-ui pull`）
 - img2threejs 流水线：`../tools/img2threejs`（v1.4.3 钉版，长期保留）+ 便携 Python `../tools/python-embed`（`python312._pth` 已配 forge 各 stage 目录，**勿改勿删**）+ 适配 skill `~/.agents/skills/img2threejs/SKILL.md`（完整命令序列与评审页参数）。流程：dreamina 参考图候选 → spec 深化 → 8 pass 评审闭环 → `src/models/` 工厂 + 展品壳 + 封面；运行档案 `../tools/i2t-runs/<物体名>/`
 - AIGC 生成（生图/生视频/生音乐）：**完整手册在仓库外 `C:/Kimi Code/aigc-guides`**（独立 git 仓，模型选型/命令/提示词模板以它为准，用前先读其 README）。CLI 两枚：`dreamina`（即梦主力，图+视频，`~/bin/dreamina.exe`，已 OAuth 登录）、`mmx`（MiniMax 备份 + 音乐主力 music-3.0，见用户级 skill mmx-cli）。典型用途：展品封面/参考图（Seedream 4.0→4.5→5.0Pro 逐级升档）、图生视频动画（Seedance 2.0mini 日常 / 2.0_vip 交付级，"会动的封面"工艺）、卡带音乐。注意：**必须显式传 `--model_version`**（CLI 默认档比日常策略贵）；生成消耗积分，提交真实任务前先与用户确认；产物默认落工作区根 `gen/`（不进 git）

@@ -17,7 +17,7 @@
 | 机器 | 仓库位置 | 推送凭据 | 预览 | 备注 |
 |---|---|---|---|---|
 | Mac（主力） | （本仓库所在机） | PAT 存 macOS 钥匙串；gh CLI 在 `../tools/gh_2.96.0_macOS_amd64/bin/gh` | `python3 -m http.server 8098` | Playwright Chromium 已装 |
-| Windows | `C:/Kimi Code/win98` | SSH 密钥（私钥在仓库 `.git/ssh/`，公钥名 `win98-relay-windows`），走 ssh.github.com:443，`core.sshCommand` 已配好 | `npx -y http-server -p 8098 -s`（未装 Python） | Playwright Chromium 已装；github.com 直连不稳，克隆备用镜像 `https://gh-proxy.com/https://github.com/viola0723/win98.git`；ffmpeg 与 inspira-ui 已就位（`../tools/`，gh-proxy 可作拉取 github 公开资源的通用备用通道） |
+| Windows | `C:/Kimi Code/win98` | SSH 密钥（私钥在仓库 `.git/ssh/`，公钥名 `win98-relay-windows`），走 ssh.github.com:443，`core.sshCommand` 已配好 | `python3 -m http.server 8098`（Python 3.12.9 + Pillow 已装） | Playwright Chromium 已装；github.com 直连不稳，克隆备用镜像 `https://gh-proxy.com/https://github.com/viola0723/win98.git`；ffmpeg 与 inspira-ui 已就位（`../tools/`，gh-proxy 可作拉取 github 公开资源的通用备用通道） |
 
 ### 按需安装（不做对应工作就不用装）
 
