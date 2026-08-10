@@ -20,7 +20,7 @@
 
 ## 当前阶段（只记最近动态，全史见 DEVLOG.md）
 
-- 2026-08-10｜**新模块「隔空文件桥」**：qr-airbridge 整页移植（`qr-airbridge/index.html` 2.0MB 单文件零改动入仓，物理隔空传文件：PC 屏幕发码 → 手机扫码，不经网络），复用 exhibit 渲染器 + 新增 iframe 按需权限字段（config 里 `allow: 'camera'` / `allowFullscreen: true`）；图标 = 21×21 二维码+扫码手机；顺带修 `draw_tape` PAL 漏 'W' 的存量 KeyError。全链细节见 DEVLOG 同日
+- 2026-08-11｜**展品 006「归鞘」进馆**：剑舞视频末 3 秒 × 2x 减速 + minterpolate 补帧 48fps（ffmpeg，5.77s/2MB 循环），`sheath.vue` 沿用云桥「海报帧兜底+淡入」骨架，素材三件套进 `public/covers/`，manifest 006。全链细节见 DEVLOG 同日
 
 ## 快速上手
 

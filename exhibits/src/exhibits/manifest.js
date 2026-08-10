@@ -41,4 +41,11 @@ export const EXHIBITS = [
     desc: '云上长桥通天宫，看云的人在桥上站成了一幅画。',
     cover: 'covers/cloudbridge.jpg',
   },
+  {
+    id: 'sheath',
+    no: '006',
+    title: '归鞘',
+    desc: '竹林剑舞的最后一息，袖落，剑沉，人定。',
+    cover: 'covers/sheath.jpg',
+  },
 ]

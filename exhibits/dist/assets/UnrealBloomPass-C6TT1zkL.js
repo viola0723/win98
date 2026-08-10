@@ -1,4 +1,4 @@
-import{$ as e,E as t,G as n,N as r,Q as i,T as a,Y as o,Z as s,_ as c,et as l,f as u,u as d,y as f}from"./index-DzF3aE_F.js";var p={name:`CopyShader`,uniforms:{tDiffuse:{value:null},opacity:{value:1}},vertexShader:`
+import{$ as e,E as t,G as n,N as r,Q as i,T as a,Y as o,Z as s,_ as c,et as l,f as u,u as d,y as f}from"./index-D92r-ptt.js";var p={name:`CopyShader`,uniforms:{tDiffuse:{value:null},opacity:{value:1}},vertexShader:`
 
 		varying vec2 vUv;
 
