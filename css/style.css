@@ -268,15 +268,24 @@ body.dragging {
 }
 
 /* 备案号：任务栏托盘小字，贴近 98 系统默认观感 */
-#beian-link {
+#beian-link,
+#beian-gongan-link {
   font-size: 11px;
   color: #222;
   text-decoration: none;
   white-space: nowrap;
 }
 
-#beian-link:hover {
+#beian-link:hover,
+#beian-gongan-link:hover {
   text-decoration: underline;
+}
+
+/* 公安备案国徽小图标与文字对齐 */
+#beian-gongan-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 #clock {

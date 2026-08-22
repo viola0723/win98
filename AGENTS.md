@@ -20,7 +20,7 @@
 
 ## 当前阶段（只记最近动态，全史见 DEVLOG.md）
 
-- 2026-08-11｜**展品 006「归鞘」进馆**：剑舞视频末 3 秒 × 2x 减速 + minterpolate 补帧 48fps（ffmpeg，5.77s/2MB 循环），`sheath.vue` 沿用云桥「海报帧兜底+淡入」骨架，素材三件套进 `public/covers/`，manifest 006。全链细节见 DEVLOG 同日
+- 2026-08-22｜**公安联网备案号上站**：粤公网安备44030002015934号 落定，官方国徽图标（`assets/icons/beian-gongan.png`，生成器自绘之外的法规例外）+ 查询页链接进任务栏托盘（`#beian-gongan-link`），与 ICP 并排。全链细节见 DEVLOG 同日
 
 ## 快速上手
 
@@ -92,10 +92,10 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 - 预览：本地 8098 端口（双机统一 `python3 -m http.server 8098`；Windows 备选 `npx -y http-server -p 8098 -s -c-1`，`-c-1` 禁缓存防改完刷不到新版，注意 npx 壳杀不净要验端口）。**起服务前先查端口**（有 LISTENING 说明有残留，先杀再起，查法见收尾清单）
 - 加歌：① 源音频 + 封面丢 `assets/music/`，**先压缩**（国内通道刚需）：优先本机 ffmpeg（mp3 `-b:a 128k -ar 44100`、封面长边 512px `-q:v 4`，覆盖同名文件）；零安装兜底 = `tools/audio-optimizer.html?src=/assets/music/xxx.mp3&cover=/assets/music/xxx.jpg` ② 波形：ffmpeg 解码 s16le mono 44100 管道进 Node 脚本复刻提取器算法（N=112 RMS，参考 DEVLOG 2026-07-26 新歌二连），或浏览器 `tools/waveform-extractor.html?src=/assets/music/xxx.mp3` 抄 duration/peaks ③ `js/apps/tapeplayer.js` 的 `WIN98_TAPES` 加一条
 - 本机 ffmpeg：`../tools/ffmpeg/node_modules/ffmpeg-static/ffmpeg.exe`（6.1.1 gyan essentials，含 libmp3lame/libopus/x264/x265，解码冒烟已过；装法 `cd ../tools/ffmpeg && npm i ffmpeg-static`，长期资产勿清）。大文件/批量音视频处理优先用它，`tools/audio-optimizer.html` 仍是零安装兜底
-- npm 镜像：默认 registry 本机极慢（实测卡 11 分钟），npm install 一律加镜像——腾讯 `https://mirrors.cloud.tencent.com/npm/` > 阿里 `https://registry.npmmirror.com`（2026-08-07 实测优先级）
-- 无头浏览器：双机均已装 Playwright Chromium，验收截图命令
-  `npx -y playwright screenshot --viewport-size=1280,800(或390,844) <url> <输出.png>`
-  若报浏览器缺失（CLI 版本与浏览器 build 不配套）：`npx -y playwright install chromium`
+- npm 镜像：默认 registry 本机极慢（实测卡 11 分钟；2026-08-22 裸 `npx -y playwright` 又卡满 600s 超时被杀，加镜像后 8 秒跑完——**npx 拉包走同一网络路径，同属本规则**），npm/npx 系命令一律带前缀 `npm_config_registry=<镜像>`——腾讯 `https://mirrors.cloud.tencent.com/npm/` > 阿里 `https://registry.npmmirror.com`（2026-08-07 实测优先级）
+- 无头浏览器：双机均已装 Playwright Chromium，验收截图命令（镜像前缀勿省）
+  `npm_config_registry=https://mirrors.cloud.tencent.com/npm/ npx -y playwright screenshot --viewport-size=1280,800(或390,844) <url> <输出.png>`
+  若报浏览器缺失（CLI 版本与浏览器 build 不配套）：同前缀 `npx -y playwright install chromium`
 - **验收脚本是一次性的**：每次验收现写到 `../tools/`（不进 git），收尾即删——不要去找上一次的脚本，需要历史断言结论就翻 DEVLOG 对应条目；脚本里读棋盘/对局状态用引擎暴露的 `boardEl.win98Board` / `appEl.win98DgRun`，选择器记得加模式作用域（见 PITFALLS 扫雷引擎类）
 - 部署：已上线 GitHub Pages —— https://viola0723.github.io/win98/ （仓库 https://github.com/viola0723/win98 ，推送后约 1-3 分钟自动更新）
 - 部署（腾讯云站）：https://viola0723.com —— 腾讯轻量云 nginx 静态站（`/var/www/win98`，root clone 本仓库），**不自动同步**；用户说「同步腾讯云 / 发版」时执行 `ssh -F ~/.ssh/config tx-cloud 'sudo git -C /var/www/win98 pull'`，完事 curl 验证 200。连接方式/证书/服务器环境详见仓库外 `C:/Kimi Code/服务器-tx-cloud.md`（本机 Kimi Code 根目录下，不进 git）
