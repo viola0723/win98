@@ -86,6 +86,10 @@
 
 ## 工程 / 环境
 
+- **hover 位移顶出横向滚动条：滚动容器里 hover transform 必须配 overflow-x:hidden**（2026-08-30）
+  现象：随身听架子（`.tp-slots` 独立滚动后）鼠标悬停某行下边框附近，整个架子区域快速抖动；「有时候」才出现。
+  根因：`.tp-row:hover { transform: translateX(4px) }` 让行右溢 4px；CSS 规范里 overflow-y:auto 会把 overflow-x:visible 升级为 auto → 溢出即渲染横向滚动条（Windows Chrome 经典滚动条占 ~15px 高）→ 列表内容整体上跳 → 行脱开鼠标 → hover 丢失 → 位移撤销 → 滚动条消失 → 行回位 → hover 恢复……死循环。「有时候」= 只有悬停行贴近可视区底边时上跳才会把它移出鼠标。无头浏览器用 overlay 滚动条不占布局，复现不了。
+  规则：滚动/限高容器内若有 hover transform（或任何可能溢出的动效），显式写死 `overflow-x:hidden`；验收指标要看「滚动条出现与否」（clientHeight 变化），scrollWidth 在 hidden 下仍报溢出值，不能当判据。
 - **新增 CSS class 前先全仓搜一遍——模块内联 SVG 里也全是 class**（2026-08-30）
   现象：随身听 VOL 分辑标签起名 `.tp-vol`，验收发现页面多出第 4 个空「分辑标签」、搜索过滤也藏不掉它。
   根因：机身内联 SVG 的音量滑杆组早已占用 `class="tp-vol"`（buildPlayerSVG）；SVG 元素的 className 是 SVGAnimatedString 对象，DOM 排查时parent链看着像「没有类名」，且 CSS 规则会同时打到 SVG 组上。

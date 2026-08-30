@@ -1655,8 +1655,10 @@ body.dragging {
   display: flex; align-items: center; gap: 6px; user-select: none; }
 .app-tape .tp-volcap::after { content: ''; flex: 1; height: 1px; background: #26262e; }
 .app-tape .tp-empty { font-size: 10px; color: #6a6a76; padding: 10px 2px; }
-/* 架子独立滚动（PC）：自动定位只滚列表、不顶走机身；手机上仍整窗滚动 */
-.app-tape .tp-slots { max-height: 336px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #2a2a32 transparent; }
+/* 架子独立滚动（PC）：自动定位只滚列表、不顶走机身；手机上仍整窗滚动。
+   必须 overflow-x:hidden——否则 hover 行 translateX(4px) 会顶出横向滚动条，
+   滚动条出现/消失挪动行位置 → hover 丢失/恢复死循环，整个架子抖动 */
+.app-tape .tp-slots { max-height: 336px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: #2a2a32 transparent; }
 .app-tape .tp-slots::-webkit-scrollbar { width: 8px; }
 .app-tape .tp-slots::-webkit-scrollbar-thumb { background: #2a2a32; border-radius: 4px; }
 
