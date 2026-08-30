@@ -130,7 +130,7 @@ window.WIN98_APPS['myapp'] = function (bodyEl, win, moduleConfig) {
 
 ### 加一个新的功能模块（标准动作）
 
-1. 在 `tools/make_icons.py` 里为新模块画一个图标（仿照现有 `draw_xxx` 函数，32×32 像素画），注册到 `ICONS` 列表后运行 `python3 tools/make_icons.py`，PNG 自动产出到 `assets/icons/`。
+1. 在 `tools/make_icons.py` 里为新模块画一个图标（仿照现有 `draw_xxx` 函数，32×32 像素画），注册到 `ICONS` 列表后运行 `python tools/make_icons.py`（Mac 用 `python3`），PNG 自动产出到 `assets/icons/`。
 2. 在 `js/apps.js` 里注册渲染函数 `WIN98_APPS['新模块id'] = function (bodyEl, win, cfg) { ... }`。窗口内部风格自由（壳守 98、芯可自由）：想融入桌面就用 98.css 组件类（`button` / `field-row` / `sunken-panel` / `status-bar` / `tree-view` 等），想做自己的风格完全自定义也行。
 3. 在 `js/config.js` 的 `WIN98_MODULES` 里加一条 `type: 'window'` 记录，`app` 指向上一步的函数名。
 4. 打开 `index.html` 验证：桌面出现图标 → 双击打开窗口 → 手机上检查默认最大化是否正常。
@@ -172,5 +172,5 @@ window.WIN98_APPS['myapp'] = function (bodyEl, win, moduleConfig) {
 
 ## 10. 本地运行与部署
 
-- 本地预览：直接双击 `index.html`；或在 `win98/` 目录执行 `python3 -m http.server 8080` 后访问 <http://localhost:8080>。
+- 本地预览：直接双击 `index.html`；或在 `win98/` 目录执行 `python -m http.server 8080`（Mac 用 `python3`）后访问 <http://localhost:8080>。
 - 部署：整个 `win98/` 目录原样上传到任意静态托管（GitHub Pages、Vercel、Netlify、Nginx 目录均可），无需任何构建步骤。

@@ -26,7 +26,7 @@
 
 ```bash
 cd win98
-python3 -m http.server 8098        # 预览 http://localhost:8098（双击 index.html 也行）
+python -m http.server 8098         # 预览 http://localhost:8098（Windows 用 python，Mac 用 python3；双击 index.html 也行）
 for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 ```
 
@@ -78,7 +78,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 
 ## 加模块三步（详见 PROJECT_PLAN.md 第 6 节）
 
-1. 图标：在 `tools/make_icons.py` 里加一个 `draw_xxx` 函数并注册进 `ICONS`，运行 `python3 tools/make_icons.py` 生成到 `assets/icons/`（自绘像素风，无版权问题）
+1. 图标：在 `tools/make_icons.py` 里加一个 `draw_xxx` 函数并注册进 `ICONS`，运行 `python tools/make_icons.py`（Mac 用 `python3`）生成到 `assets/icons/`（自绘像素风，无版权问题）
 2. `apps.js` 注册 `WIN98_APPS['新id']`
 3. `config.js` 加一条记录（标定适配级别）→ 按级别验证
 
@@ -89,19 +89,19 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 ## 环境备忘
 
 - 多电脑协作：见 `COLLAB.md`（新电脑 = clone + 配 push 凭据 + 装 Node；开工 pull、收工 push）
-- 预览：本地 8098 端口（双机统一 `python3 -m http.server 8098`；Windows 备选 `npx -y http-server -p 8098 -s -c-1`，`-c-1` 禁缓存防改完刷不到新版，注意 npx 壳杀不净要验端口）。**起服务前先查端口**（有 LISTENING 说明有残留，先杀再起，查法见收尾清单）
+- 预览：本地 8098 端口（**Windows 用 `python -m http.server 8098`，Mac 用 `python3`**——Windows 的 `python3` 是 WindowsApps 商店占位 stub，静默失败 exit 49、零输出，2026-08-30 实测；Windows 备选 `npx -y http-server -p 8098 -s -c-1`，`-c-1` 禁缓存防改完刷不到新版，注意 npx 壳杀不净要验端口）。**起服务前先查端口**（有 LISTENING 说明有残留，先杀再起，查法见收尾清单）
 - 加歌：① 源音频 + 封面丢 `assets/music/`，**先压缩**（国内通道刚需）：优先本机 ffmpeg（mp3 `-b:a 128k -ar 44100`、封面长边 512px `-q:v 4`，覆盖同名文件）；零安装兜底 = `tools/audio-optimizer.html?src=/assets/music/xxx.mp3&cover=/assets/music/xxx.jpg` ② 波形：ffmpeg 解码 s16le mono 44100 管道进 Node 脚本复刻提取器算法（N=112 RMS，参考 DEVLOG 2026-07-26 新歌二连），或浏览器 `tools/waveform-extractor.html?src=/assets/music/xxx.mp3` 抄 duration/peaks ③ `js/apps/tapeplayer.js` 的 `WIN98_TAPES` 加一条
 - 本机 ffmpeg：`../tools/ffmpeg/node_modules/ffmpeg-static/ffmpeg.exe`（6.1.1 gyan essentials，含 libmp3lame/libopus/x264/x265，解码冒烟已过；装法 `cd ../tools/ffmpeg && npm i ffmpeg-static`，长期资产勿清）。大文件/批量音视频处理优先用它，`tools/audio-optimizer.html` 仍是零安装兜底
 - npm 镜像：默认 registry 本机极慢（实测卡 11 分钟；2026-08-22 裸 `npx -y playwright` 又卡满 600s 超时被杀，加镜像后 8 秒跑完——**npx 拉包走同一网络路径，同属本规则**），npm/npx 系命令一律带前缀 `npm_config_registry=<镜像>`——腾讯 `https://mirrors.cloud.tencent.com/npm/` > 阿里 `https://registry.npmmirror.com`（2026-08-07 实测优先级）
-- 无头浏览器：双机均已装 Playwright Chromium，验收截图命令（镜像前缀勿省）
-  `npm_config_registry=https://mirrors.cloud.tencent.com/npm/ npx -y playwright screenshot --viewport-size=1280,800(或390,844) <url> <输出.png>`
-  若报浏览器缺失（CLI 版本与浏览器 build 不配套）：同前缀 `npx -y playwright install chromium`
+- 无头浏览器：双机均已装 Playwright Chromium；Windows 机已长期化 `../tools/playwright`（1.62.1 ↔ chromium-1234，含库可写交互脚本），验收截图：
+  `cd ../tools/playwright && ./node_modules/.bin/playwright screenshot --viewport-size=1280,800(或390,844) <url> <输出绝对路径>`
+  Mac 或本地安装不可用时兜底（镜像前缀勿省）：`npm_config_registry=https://mirrors.cloud.tencent.com/npm/ npx -y playwright screenshot ...`；报浏览器缺失 = CLI 与浏览器 build 不配套，对应环境跑 `playwright install chromium`
 - **验收脚本是一次性的**：每次验收现写到 `../tools/`（不进 git），收尾即删——不要去找上一次的脚本，需要历史断言结论就翻 DEVLOG 对应条目；脚本里读棋盘/对局状态用引擎暴露的 `boardEl.win98Board` / `appEl.win98DgRun`，选择器记得加模式作用域（见 PITFALLS 扫雷引擎类）
 - 部署：已上线 GitHub Pages —— https://viola0723.github.io/win98/ （仓库 https://github.com/viola0723/win98 ，推送后约 1-3 分钟自动更新）
 - 部署（腾讯云站）：https://viola0723.com —— 腾讯轻量云 nginx 静态站（`/var/www/win98`，root clone 本仓库），**不自动同步**；用户说「同步腾讯云 / 发版」时执行 `ssh -F ~/.ssh/config tx-cloud 'sudo git -C /var/www/win98 pull'`，完事 curl 验证 200。连接方式/证书/服务器环境详见仓库外 `C:/Kimi Code/服务器-tx-cloud.md`（本机 Kimi Code 根目录下，不进 git）
 - GitHub 凭据（双机）：Mac = PAT 存 macOS 钥匙串（repo 权限），`git push` 直接可用；gh CLI 在 `../tools/gh_2.96.0_macOS_amd64/bin/gh`（注意：因 token 只有 repo scope，gh 本体拒绝登录，如需完整 gh 功能要重新设备授权并勾选完整 scope）。Windows 机（`C:/Kimi Code/win98`）= SSH 密钥——私钥在仓库 `.git/ssh/`（不进 git、勿外传），remote 为 `ssh://git@ssh.github.com:443/viola0723/win98.git`，仓库级 `core.sshCommand` 已配好；该机 github.com 直连不稳，克隆备用镜像 `https://gh-proxy.com/https://github.com/viola0723/win98.git`
 - 图标版权：已全部替换为自绘像素图标（`tools/make_icons.py`），无版权顾虑；需要新图标就改脚本重跑
-- Windows 机已装系统 Python 3.12.9 + Pillow 12.3.0（2026-08-10，用户级安装已 PrependPath，`pip install --user` 走腾讯镜像）——`python tools/make_icons.py` / `python3 -m http.server 8098` 直跑；`../tools/python-embed` 仍是 img2threejs 专用便携环境，**勿动勿混用**
+- Windows 机已装系统 Python 3.12.9 + Pillow 12.3.0（2026-08-10，用户级安装已 PrependPath，`pip install --user` 走腾讯镜像）——**该安装只注册 `python` 命令**（无 `python3.exe`，`python3` 落到商店 stub），`python tools/make_icons.py` / `python -m http.server 8098` 直跑；`../tools/python-embed` 仍是 img2threejs 专用便携环境，**勿动勿混用**
 - inspira-ui 镜像：`../tools/inspira-ui`（浅克隆，长期保留，勿当临时产物清理；更新用 `git -C ../tools/inspira-ui pull`）
 - img2threejs 流水线：`../tools/img2threejs`（v1.4.3 钉版，长期保留）+ 便携 Python `../tools/python-embed`（`python312._pth` 已配 forge 各 stage 目录，**勿改勿删**）+ 适配 skill `~/.agents/skills/img2threejs/SKILL.md`（完整命令序列与评审页参数）。流程：dreamina 参考图候选 → spec 深化 → 8 pass 评审闭环 → `src/models/` 工厂 + 展品壳 + 封面；运行档案 `../tools/i2t-runs/<物体名>/`
 - AIGC 生成（生图/生视频/生音乐）：**完整手册在仓库外 `C:/Kimi Code/aigc-guides`**（独立 git 仓，模型选型/命令/提示词模板以它为准，用前先读其 README）。CLI 两枚：`dreamina`（即梦主力，图+视频，`~/bin/dreamina.exe`，已 OAuth 登录）、`mmx`（MiniMax 备份 + 音乐主力 music-3.0，见用户级 skill mmx-cli）。典型用途：展品封面/参考图（Seedream 4.0→4.5→5.0Pro 逐级升档）、图生视频动画（Seedance 2.0mini 日常 / 2.0_vip 交付级，"会动的封面"工艺）、卡带音乐。注意：**必须显式传 `--model_version`**（CLI 默认档比日常策略贵）；生成消耗积分，提交真实任务前先与用户确认；产物默认落工作区根 `gen/`（不进 git）
