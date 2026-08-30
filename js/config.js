@@ -39,8 +39,10 @@ window.WIN98_MODULES = [
     icon: 'assets/icons/poker.png',
     type: 'window',
     app: 'poker', /* adapt: A（核心游戏，双端完整） */
+    /* 高度按内容实测定：操作栏已恒定等高（见 style.css 牌桌零抖动策略），
+       756 = 顶栏+牌桌 min380+强度条+日志64+操作栏158 恰好无溢出 */
     width: 560,
-    height: 720
+    height: 756
   },
   {
     id: 'friend-link',

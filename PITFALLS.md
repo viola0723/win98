@@ -86,6 +86,10 @@
 
 ## 工程 / 环境
 
+- **`transition: all` 会连带过渡 `visibility`：父容器 hidden 时子元素残影且短暂可点**（2026-08-31）
+  现象：德州扑克加注面板改 `visibility:hidden` 占位后，电脑思考时快捷注额按钮仍「看得见」，getComputedStyle 显示父链全 hidden、按钮自身 visible，像见了鬼。
+  根因：按钮上 `transition: all .15s` 把 visibility 也纳入过渡；visibility 过渡是离散插值——从 visible 到 hidden 的整个过渡期内都按 visible 渲染，直到终点才翻转，期间元素可见且可命中。
+  规则：会被 visibility 显隐的容器内部，子元素禁用 `transition: all`，显式列出要过渡的属性（border-color/color/background-color 等）；排查「样式明明对却不生效」时注意 getComputedStyle 抓到的可能是过渡中间态，等过渡窗口过去再下结论。
 - **hover 位移顶出横向滚动条：滚动容器里 hover transform 必须配 overflow-x:hidden**（2026-08-30）
   现象：随身听架子（`.tp-slots` 独立滚动后）鼠标悬停某行下边框附近，整个架子区域快速抖动；「有时候」才出现。
   根因：`.tp-row:hover { transform: translateX(4px) }` 让行右溢 4px；CSS 规范里 overflow-y:auto 会把 overflow-x:visible 升级为 auto → 溢出即渲染横向滚动条（Windows Chrome 经典滚动条占 ~15px 高）→ 列表内容整体上跳 → 行脱开鼠标 → hover 丢失 → 位移撤销 → 滚动条消失 → 行回位 → hover 恢复……死循环。「有时候」= 只有悬停行贴近可视区底边时上跳才会把它移出鼠标。无头浏览器用 overlay 滚动条不占布局，复现不了。

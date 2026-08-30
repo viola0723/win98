@@ -1353,7 +1353,7 @@ body.dragging {
 
 /* ============ 日志 ============ */
 .app-poker .log{
-  width: 100%; max-width: 860px; max-height: 64px; overflow-y: auto;
+  width: 100%; max-width: 860px; min-height: 64px; max-height: 64px; overflow-y: auto;
   background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.07);
   border-radius: 10px; padding: 6px 12px; font-size: 12px; line-height: 1.7;
   color: var(--txt-dim);
@@ -1372,8 +1372,12 @@ body.dragging {
   padding: 10px 14px calc(10px + var(--safe-b));
   display: flex; flex-direction: column; gap: 8px;
 }
-.app-poker .raise-panel{ display: none; flex-direction: column; gap: 6px; max-width: 860px; width: 100%; margin: 0 auto; }
-.app-poker .raise-panel.show{ display: flex; }
+/* 牌桌零抖动策略：操作栏三态（加注面板/按钮行/思考中）恒定等高，
+   牌桌 flex:1 吃到的剩余空间才不随状态切换变化——
+   加注面板用 visibility 隐藏但永远占位；快捷注额预留一行高度（未填充时也不塌）；
+   按钮行 min-height 对齐最高的「带副行金额」按钮 */
+.app-poker .raise-panel{ display: flex; flex-direction: column; gap: 6px; max-width: 860px; width: 100%; margin: 0 auto; visibility: hidden; }
+.app-poker .raise-panel.show{ visibility: visible; }
 .app-poker .raise-top{ display: flex; align-items: center; gap: 12px; }
 .app-poker .raise-amt{
   min-width: 86px; text-align: center; font-size: 18px; font-weight: 900; color: var(--gold);
@@ -1395,15 +1399,17 @@ body.dragging {
   background: radial-gradient(circle at 35% 35%, #fff, #d8d8d8);
   border: 3px solid var(--gold-deep); box-shadow: 0 2px 8px rgba(0,0,0,0.5); cursor: pointer;
 }
-.app-poker .quick-bets{ display: flex; gap: 6px; justify-content: center; }
+.app-poker .quick-bets{ display: flex; gap: 6px; justify-content: center; min-height: 30px; }
 .app-poker .quick-bets button{
   flex: 1; max-width: 130px; padding: 6px 4px; font-size: 12px; font-weight: 700;
   background: rgba(255,255,255,0.07); color: var(--txt); border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 8px; cursor: pointer; transition: all .15s;
+  border-radius: 8px; cursor: pointer;
+  /* 不用 transition:all——会连带过渡 visibility，面板隐藏时按钮残影 150ms（且期间可点） */
+  transition: border-color .15s, color .15s, background-color .15s;
 }
 .app-poker .quick-bets button:hover{ border-color: var(--gold); color: var(--gold); }
 
-.app-poker .btn-row{ display: flex; gap: 8px; justify-content: center; max-width: 860px; width: 100%; margin: 0 auto; }
+.app-poker .btn-row{ display: flex; gap: 8px; justify-content: center; max-width: 860px; width: 100%; margin: 0 auto; min-height: 58px; }
 .app-poker .act-btn{
   flex: 1; max-width: 200px; padding: 13px 8px; border: none; border-radius: 12px;
   font-size: 15px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px;
@@ -1524,11 +1530,12 @@ body.dragging {
   .app-poker .toast{ font-size: 12px; padding: 5px 12px; }
   .app-poker .pot-display{ font-size: 14px; padding: 4px 14px; }
   .app-poker .phase-label{ font-size: 10px; }
-  .app-poker .log{ max-height: 48px; font-size: 10.5px; padding: 4px 10px; line-height: 1.6; }
+  .app-poker .log{ min-height: 48px; max-height: 48px; font-size: 10.5px; padding: 4px 10px; line-height: 1.6; }
   .app-poker .strength-bar{ font-size: 12px; padding: 5px 10px; min-height: 30px; }
   .app-poker .action-bar{ padding: 8px 10px calc(8px + var(--safe-b)); gap: 6px; }
   .app-poker .act-btn{ padding: 13px 4px; font-size: 14px; border-radius: 10px; }
   .app-poker .act-btn small{ font-size: 9px; }
+  .app-poker .quick-bets{ min-height: 29px; }
   .app-poker .quick-bets button{ font-size: 11px; padding: 6px 2px; }
   .app-poker .raise-amt{ font-size: 16px; min-width: 72px; }
   .app-poker .modal{ padding: 20px 16px; }
