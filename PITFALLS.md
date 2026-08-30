@@ -86,7 +86,10 @@
 
 ## 工程 / 环境
 
-- **Playwright CLI 与浏览器 build 必须配套**（2026-07-25）
+- **新增 CSS class 前先全仓搜一遍——模块内联 SVG 里也全是 class**（2026-08-30）
+  现象：随身听 VOL 分辑标签起名 `.tp-vol`，验收发现页面多出第 4 个空「分辑标签」、搜索过滤也藏不掉它。
+  根因：机身内联 SVG 的音量滑杆组早已占用 `class="tp-vol"`（buildPlayerSVG）；SVG 元素的 className 是 SVGAnimatedString 对象，DOM 排查时parent链看着像「没有类名」，且 CSS 规则会同时打到 SVG 组上。
+  规则：加新 class 名先全仓 Grep（含 js 里的内联 SVG 字符串）；SVG 组与 HTML 元素同在 document 级选择器范围内，没有「SVG 里撞不到」这回事。
   现象：`npx -y playwright screenshot` 报 `Executable doesn't exist ... chromium_headless_shell-1234`。
   根因：`npx -y` 拉最新 CLI，它要的浏览器 build 比本机已装的新。
   规则：报错即跑 `npx -y playwright install chromium` 升级浏览器；或钉版本（如 `playwright@1.61.1` ↔ chromium-1228，查 `unpkg.com/playwright-core@<版本>/browsers.json` 的 revision）。

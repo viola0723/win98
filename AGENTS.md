@@ -20,7 +20,7 @@
 
 ## 当前阶段（只记最近动态，全史见 DEVLOG.md）
 
-- 2026-08-22｜**公安联网备案号上站**：粤公网安备44030002015934号 落定，官方国徽图标（`assets/icons/beian-gongan.png`，生成器自绘之外的法规例外）+ 查询页链接进任务栏托盘（`#beian-gongan-link`），与 ICP 并排。全链细节见 DEVLOG 同日
+- 2026-08-30｜**随身听架子升级：搜索 + VOL 分辑 + 自动定位**（同日已加歌五连，现 12 盘）：架内搜索过滤、固定 5 盘一辑 `VOL.N` 分辑、换带架子自动定位 + PC 端架子独立滚动（全链见 DEVLOG 同日）
 
 ## 快速上手
 
@@ -43,7 +43,7 @@ for f in js/*.js; do node --check "$f"; done   # 改动后跑一遍语法检查
 | `js/apps/mine-dungeon.js` | 扫雷·寻找时间胶囊（肉鸽）：三职业、装备/消耗品分家、宝箱+商店、11 层主线双结局；数据驱动 CLASSES/GEAR/ITEMS/PACKS；**挂载即 fitWindowToContent** |
 | `js/apps/poker.js` | 德州扑克模块（移植自独立版单文件游戏；样式在 style.css 末尾以 `.app-poker` 为作用域） |
 | `js/apps/exhibit.js` | iframe 通用渲染器：加载 `cfg.exhibit` 指定的页面（展览馆大厅、隔空文件桥等）；按需权限字段 `cfg.allow`（如 'camera'）/ `cfg.allowFullscreen` |
-| `js/apps/tapeplayer.js` | 卡带随身听（A 级）：数据注册表 `WIN98_TAPES` 在头部（加歌三步见注释）；飞行入带 / 斜二轴测 2.5D 机身 / 相框封面 / 真实波形 seek / 按住快进快退；SVG 按钮非 button 不吃 touchTap，自带 pointerup tap 判定；状态挂 `bodyEl.win98Tape`（+ `win98TapeAudio`） |
+| `js/apps/tapeplayer.js` | 卡带随身听（A 级）：数据注册表 `WIN98_TAPES` 在头部（加歌三步见注释）；架子 = VOL 分辑（固定 5 盘）+ 搜索过滤 + 换带自动定位（PC 端架子独立滚动）；飞行入带 / 斜二轴测 2.5D 机身 / 相框封面 / 真实波形 seek / 按住快进快退；SVG 按钮非 button 不吃 touchTap，自带 pointerup tap 判定；状态挂 `bodyEl.win98Tape`（+ `win98TapeAudio`） |
 | `js/screensaver.js` | 屏幕保护：闲置 5 分钟全屏播放展品，任意输入退出；`WIN98_SAVER.show()` 供开始菜单预览 |
 | `js/windowManager.js` | 窗口生命周期，对外 `WindowManager.open(module)`；动态切换 `#windows` pointer-events（勿静态写死） |
 | `js/touchTap.js` | 触屏轻点激活兜底（iOS 真机 click 不派发）：pointerup 校验后 `el.click()` 补发 + isTrusted 去重；鼠标路径不动 |

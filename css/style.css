@@ -1646,6 +1646,20 @@ body.dragging {
 .app-tape .tp-eq i:nth-child(3) { height: 40%; animation-delay: .6s; }
 @keyframes tp-eq { 50% { transform: scaleY(.35); } }
 
+/* 架内搜索框 + VOL 分辑标签 + 空结果提示 */
+.app-tape .tp-search { width: 100%; box-sizing: border-box; background: #101016; border: 1px solid #2a2a32;
+  border-radius: 4px; color: #e8e8f0; font-size: 11px; padding: 5px 8px; outline: none; font-family: inherit; }
+.app-tape .tp-search:focus { border-color: var(--accent); }
+.app-tape .tp-search::placeholder { color: #5a5a66; }
+.app-tape .tp-volcap { font-size: 9px; color: #565660; letter-spacing: 2px; padding: 8px 2px 2px;
+  display: flex; align-items: center; gap: 6px; user-select: none; }
+.app-tape .tp-volcap::after { content: ''; flex: 1; height: 1px; background: #26262e; }
+.app-tape .tp-empty { font-size: 10px; color: #6a6a76; padding: 10px 2px; }
+/* 架子独立滚动（PC）：自动定位只滚列表、不顶走机身；手机上仍整窗滚动 */
+.app-tape .tp-slots { max-height: 336px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #2a2a32 transparent; }
+.app-tape .tp-slots::-webkit-scrollbar { width: 8px; }
+.app-tape .tp-slots::-webkit-scrollbar-thumb { background: #2a2a32; border-radius: 4px; }
+
 /* --- 中：卡带机（斜二轴测 2.5D 机身，SVG 内部类名由 tapeplayer.js 生成） --- */
 .app-tape .tp-stage { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
 .app-tape .tp-player-wrap { position: relative; width: 100%; max-width: 500px; }
@@ -1691,5 +1705,6 @@ body.dragging {
   .app-tape .tp-frame-inner { width: min(280px, 78vw); height: min(280px, 78vw); }
   .app-tape .tp-wf-wrap { width: min(304px, 84vw); }
   .app-tape .tp-shelf { order: 3; width: 100%; }
+  .app-tape .tp-slots { max-height: none; overflow-y: visible; }
   .app-tape .tp-row:hover { transform: none; }
 }
