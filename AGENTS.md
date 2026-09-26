@@ -20,7 +20,7 @@
 
 ## 当前阶段（只记最近动态，全史见 DEVLOG.md）
 
-- 2026-08-31｜**德州扑克牌桌零抖动**：操作栏三态（行动/思考/空闲）改恒定等高——加注面板 visibility 占位、快捷注额/按钮行 min-height 预留、日志恒高；牌桌 `flex:1` 不再随状态呼吸（实测 PC 恒 388px / 手机恒 468px）；默认窗口高 720→756 顺带根治日志底部裁剪；`transition:all` 过渡 visibility 致按钮残影的坑已录 PITFALLS 工程类
+- 2026-09-26｜**随身听上架《江南夜》**（第 13 盘 → VOL.3 首盘）：首次 M→K handoff 流水线——V 定 `/var/www/win98/handoff/` 常驻交接区（谁接收谁清理、LOG 台账），M 按《加歌指引》备料交付，K 复算核验（peaks/取色逐位一致）入库；双端 26 断言全过；`.gitignore` 补登 `handoff/`。探针备忘：音频走 `bodyEl.win98TapeAudio`（new Audio 不挂 DOM）、`--accent` 在 `.app-tape` 上
 
 ## 快速上手
 
@@ -100,6 +100,7 @@ Markdown 文章阅读器（我的文档，图标已备 `folder.png`）、右键�
 - 部署：已上线 GitHub Pages —— https://viola0723.github.io/win98/ （仓库 https://github.com/viola0723/win98 ，推送后约 1-3 分钟自动更新）
 - 部署（腾讯云站）：https://viola0723.com —— 腾讯轻量云 nginx 静态站（`/var/www/win98`，root clone 本仓库），**不自动同步**；用户说「同步腾讯云 / 发版」时执行 `ssh -F ~/.ssh/config tx-cloud 'sudo git -C /var/www/win98 pull'`，完事 curl 验证 200。连接方式/证书/服务器环境详见仓库外 `C:/Kimi Code/服务器-tx-cloud.md`（本机 Kimi Code 根目录下，不进 git）
 - M 发货目录：腾讯云站 `/var/www/win98/tmp-media/`（已 gitignore 不跟踪，ubuntu 属主）↔ `https://viola0723.com/tmp-media/<文件>`——云端 agent M 生成的图/音/视频放这里发 URL 给 V（Paseo 只能传文本；V 定 2026-09-14，K 开设 2026-09-15），**内容每次收尾必清**；只存在腾讯云站（GitHub Pages 无此目录），发版 pull 不受影响
+- M↔K 交接区：腾讯云站 `/var/www/win98/handoff/`（已 gitignore，ubuntu 属主）↔ 同规律 URL——**异步交接常驻区**（V 定 2026-09-26）：tmp-media「收尾必清」的例外，每次交付一个 `<yyyymmdd>-<m2k|k2m>-<主题>/` 子文件夹，**谁接收谁清理**，`LOG.md` 台账只增不删；附 `来自K/`、`来自M/` 双信箱（取后即清、档案各自保管）；规矩全文在服务器 `handoff/README.md`。公网按名可取，**禁放密钥/敏感物**（M 侧红线同）。M 备料加歌流程见服务器 `~/m/docs/来自K/来自K-20260926-win98随身听加歌指引.md`
 - GitHub 凭据（双机）：Mac = PAT 存 macOS 钥匙串（repo 权限），`git push` 直接可用；gh CLI 在 `../tools/gh_2.96.0_macOS_amd64/bin/gh`（注意：因 token 只有 repo scope，gh 本体拒绝登录，如需完整 gh 功能要重新设备授权并勾选完整 scope）。Windows 机（`C:/Kimi Code/win98`）= SSH 密钥——私钥在仓库 `.git/ssh/`（不进 git、勿外传），remote 为 `ssh://git@ssh.github.com:443/viola0723/win98.git`，仓库级 `core.sshCommand` 已配好；该机 github.com 直连不稳，克隆备用镜像 `https://gh-proxy.com/https://github.com/viola0723/win98.git`
 - 图标版权：已全部替换为自绘像素图标（`tools/make_icons.py`），无版权顾虑；需要新图标就改脚本重跑
 - Windows 机已装系统 Python 3.12.9 + Pillow 12.3.0（2026-08-10，用户级安装已 PrependPath，`pip install --user` 走腾讯镜像）——**该安装只注册 `python` 命令**（无 `python3.exe`，`python3` 落到商店 stub），`python tools/make_icons.py` / `python -m http.server 8098` 直跑；`../tools/python-embed` 仍是 img2threejs 专用便携环境，**勿动勿混用**
